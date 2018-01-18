@@ -58,6 +58,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				if (value != null) edgeTo(value)
 			}
 
+		val justHaveNext: Boolean get() = (next != null) && dstEdgesButNext.isEmpty()
+
 		init {
 			trace { "node: ${this.name}" }
 		}
@@ -75,6 +77,13 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 		override fun toString(): String = "L$index: " + dump(types, body.stm()).toString().replace('\n', ' ').trim() + " EDGES: $dstEdges. SRC_EDGES: ${srcEdges.size}"
 		fun isEmpty(): Boolean = body.isEmpty()
+		fun followUnconditionals(): Node {
+			var node = this
+			while (node.justHaveNext) {
+				node = node.next!!
+			}
+			return node
+		}
 	}
 
 	inner class Edge(val src: Node, val dst: Node, val cond: AstExpr? = null) {
@@ -104,7 +113,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 			for (e in node.dstEdges) queue.queue(e.dst)
 		}
-		invalidOp("Can't find exit node")
+		relooperException("Can't find exit node")
 	}
 
 	var lastIndex = 0
@@ -410,8 +419,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 	fun renderComponents(pg: StrongComponentGraph<Node>? = null, g: StrongComponentGraph<Node>, entry: Node, exit: Node?, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
 		if (level > 6) {
-			//throw RelooperException("Too much nesting levels!")
-			invalidOp("ERROR When Relooping $name (TOO MUCH NESTING LEVELS)")
+			relooperException("Too much nesting levels in $name!")
+			//invalidOp("ERROR When Relooping $name (TOO MUCH NESTING LEVELS)")
 		}
 
 		val indent by lazy { INDENTS[level] }
@@ -442,7 +451,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			// Loop
 			if (isMultiNodeLoop || isSingleNodeLoop) {
 				trace { "$indent- LOOP csize=${component.size} : $node" }
-				val outs = component.getExternalOutputsNodes()
+				val outs = component.getExternalOutputsNodes().map { it.followUnconditionals() }
 				var outsNotInContext = outs.filter { it !in ctx.loopStarts && it !in ctx.loopEnds }
 				val outsNotInContext2 = outsNotInContext.filter { !it.exitNode }
 				//val outsNotInContext = outs.filter { it !in ctx.loopStarts }
@@ -451,7 +460,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						outsNotInContext = listOf(node.locateExitNode())
 					} else {
 						trace { "$indent- ASSERTION FAILED! outsNotInContext.size != 1 (${outsNotInContext.size}) : $node" }
-						invalidOp("ERROR When Relooping '$name' MULTIPLE EXITS :: NODES${component.nodes.toLString()}, EXITS:${outsNotInContext.toLString()}")
+						//invalidOp("ERROR When Relooping '$name' MULTIPLE EXITS :: NODES${component.nodes.toLString()}, EXITS:${outsNotInContext.toLString()}")
+						relooperException("ERROR When Relooping '$name' MULTIPLE EXITS :: NODES${component.nodes.toLString()}, EXITS:${outsNotInContext.toLString()}")
 					}
 				}
 
@@ -499,7 +509,10 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 				node = renderNoLoops(pg, g, out, node, exit, ctx, level = level)
 			}
 
-			if (node == prevNode) invalidOp("Infinite loop detected")
+			if (node == prevNode) {
+				//invalidOp("Infinite loop detected")
+				relooperException("Infinite loop detected")
+			}
 			//if (node?.exitFinalNode == true) break
 		}
 		return out.stmsWithoutNops
@@ -508,7 +521,26 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 	val Iterable<AstStm>.stmsWithoutNopsAndLineList: List<AstStm> get() = this.filter { !it.isNopOrLine() }
 	val Iterable<AstStm>.stmsWithoutNops: AstStm get() = this.stmsWithoutNopsAndLineList.stm()
 
+	fun renderComponentsOrExit(pg: StrongComponentGraph<Node>? = null, g: StrongComponentGraph<Node>, entry: Node, exit: Node?, ctx: RenderContext = RenderContext(g.graph), level: Int = 0): AstStm {
+		val start = ctx.loopStarts[entry]
+		val end = ctx.loopEnds[entry]
+		if (start != null) return AstStm.CONTINUE(start)
+		if (end != null) return AstStm.BREAK(end)
+		return renderComponents(pg, g, entry, exit, ctx, level)
+	}
+
 	fun renderNoLoops(pg: StrongComponentGraph<Node>?, g: StrongComponentGraph<Node>, out: ArrayList<AstStm>, node: Node, exit: Node?, ctx: RenderContext, level: Int): Node? {
+		//val start = ctx.loopStarts[node]
+		//val end = ctx.loopEnds[node]
+		//if (start != null) {
+		//	out += AstStm.CONTINUE(start)
+		//	return null
+		//}
+		//if (end != null) {
+		//	out += AstStm.BREAK(end)
+		//	return null
+		//}
+
 		val indent = INDENTS[level]
 		trace { "$indent- renderNoLoops: Detected no loop : $node" }
 		out += node.body.stmsWithoutNops
@@ -593,9 +625,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 				out += AstStm.SWITCH(
 					firstCond.left.value,
-					renderComponents(pg, g, node.next!!, common, ctx, level = level + 1),
+					renderComponentsOrExit(pg, g, node.next!!, common, ctx, level = level + 1),
 					nodeToKeys.map {
-						it.value to renderComponents(pg, g, it.key, common, ctx, level = level + 1)
+						it.value to renderComponentsOrExit(pg, g, it.key, common, ctx, level = level + 1)
 					}
 				)
 
@@ -603,7 +635,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 
 			var base = if (node.next != null) {
-				renderComponents(pg, g, node.next!!, common, ctx, level = level + 1)
+				renderComponentsOrExit(pg, g, node.next!!, common, ctx, level = level + 1)
 			} else {
 				AstStm.NOP("")
 			}
@@ -611,7 +643,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			for (e in node.dstEdgesButNext) {
 				base = AstStm.IF_ELSE(
 					e.condOrTrue,
-					renderComponents(pg, g, e.dst, common, ctx, level = level + 1),
+					renderComponentsOrExit(pg, g, e.dst, common, ctx, level = level + 1),
 					base
 				)
 			}
@@ -637,7 +669,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		// IF
 			endOfIfNode -> out += AstStm.IF(
 				endOfIfEdge.cond!!.not(), // @TODO: Negate a float comparison problem with NaNs
-				renderComponents(pg, g, ifBody, endOfIfNode, ctx, level = level + 1)
+				renderComponentsOrExit(pg, g, ifBody, endOfIfNode, ctx, level = level + 1)
 			)
 		// IF
 			null -> {
@@ -659,8 +691,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 
 						out += AstStm.IF_ELSE(
 							endOfIfEdge.cond!!.not(),
-							renderComponents(pg, g, ifBody, common, ctx, level = level + 1),
-							renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1)
+							renderComponentsOrExit(pg, g, ifBody, common, ctx, level = level + 1),
+							renderComponentsOrExit(pg, g, endOfIfNode, common, ctx, level = level + 1)
 						).optimizeIfElse()
 					}
 				}
@@ -669,8 +701,8 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 		// IF+ELSE
 			else -> out += AstStm.IF_ELSE(
 				endOfIfEdge.cond!!.not(),
-				renderComponents(pg, g, ifBody, common, ctx, level = level + 1),
-				renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1)
+				renderComponentsOrExit(pg, g, ifBody, common, ctx, level = level + 1),
+				renderComponentsOrExit(pg, g, endOfIfNode, common, ctx, level = level + 1)
 			).optimizeIfElse()
 		}
 		return common
@@ -796,3 +828,4 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 }
 
 class RelooperException(message: String) : RuntimeException(message)
+fun relooperException(message: String): Nothing = throw RelooperException(message)

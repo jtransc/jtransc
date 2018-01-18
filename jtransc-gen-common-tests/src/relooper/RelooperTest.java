@@ -59,6 +59,8 @@ public class RelooperTest {
 		floatComparisons(1f);
 		floatComparisons(Float.NaN);
 		floatComparisons(-Float.NaN);
+
+		breakInsideIf(10);
 	}
 
 	@JTranscRelooper
@@ -292,4 +294,49 @@ public class RelooperTest {
 		static final int FINDREG = 9;
 		static final int GROUP_IN = 15;
 	}
+
+	@JTranscRelooper(debug = true)
+	public static void breakInsideIf(int dst) {
+		int n = 0;
+		for (; n < dst; n++) {
+			if (n == 4) {
+				JTranscConsole.log(n);
+				break;
+			}
+		}
+		JTranscConsole.log(n);
+	}
+
+	/*
+	@JTranscRelooper(debug = true)
+	public static String toString(double v) {
+		if (Double.isNaN(v)) return "NaN";
+		if (Double.isInfinite(v)) return (v < 0) ? "-Infinity" : "Infinity";
+		if (v == 0.0) {
+			long l = Double.doubleToRawLongBits(v);
+			if ((l >>> 63) != 0) return "-0.0";
+		}
+		//return JTranscStringTools.toString(d);
+		String out = _toString(v);
+		boolean hasSymbols = false;
+		for (int n = 0; n < out.length(); n++) {
+			char c = out.charAt(n);
+			if (!Character.isDigit(c) && c != '-') {
+				hasSymbols = true;
+				break;
+			}
+		}
+		if (out.indexOf("e+") >= 0) out = replace(out, "e+", "E");
+		if (out.indexOf("e-") >= 0) out = replace(out, "e-", "E-");
+		return hasSymbols ? out : (out + ".0");
+	}
+
+	public static String _toString(double v) {
+		return "" + v;
+	}
+
+	public static String replace(String value, String src, String dst) {
+		return value;
+	}
+	*/
 }

@@ -119,7 +119,7 @@ class GotosFeature : AstMethodFeature() {
 			val bodyGotos = if (settings.optimize) render.optimize(body.flags) else render
 			return body.copy(stm = bodyGotos)
 		} catch (e: RelooperException) {
-			println("RelooperException: ${e.message}")
+			//println("RelooperException: ${e.message}")
 			return null
 		}
 	}
