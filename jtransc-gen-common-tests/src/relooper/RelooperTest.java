@@ -1,10 +1,8 @@
 package relooper;
 
 import com.jtransc.annotation.JTranscRelooper;
-import com.jtransc.annotation.JTranscSync;
 import com.jtransc.io.JTranscConsole;
 
-import java.nio.DoubleBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +54,11 @@ public class RelooperTest {
 		JTranscConsole.log(myswitch(4));
 
 		JTranscConsole.log(switchCase(new Term(), 0, new Term()));
+
+		floatComparisons(0f);
+		floatComparisons(1f);
+		floatComparisons(Float.NaN);
+		floatComparisons(-Float.NaN);
 	}
 
 	@JTranscRelooper
@@ -233,7 +236,19 @@ public class RelooperTest {
 		return true;
 	}
 
-	@JTranscRelooper(debug = true)
+	@JTranscRelooper
+	@SuppressWarnings("ConstantConditions")
+	static private void floatComparisons(float v) {
+		JTranscConsole.log("floatComparisons:" + v);
+		JTranscConsole.log(v < Float.NaN);
+		JTranscConsole.log(v > Float.NaN);
+		JTranscConsole.log(v <= Float.NaN);
+		JTranscConsole.log(v >= Float.NaN);
+		JTranscConsole.log(v == Float.NaN);
+		JTranscConsole.log(v != Float.NaN);
+	}
+
+	@JTranscRelooper
 	static private int switchCase(Term target, int distance, Term theFirst) {
 		int type;
 		Term next;

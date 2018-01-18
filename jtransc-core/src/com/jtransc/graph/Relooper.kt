@@ -500,6 +500,7 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 
 			if (node == prevNode) invalidOp("Infinite loop detected")
+			//if (node?.exitFinalNode == true) break
 		}
 		return out.stmsWithoutNops
 	}
@@ -657,9 +658,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 						trace { "$indent- WARNING: Maybe an if-chain that was not optimized? And this will generate repeated branches!" }
 
 						out += AstStm.IF_ELSE(
-							endOfIfEdge.cond!!,
-							renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1),
-							renderComponents(pg, g, ifBody, common, ctx, level = level + 1)
+							endOfIfEdge.cond!!.not(),
+							renderComponents(pg, g, ifBody, common, ctx, level = level + 1),
+							renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1)
 						).optimizeIfElse()
 					}
 				}
@@ -667,9 +668,9 @@ class Relooper(val types: AstTypes, val name: String = "unknown", val debug: Boo
 			}
 		// IF+ELSE
 			else -> out += AstStm.IF_ELSE(
-				endOfIfEdge.cond!!,
-				renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1),
-				renderComponents(pg, g, ifBody, common, ctx, level = level + 1)
+				endOfIfEdge.cond!!.not(),
+				renderComponents(pg, g, ifBody, common, ctx, level = level + 1),
+				renderComponents(pg, g, endOfIfNode, common, ctx, level = level + 1)
 			).optimizeIfElse()
 		}
 		return common
