@@ -874,7 +874,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	}
 
 	fun genStmSwitchGoto(stm: AstStm.SWITCH_GOTO): Indenter = indent {
-		flowBlock(FlowKind.SWITCH, "") {
+		flows.block(Flow(Flow.Kind.SWITCH, "")) {
 			line("switch (${stm.subject.genExpr()})") {
 				for ((values, label) in stm.cases) {
 					line("${buildMultipleCase(values)} ${genGoto(label, false)}")
@@ -942,24 +942,28 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open fun genStmRawCatch(trap: AstTrap): Indenter = Indenter {
 	}
 
-	enum class FlowKind { SWITCH, WHILE }
+	data class Flow(val kind: Kind, val name: String) {
+		enum class Kind { SWITCH, WHILE }
+	}
 
-	val flowBlocks = ArrayList<FlowKind>()
-	val flowNames = ArrayList<String>()
+	class Flows {
+		val flows = ArrayList<Flow>()
 
-	inline fun <T> flowBlock(kind: FlowKind, name: String, callback: () -> T): T {
-		try {
-			flowBlocks += kind
-			flowNames += name
-			return callback()
-		} finally {
-			flowNames.removeAt(flowNames.size - 1)
-			flowBlocks.removeAt(flowBlocks.size - 1)
+		inline fun <T> block(flow: Flow, callback: () -> T): T {
+			try {
+				flows += flow
+				return callback()
+			} finally {
+				flows.removeAt(flows.size - 1)
+			}
 		}
 	}
 
+
+	val flows = Flows()
+
 	open fun genStmSwitch(stm: AstStm.SWITCH): Indenter = indent {
-		flowBlock(FlowKind.SWITCH, "") {
+		flows.block(Flow(Flow.Kind.SWITCH, "")) {
 			if (stm.cases.isNotEmpty() || !stm.default.value.isEmpty()) {
 				line("switch (${stm.subject.genExpr()})") {
 					for (case in stm.cases) {
@@ -1362,9 +1366,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun genStmWhile(stm: AstStm.WHILE) = indent {
 		val label = if (supportsLabels) "${stm.name}: " else ""
 
-		flowBlock(FlowKind.WHILE, stm.name) {
+		flows.block(Flow(Flow.Kind.WHILE, stm.name)) {
+			val body = stm.body.genStm()
 			line("${label}while (${stm.cond.genExpr()})") {
-				line(stm.body.genStm())
+				line(body)
 			}
 		}
 		if (!supportsLabels) {
@@ -1374,9 +1379,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	fun genStmDoWhile(stm: AstStm.DO_WHILE) = indent {
 		val label = if (supportsLabels) "${stm.name}: " else ""
 
-		flowBlock(FlowKind.WHILE, stm.name) {
+		flows.block(Flow(Flow.Kind.WHILE, stm.name)) {
+			val body = stm.body.genStm()
 			line("${label}do", after2 = " while (${stm.cond.genExpr()});") {
-				line(stm.body.genStm())
+				line(body)
 			}
 		}
 		if (!supportsLabels) {
