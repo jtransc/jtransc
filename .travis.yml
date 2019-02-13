@@ -26,7 +26,8 @@ install:
   > /etc/apt/sources.list.d/dart_stable.list'
 - sudo apt-get update && sudo apt-get -y --allow-unauthenticated install --reinstall
   d-apt-keyring && sudo apt-get update
-- sudo apt-get -y install dmd-bin dart
+#- sudo apt-get -y install dmd-bin dart
+- sudo apt-get -y install dart
 - wget http://haxe.org/website-content/downloads/3.4.2/downloads/haxe-3.4.2-linux64.tar.gz
 - wget http://nekovm.org/media/neko-2.1.0-linux64.tar.gz
 - tar xzf haxe-3.4.2-linux64.tar.gz
@@ -55,7 +56,7 @@ before_script:
 - nvm --version || true
 - which node || true
 - node --version || true
-- dmd --version || true
+#- dmd --version || true
 - "./gradlew --version"
 script:
 - "./gradlew -s -i check install"
