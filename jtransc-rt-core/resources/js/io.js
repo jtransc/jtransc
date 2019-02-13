@@ -109,7 +109,7 @@ IO.Stream.prototype.read = function(data, offset, length) {
 	if (!fs) return -1;
 	if (offset < 0 || offset >= this.length) return -1;
 	if (length == 0) return 0;
-	var buffer = new Buffer(length);
+	var buffer = Buffer.alloc(length);
 	var readed = fs.readSync(this.fd, buffer, offset, length, this.position);
 	if (readed > 0) this.position += readed;
 	for (var n = 0; n < readed; n++) data[n] = buffer[n];
@@ -118,7 +118,7 @@ IO.Stream.prototype.read = function(data, offset, length) {
 
 IO.Stream.prototype.write = function(data, offset, length) {
 	if (!fs) return -1;
-	var written = fs.writeSync(this.fd, new Buffer(data), offset, length, this.position);
+	var written = fs.writeSync(this.fd, Buffer.from(data), offset, length, this.position);
 	if (written > 0) this.position += written;
 	return written;
 };

@@ -31,12 +31,12 @@ import com.jtransc.util.ClassUtils
 import com.jtransc.vfs.SyncVfsFile
 import com.jtransc.vfs.UnjailedLocalVfs
 import com.jtransc.vfs.parent
-import org.junit.Assert
+import org.junit.*
 import java.io.File
 import java.net.JarURLConnection
 import java.net.URL
 
-open class _Base {
+open class _Base(val enabled: Boolean = true) {
 	open val DEFAULT_TARGET: GenTargetDescriptor get() = TODO()
 
 	open val BACKEND = BuildBackend.ASM
@@ -62,6 +62,11 @@ open class _Base {
 
 	init {
 		if (!DEBUG) log.logger = { content, level -> }
+	}
+
+	@Before
+	fun beforeMethod() {
+		Assume.assumeTrue(enabled) // Skip tests based on enabled
 	}
 
 	fun testClass(params: Params) {

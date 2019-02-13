@@ -4,10 +4,10 @@ import com.jtransc.io.async.JTranscAsyncFile
 import com.jtransc.io.async.stat
 import org.junit.Assert
 import org.junit.Test
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.CoroutineContext
-import kotlin.coroutines.experimental.EmptyCoroutineContext
-import kotlin.coroutines.experimental.startCoroutine
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
 
 class AsyncExtTest {
 	@Test
@@ -23,12 +23,12 @@ fun syncTest(block: suspend () -> Unit): Unit {
 	block.startCoroutine(object : Continuation<Unit> {
 		override val context: CoroutineContext = EmptyCoroutineContext
 
-		override fun resume(value: Unit) = run {
-			result = value
-		}
-
-		override fun resumeWithException(exception: Throwable) = run {
-			result = exception
+		override fun resumeWith(value: Result<Unit>) {
+			if (value.isSuccess) {
+				result = value.getOrNull()
+			} else {
+				result = value.exceptionOrNull()
+			}
 		}
 	})
 

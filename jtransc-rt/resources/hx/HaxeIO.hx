@@ -135,7 +135,7 @@ class SyncStream {
 	#if js
 	private var fd:Dynamic;
 	public var fs:Dynamic = SyncFS.fs;
-	private function createBuffer(arg:Dynamic):Dynamic return N.isNode() ? untyped __js__("new Buffer(arg)") : null;
+	private function createBuffer(arg:Dynamic):Dynamic return N.isNode() ? untyped __js__("Buffer.from(arg)") : null;
 	#end
 
 	#if sys

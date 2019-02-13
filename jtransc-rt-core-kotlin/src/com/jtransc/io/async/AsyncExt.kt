@@ -3,8 +3,7 @@ package com.jtransc.io.async
 import com.jtransc.async.JTranscAsyncHandler
 import com.jtransc.io.JTranscFileMode
 import com.jtransc.io.JTranscFileStat
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.suspendCoroutine
+import kotlin.coroutines.*
 
 private fun <T> Continuation<T>.jt(): JTranscAsyncHandler<T> = JTranscAsyncHandler<T> { value, error ->
 	if (error != null) this@jt.resumeWithException(error) else this@jt.resume(value)

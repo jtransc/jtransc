@@ -3,7 +3,7 @@ import big.BigIOTest
 import big.BigTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.common._Base
-import com.jtransc.gen.dart.DartTarget
+import com.jtransc.gen.dart.*
 import issues.issue130.Issue130
 import jtransc.ProcessTest
 import jtransc.bug.JTranscBug127
@@ -29,7 +29,7 @@ import org.junit.Test
  * limitations under the License.
  */
 
-class DartTest : _Base() {
+class DartTest : _Base(DartCommand.available) {
 	override val DEFAULT_TARGET = DartTarget()
 
 	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))

@@ -4,7 +4,7 @@ import big.SideEffectsTest
 import big.ThreadTest
 import com.jtransc.BuildBackend
 import com.jtransc.gen.common._Base
-import com.jtransc.gen.d.DTarget
+import com.jtransc.gen.d.*
 import issues.Issue100Double
 import issues.issue130.Issue130
 import jtransc.bug.JTranscBug127
@@ -32,7 +32,11 @@ import threading.ThreadingTest
  * limitations under the License.
  */
 
-class DTest : _Base() {
+class DTest : _Base(DCompiler.available) {
+	init {
+		println("DCompiler.available=${DCompiler.available}")
+	}
+
 	override val DEFAULT_TARGET = DTarget()
 
 	//@Test fun testMiniHelloWorld() = testClass<MiniHelloWorldTest>(minimize = false, log = false)

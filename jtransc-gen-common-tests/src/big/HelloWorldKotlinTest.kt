@@ -19,7 +19,7 @@ object HelloWorldKotlinTest {
 //})
 //-lc -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub -lSceCtrl_stub -lSceTouch_stub
 @Suppress("unused", "UNUSED_PARAMETER")
-@JTranscAddHeader(target = "cpp", value = """
+@JTranscAddHeader(target = "cpp", value = ["""
 	void input_read() { }
 	int pad_buttons() { return 0; }
 	void font_draw_string(int x, int y, int color, char *str) { printf("%s\n", str); }
@@ -31,7 +31,7 @@ object HelloWorldKotlinTest {
 	void swap_buffers() { }
 	void draw_pixel(int x, int y, int color) {}
 	void draw_rectangle(int x, int y, int width, int height, int color) { printf("draw_rectangle:%d,%d,%d,%d,%d\n", x, y, width, height, color); }
-""")
+"""])
 object PSP2 {
 	private val WHITE = 0xFFFFFFFF.toInt()
 	private val RED = 0xFF0000FF.toInt()
@@ -48,14 +48,14 @@ object PSP2 {
 		println(api.demo())
 
 		JTranscSyncIO.impl = object : JTranscSyncIO.Impl(JTranscSyncIO.impl) {
-			@JTranscMethodBody(target = "cpp", value = """
+			@JTranscMethodBody(target = "cpp", value = ["""
 				auto str = N::istr3(p0);
 				std::vector<std::string> out;
 				out.push_back(str);
 				out.push_back(std::string("hello"));
 				out.push_back(std::string("world"));
 				return N::strArray(out);
-			""")
+			"""])
 			override external fun list(file: String): Array<String>
 		}
 
@@ -90,37 +90,37 @@ object PSP2 {
 		sceKernelExitProcess(0)
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::init_video();")
+	@JTranscMethodBody(target = "cpp", value = ["::init_video();"])
 	@JTranscInline
 	fun init_video() {
 
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::end_video();")
+	@JTranscMethodBody(target = "cpp", value = ["::end_video();"])
 	@JTranscInline
 	fun end_video() {
 
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::clear_screen();")
+	@JTranscMethodBody(target = "cpp", value = ["::clear_screen();"])
 	@JTranscInline
 	fun clear_screen() {
 
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::swap_buffers();")
+	@JTranscMethodBody(target = "cpp", value = ["::swap_buffers();"])
 	@JTranscInline
 	fun swap_buffers() {
 
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::draw_pixel(p0, p1, p2);")
+	@JTranscMethodBody(target = "cpp", value = ["::draw_pixel(p0, p1, p2);"])
 	@JTranscInline
 	fun draw_pixel(x: Int, y: Int, color: Int) {
 
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::draw_rectangle(p0, p1, p2, p3, p4);")
+	@JTranscMethodBody(target = "cpp", value = ["::draw_rectangle(p0, p1, p2, p3, p4);"])
 	@JTranscInline
 	fun draw_rectangle(x: Int, y: Int, w: Int, h: Int, color: Int) {
 		println("draw_rectangle:$x,$y,$w,$h,$color")
@@ -129,31 +129,31 @@ object PSP2 {
 	//static int strLen(SOBJ obj);
 	//static int strCharAt(SOBJ obj, int n);
 
-	@JTranscMethodBody(target = "cpp", value = "int len = N::strLen(p3); char *temp = (char*)malloc(len + 1); memset(temp, 0, len + 1); for (int n = 0; n < len; n++) temp[n] = N::strCharAt(p3, n); ::font_draw_string(p0, p1, p2, temp); free((void*)temp);")
+	@JTranscMethodBody(target = "cpp", value = ["int len = N::strLen(p3); char *temp = (char*)malloc(len + 1); memset(temp, 0, len + 1); for (int n = 0; n < len; n++) temp[n] = N::strCharAt(p3, n); ::font_draw_string(p0, p1, p2, temp); free((void*)temp);"])
 	@JTranscInline
 	fun font_draw_string(x: Int, y: Int, color: Int, str: String) {
 		println(str)
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::input_read();")
+	@JTranscMethodBody(target = "cpp", value = ["::input_read();"])
 	@JTranscInline
 	fun input_read() {
 
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::frame_end();")
+	@JTranscMethodBody(target = "cpp", value = ["::frame_end();"])
 	@JTranscInline
 	fun frame_end() {
 
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "return ::pad_buttons();")
+	@JTranscMethodBody(target = "cpp", value = ["return ::pad_buttons();"])
 	@JTranscInline
 	fun pad_buttons(): Int {
 		return 0
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::sceDisplayWaitVblankStart();")
+	@JTranscMethodBody(target = "cpp", value = ["::sceDisplayWaitVblankStart();"])
 	@JTranscInline
 	fun sceDisplayWaitVblankStart() {
 		try {
@@ -164,7 +164,7 @@ object PSP2 {
 
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "::sceKernelExitProcess(p0);")
+	@JTranscMethodBody(target = "cpp", value = ["::sceKernelExitProcess(p0);"])
 	@JTranscInline
 	fun sceKernelExitProcess(value: Int) {
 	}

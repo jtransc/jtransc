@@ -7,6 +7,8 @@ import java.io.File
 import java.io.FileNotFoundException
 
 object HaxeCompiler {
+	val available get() = ProcessUtils.locateCommand("haxe") != null
+
 	fun ensureHaxeSubtarget(subtarget: String) {
 	}
 

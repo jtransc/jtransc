@@ -5,10 +5,10 @@ import com.jtransc.JTranscSystemProperties
 import com.jtransc.io.async.JTranscAsyncFile
 import com.jtransc.io.async.readAll
 import com.jtransc.io.async.writeBytes
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.CoroutineContext
-import kotlin.coroutines.experimental.EmptyCoroutineContext
-import kotlin.coroutines.experimental.startCoroutine
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
 
 class AsyncIOTest {
 	companion object {
@@ -16,13 +16,12 @@ class AsyncIOTest {
 			var completed = false
 			callback.startCoroutine(object : Continuation<Unit> {
 				override val context: CoroutineContext = EmptyCoroutineContext
-				override fun resume(value: Unit) {
-					completed = true
-				}
 
-				override fun resumeWithException(exception: Throwable) {
-					exception.printStackTrace()
+				override fun resumeWith(result: Result<Unit>) {
 					completed = true
+					if (result.isFailure) {
+						result.exceptionOrNull()?.printStackTrace()
+					}
 				}
 			})
 			if (!JTranscSystem.hasEventLoop()) {

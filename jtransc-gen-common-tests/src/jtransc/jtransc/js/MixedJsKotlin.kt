@@ -12,7 +12,7 @@ object MixedJsKotlin {
 		}, 10)
 		consoleLog("MixedJsKotlin.main[2]")
 		consoleLog(jsArray(1, 2, 3))
-		val buffer = global["Buffer"].new(16)
+		val buffer = global["Buffer"].call("alloc", 16)
 		for (n in 0 until buffer["length"].toInt()) {
 			buffer[n] = n
 		}

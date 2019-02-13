@@ -6,8 +6,11 @@ import com.jtransc.gen.common.BaseCompiler
 import java.io.File
 
 object DCompiler {
+	val compilers = listOf(DMD, GDC, LDC)
+	val available get() = compilers.any { it.available }
+
 	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf(), extraVars: Map<String, List<String>>): List<String> {
-		val provider = listOf(DMD, GDC, LDC).firstOrNull { it.available } ?: invalidOp("Can't find D compiler (dmd, gdc or ldc), please install one of them and put in the path.")
+		val provider = compilers.firstOrNull { it.available } ?: invalidOp("Can't find D compiler (dmd, gdc or ldc), please install one of them and put in the path.")
 		return provider.genCommand(programFile, BaseCompiler.Config(debug, libs, extraVars = extraVars))
 	}
 

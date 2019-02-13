@@ -18,7 +18,7 @@ import big.BigTest
 import big.HelloWorldTest
 import big.ThreadTest
 import com.jtransc.gen.common._Base
-import com.jtransc.gen.haxe.HaxeTarget
+import com.jtransc.gen.haxe.*
 import issues.Issue103
 import issues.Issue94Enum
 import issues.issue130.Issue130
@@ -33,7 +33,7 @@ import jtransc.micro.MicroHelloWorld
 import org.junit.Ignore
 import org.junit.Test
 
-class HaxeTest : _Base() {
+class HaxeTest : _Base(HaxeCompiler.available) {
 	override val DEFAULT_TARGET = HaxeTarget()
 
 	@Test fun testMicroHelloWorld() = testClass(Params(clazz = MicroHelloWorld::class.java, minimize = false, lang = "js", log = null, treeShaking = true))

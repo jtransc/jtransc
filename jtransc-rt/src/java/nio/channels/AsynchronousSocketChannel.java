@@ -98,7 +98,7 @@ public class AsynchronousSocketChannel implements AsynchronousByteChannel, Netwo
 
 	@JTranscMethodBody(target = "js", value = {
 		"var data = p0.data, offset = p1, len = p2, timeout = p3, attachment = p4, handler = p5;",
-		"this.client.write(new Buffer(new Int8Array(data.buffer, offset, len)), function() {",
+		"this.client.write(Buffer.from(new Int8Array(data.buffer, offset, len)), function() {",
 		"	handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}({{ JC_COMMA }}N.boxInt(len), attachment);",
 		"});",
 	})
