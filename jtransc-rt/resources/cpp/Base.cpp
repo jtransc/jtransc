@@ -53,29 +53,24 @@
 #include <{{ include }}>
 {% end %}
 
-//#ifndef USE_PORTABLE_GC
-//#define USE_PORTABLE_GC
-//#endif
-
-#ifdef USE_PORTABLE_GC
-#	include "GC_portable.cpp"
-#else
-#	include "GC_boehm.cpp"
-#endif
-
-//#define DO_NOT_USE_GC // For debugging purposes (to detect crashes related to GC)
-#ifdef DO_NOT_USE_GC
-	void* JT_MALLOC(std::size_t sz) { void* out = malloc(sz); memset(out, 0, sz); return out; }
-	void* JT_MALLOC_ATOMIC(std::size_t sz) { return malloc(sz); }
-#else
-	void* JT_MALLOC(std::size_t sz) { return GC_MALLOC(sz); }
-	void* JT_MALLOC_ATOMIC(std::size_t sz) { return GC_MALLOC_ATOMIC(sz); }
-#endif
-
 struct gc {
 	void* operator new(std::size_t sz) {
 		//std::printf("global op new called, size = %zu\n",sz);
-		return JT_MALLOC(sz);
+		return malloc(sz);
+	}
+
+	int __gc__REF_count;
+
+	gc() {
+		__gc__REF_count = 0;
+	}
+
+	void AddRef() {
+		__gc__REF_count++;
+	}
+
+	void Release() {
+		delete this;
 	}
 };
 
@@ -445,17 +440,14 @@ struct JA_0 : public java_lang_Object { public:
 	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
 		void * result = nullptr;
 		int64_t bytesSize = esize * (len + 1);
-		if (pointers) {
-			result = (void*)JT_MALLOC(bytesSize);
-			// this malloc already clears memory, so it is pointless doing this again
-		} else {
-			result = (void*)JT_MALLOC_ATOMIC(bytesSize);
-			::memset(result, 0, bytesSize);
-		}
+		result = (void*)malloc(bytesSize);
+		::memset(result, 0, bytesSize);
 		return result;
 	}
 
-	~JA_0() { /*::free(_data);*/ }
+	~JA_0() {
+		::free(_data);
+	}
 	void *getOffsetPtr(int32_t offset) { return (void*)&(((int8_t *)_data)[offset * elementSize]); }
 	void *getStartPtr() { return getOffsetPtr(0); }
 	int64_t bytesLength() { return length * elementSize; }
@@ -3081,7 +3073,7 @@ void N::startup() {
 	*/
 
 	//GC_set_all_interior_pointers(0);
-	GC_init_main_thread();
+	//GC_init_main_thread();
 
 	/*
 	GC_clear_roots();
