@@ -29,7 +29,8 @@ import org.junit.Test
  * limitations under the License.
  */
 
-class DartTest : _Base(DartCommand.available) {
+//class DartTest : _Base(DartCommand.available) {
+class DartTest : _Base(false) {
 	override val DEFAULT_TARGET = DartTarget()
 
 	@Test fun testBigTest() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = true, backend = BuildBackend.ASM))

@@ -119,7 +119,7 @@ class N {
 	static int inew(int v) { return v; }
 
 	static Int64  lnew(int v) { return new Int64(v); }
-	static Int64  lneg(int v) { return -v; }
+	static Int64  lneg(Int64 v) { return -v; }
 	static Int64  ladd(Int64 l, Int64 r) { return (l + r); }
 	static Int64  lsub(Int64 l, Int64 r) { return (l - r); }
 	static Int64  lmul(Int64 l, Int64 r) { return (l * r); }
@@ -136,7 +136,7 @@ class N {
 	static double j2f(Int64  v) { return v.toDouble(); }
 	static double j2d(Int64  v) { return v.toDouble(); }
 	static int    j2i(Int64  v) { return v.toInt32_v(); }
-	static int    i2j(int    v) { return new Int64(v.toInt()); }
+	static Int64  i2j(int    v) { return new Int64(v.toInt()); }
 	static Int64  d2j(double v) {
 		if (v.isNaN) {
 			return ZERO_INT64;
@@ -245,7 +245,7 @@ class N {
 	static int    unboxShort ({% CLASS java.lang.Short %}     i) { return i{% IMETHOD java.lang.Short:shortValue %}(); }
 	static int    unboxChar  ({% CLASS java.lang.Character %} i) { return i{% IMETHOD java.lang.Character:charValue %}(); }
 	static int    unboxInt   ({% CLASS java.lang.Integer %}   i) { return i{% IMETHOD java.lang.Integer:intValue %}(); }
-	static int    unboxLong  ({% CLASS java.lang.Long %}      i) { return i{% IMETHOD java.lang.Long:longValue %}(); }
+	static Int64  unboxLong  ({% CLASS java.lang.Long %}      i) { return i{% IMETHOD java.lang.Long:longValue %}(); }
 	static double unboxFloat ({% CLASS java.lang.Float %}     i) { return i{% IMETHOD java.lang.Float:floatValue %}(); }
 	static double unboxDouble({% CLASS java.lang.Double %}    i) { return i{% IMETHOD java.lang.Double:doubleValue %}(); }
 
@@ -255,7 +255,7 @@ class N {
 	static {% CLASS java.lang.Short %}     boxShort (int    v) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(v); }
 	static {% CLASS java.lang.Character %} boxChar  (int    v) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(v); }
 	static {% CLASS java.lang.Integer %}   boxInt   (int    v) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(v); }
-	static {% CLASS java.lang.Long %}      boxLong  (int    v) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(v); }
+	static {% CLASS java.lang.Long %}      boxLong  (Int64  v) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(v); }
 	static {% CLASS java.lang.Float %}     boxFloat (double v) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(v); }
 	static {% CLASS java.lang.Double %}    boxDouble(double v) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(v); }
 
