@@ -6,7 +6,6 @@ evaluationDependsOn(':jtransc-rt')
 
 dependencies {
 	compile "org.jetbrains.kotlin:kotlin-stdlib:${project.ext.kotlin_version}"
-	compile "org.jetbrains.kotlin:kotlin-runtime:${project.ext.kotlin_version}"
 	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
 
 	compile project(':jtransc-core')

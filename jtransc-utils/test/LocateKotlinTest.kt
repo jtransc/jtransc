@@ -7,7 +7,7 @@ import org.junit.Test
 class LocateKotlinTest {
 	@Test
 	fun name() {
-		Assert.assertEquals(1, GradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:$KotlinVersion").size)
-		Assert.assertEquals(true, MavenGradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-runtime:$KotlinVersion").size >= 1)
+		Assert.assertEquals(1, GradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:$KotlinVersion").size)
+		Assert.assertEquals(true, MavenGradleLocalRepository.locateJars("org.jetbrains.kotlin:kotlin-stdlib:$KotlinVersion").isNotEmpty())
 	}
 }
