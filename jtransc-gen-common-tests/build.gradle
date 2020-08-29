@@ -5,8 +5,9 @@ apply plugin: 'idea'
 evaluationDependsOn(':jtransc-rt')
 
 dependencies {
-	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.ext.kotlin_version}"
-	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
+	// Kotlin
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.ext.kotlin_version}"
+	implementation "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
 
 	compile project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 	provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
