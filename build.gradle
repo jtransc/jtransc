@@ -2,13 +2,19 @@ import java.nio.charset.Charset
 
 // http://jedicoder.blogspot.com.es/2011/11/automated-gradle-project-deployment-to.html
 buildscript {
-	ext.kotlin_version = kotlinVersion
+	ext {
+		// Kotlin JVM
+		kotlin_version = "1.3.72"
+	}
+
 	repositories {
 		mavenLocal()
 		mavenCentral()
 		jcenter()
 	}
+
 	dependencies {
+		// Kotlin JVM
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 	}
 }
@@ -29,6 +35,15 @@ allprojects { project ->
 	//task hello << {task ->
 	//	println "I'm $task.project.name: ${task.project.ext.jtranscVersion}"
 	//}
+	ext {
+		// Kotlin JVM
+		general_kotlin_version = kotlin_version
+
+		project.ext.kotlin_version = kotlinVersion
+		project.ext.group = "com.jtransc"
+		project.ext.jtranscVersion = "${jtranscVersion}"
+	}
+
 	repositories {
 		jcenter()
 	}
@@ -36,12 +51,6 @@ allprojects { project ->
 	apply plugin: 'maven-publish'
 	apply plugin: 'java'
 	apply plugin: 'com.jfrog.bintray'
-
-	project.ext.kotlin_version = kotlinVersion
-	project.ext.group = "com.jtransc"
-	project.ext.jtranscVersion = "${jtranscVersion}"
-
-
 
 	//apply from: '../include.gradle'
 }
