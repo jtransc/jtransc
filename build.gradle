@@ -47,10 +47,17 @@ allprojects { project ->
 	repositories {
 		jcenter()
 	}
+
+	apply plugin: 'java'
 	apply plugin: 'maven'
 	apply plugin: 'maven-publish'
-	apply plugin: 'java'
+	apply plugin: 'signing'
+
 	apply plugin: 'com.jfrog.bintray'
+
+	// Java target version
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
 
 	//apply from: '../include.gradle'
 }
