@@ -5,6 +5,8 @@ apply plugin: "kotlin"
 
 dependencies {
 	testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-	testCompile project(":jtransc-utils")
-	compile project(":jtransc-rt-core")
+
+	testImplementation project(":jtransc-utils")
+
+	implementation project(":jtransc-rt-core")
 }
