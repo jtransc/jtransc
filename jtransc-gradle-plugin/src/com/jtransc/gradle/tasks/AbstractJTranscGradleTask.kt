@@ -42,7 +42,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	var assets = arrayListOf<String>()
 	val newAssets = arrayListOf<File>()
 	var libraries = arrayListOf<String>()
-	var package_: String? = null
+	var packagePath: String? = null
 	var company: String? = null
 	var version: String? = null
 	var productName: String? = null
@@ -57,7 +57,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	fun appendVar(key: String, value: List<String>) = extraVars.getOrPut(key) { arrayListOf() }.addAll(value)
 	fun appendVar(key: String, value: String) = extraVars.getOrPut(key) { arrayListOf() }.add(value)
 
-	open protected fun prepare(): JTranscBuild {
+	protected open fun prepare(): JTranscBuild {
 		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
 		val mainClassName = mainClassName ?: extension.mainClassName ?: project.getIfExists<String>("mainClassName") ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!")
 		val buildDir = project.buildDir
@@ -106,7 +106,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			name = productName ?: extension.name ?: default.name,
 			version = version ?: extension.version ?: default.version,
 			company = company ?: extension.company ?: default.company,
-			package_ = package_ ?: extension.package_ ?: default.package_,
+			package_ = packagePath ?: extension.package_ ?: default.package_,
 			embedResources = embedResources ?: extension.embedResources ?: default.embedResources,
 			libraries = (libraries + extension.libraries).map { AstBuildSettings.Library.fromInfo(it) },
 			assets = (assets + extension.assets).map(::File) + newAssets + extension.newAssets,

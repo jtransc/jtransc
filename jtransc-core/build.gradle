@@ -36,5 +36,7 @@ dependencies {
 
 	implementation project(':jtransc-utils')
 	implementation project(':jtransc-asm')
+	implementation project(":jtransc-rt-core")
+	implementation project(":jtransc-annotations")
 }
 

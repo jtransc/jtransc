@@ -12,4 +12,6 @@ dependencies {
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
 	implementation project(':jtransc-rt-core')
+
+	implementation project(":jtransc-annotations")
 }

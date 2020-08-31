@@ -6,5 +6,7 @@ sourceSets {
 }
 
 dependencies {
-	implementation project(':jtransc-rt-core')
+	implementation project(":jtransc-rt-core")
+
+	implementation project(":jtransc-annotations")
 }

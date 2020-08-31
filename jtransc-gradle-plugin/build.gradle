@@ -33,6 +33,9 @@ repositories {
 
 dependencies {
 	implementation project(':jtransc-main')
+	implementation project(":jtransc-core")
+	implementation project(":jtransc-utils")
+	implementation project(":jtransc-rt-core")
 
 	//provided "org.jetbrains.kotlin:gradle-api:2.2"
 
