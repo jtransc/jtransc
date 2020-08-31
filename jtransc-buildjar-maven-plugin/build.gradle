@@ -1,9 +1,15 @@
 apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 
-dependencies {
-	compile project(':jtransc-core')
-	compile project(':jtransc-gen-haxe')
+ext {
+	// Maven Plugin API
+	mavenPluginApiVersion = "3.3.9"
+}
 
-	compile "org.apache.maven:maven-plugin-api:3.3.9"
+dependencies {
+	// Maven Plugin API
+	api "org.apache.maven:maven-plugin-api:$mavenPluginApiVersion"
+
+	implementation project(':jtransc-core')
+	implementation project(':jtransc-gen-haxe')
 }
