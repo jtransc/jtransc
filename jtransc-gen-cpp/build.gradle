@@ -1,8 +1,16 @@
 apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 
+ext {
+	// jArchiveLib
+	jArchiveLibVersion = "0.7.1"
+}
+
 dependencies {
-	compile project(':jtransc-core')
-	compile "org.rauschig:jarchivelib:0.7.1"
-	testCompile project(':jtransc-gen-common-tests')
+	// jArchiveLib
+	implementation "org.rauschig:jarchivelib:$jArchiveLibVersion"
+
+	implementation project(':jtransc-core')
+
+	testImplementation project(':jtransc-gen-common-tests')
 }
