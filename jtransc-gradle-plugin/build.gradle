@@ -9,11 +9,19 @@ apply from: '../include.gradle'
 //}
 
 buildscript {
+	ext {
+		// Gradle Publish Plugin
+		publishPluginVersion = "0.9.9"
+	}
+
 	repositories {
+		// Gradle Publish Plugin
 		maven { url "https://plugins.gradle.org/m2/" }
 	}
+
 	dependencies {
-		classpath "com.gradle.publish:plugin-publish-plugin:0.9.9"
+		// Gradle Publish Plugin
+		classpath "com.gradle.publish:plugin-publish-plugin:$publishPluginVersion"
 	}
 }
 
@@ -24,10 +32,12 @@ repositories {
 }
 
 dependencies {
-	compile project(':jtransc-main')
+	implementation project(':jtransc-main')
+
 	//provided "org.jetbrains.kotlin:gradle-api:2.2"
-	compile gradleApi()
-	compile localGroovy()
+
+	implementation gradleApi()
+	implementation localGroovy()
 }
 
 pluginBundle {
