@@ -27,13 +27,12 @@ public class CharConversionException extends IOException {
      */
     public CharConversionException() {
     }
-
+    
     /**
      * Constructs a new {@code CharConversionException} with its stack trace and
      * detail message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
     public CharConversionException(String detailMessage) {
         super(detailMessage);

@@ -28,8 +28,7 @@ public interface ObjectInputValidation {
     /**
      * Validates this object.
      *
-     * @throws InvalidObjectException
-     *             if this object fails to validate itself.
+     * @throws InvalidObjectException if this object fails to validate itself.
      */
     public void validateObject() throws InvalidObjectException;
 }

@@ -33,176 +33,176 @@ import java.nio.internal.SizeOf;
  * @see DataOutputStream
  */
 public class DataInputStream extends FilterInputStream implements DataInput {
-
-	private final byte[] scratch = new byte[8];
-
-	/**
-	 * Constructs a new DataInputStream on the InputStream {@code in}. All
-	 * reads are then filtered through this stream. Note that data read by this
-	 * stream is not in a human readable format and was most likely created by a
-	 * DataOutputStream.
-	 * <p>
-	 * <p><strong>Warning:</strong> passing a null source creates an invalid
-	 * {@code DataInputStream}. All operations on such a stream will fail.
-	 *
-	 * @param in the source InputStream the filter reads from.
-	 * @see DataOutputStream
-	 * @see RandomAccessFile
-	 */
-	public DataInputStream(InputStream in) {
-		super(in);
-	}
-
-	// overridden to add 'final'
-	@Override
-	public final int read(byte[] buffer) throws IOException {
-		return super.read(buffer);
-	}
-
-	@Override
-	public final int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
-		return in.read(buffer, byteOffset, byteCount);
-	}
-
-	public final boolean readBoolean() throws IOException {
-		int temp = in.read();
-		if (temp < 0) {
-			throw new EOFException();
-		}
-		return temp != 0;
-	}
-
-	public final byte readByte() throws IOException {
-		int temp = in.read();
-		if (temp < 0) {
-			throw new EOFException();
-		}
-		return (byte) temp;
-	}
-
-	public final char readChar() throws IOException {
-		return (char) readShort();
-	}
-
-	public final double readDouble() throws IOException {
-		return Double.longBitsToDouble(readLong());
-	}
-
-	public final float readFloat() throws IOException {
-		return Float.intBitsToFloat(readInt());
-	}
-
-	public final void readFully(byte[] dst) throws IOException {
-		readFully(dst, 0, dst.length);
-	}
-
-	public final void readFully(byte[] dst, int offset, int byteCount) throws IOException {
-		JTranscIoTools.readFully(in, dst, offset, byteCount);
-	}
-
-	public final int readInt() throws IOException {
-		JTranscIoTools.readFully(in, scratch, 0, SizeOf.INT);
-		return JTranscBits.readInt32BE(scratch, 0);
-	}
-
-	/**
-	 * @deprecated This method cannot be trusted to convert bytes to characters correctly.
-	 * Wrap this stream with a {@link BufferedReader} instead.
-	 */
-	@Deprecated
-	public final String readLine() throws IOException {
-		StringBuilder line = new StringBuilder(80); // Typical line length
-		boolean foundTerminator = false;
-		while (true) {
-			int nextByte = in.read();
-			switch (nextByte) {
-				case -1:
-					if (line.length() == 0 && !foundTerminator) {
-						return null;
-					}
-					return line.toString();
-				case (byte) '\r':
-					if (foundTerminator) {
-						((PushbackInputStream) in).unread(nextByte);
-						return line.toString();
-					}
-					foundTerminator = true;
-					/* Have to be able to peek ahead one byte */
-					if (!(in.getClass() == PushbackInputStream.class)) {
-						in = new PushbackInputStream(in);
-					}
-					break;
-				case (byte) '\n':
-					return line.toString();
-				default:
-					if (foundTerminator) {
-						((PushbackInputStream) in).unread(nextByte);
-						return line.toString();
-					}
-					line.append((char) nextByte);
-			}
-		}
-	}
-
-	public final long readLong() throws IOException {
-		JTranscIoTools.readFully(in, scratch, 0, SizeOf.LONG);
-		return JTranscBits.readInt64BE(scratch, 0);
-	}
-
-	public final short readShort() throws IOException {
-		JTranscIoTools.readFully(in, scratch, 0, SizeOf.SHORT);
-		return JTranscBits.readInt16BE(scratch, 0);
-	}
-
-	public final int readUnsignedByte() throws IOException {
-		int temp = in.read();
-		if (temp < 0) {
-			throw new EOFException();
-		}
-		return temp;
-	}
-
-	public final int readUnsignedShort() throws IOException {
-		return ((int) readShort()) & 0xffff;
-	}
-
-	public final String readUTF() throws IOException {
-		return decodeUTF(readUnsignedShort());
-	}
-
-	String decodeUTF(int utfSize) throws IOException {
-		return decodeUTF(utfSize, this);
-	}
-
-	private static String decodeUTF(int utfSize, DataInput in) throws IOException {
-		byte[] buf = new byte[utfSize];
-		in.readFully(buf, 0, utfSize);
-		return ModifiedUtf8.decode(buf);
-	}
-
-	public static String readUTF(DataInput in) throws IOException {
-		return decodeUTF(in.readUnsignedShort(), in);
-	}
-
-	/**
-	 * Skips {@code count} number of bytes in this stream. Subsequent {@code
-	 * read()}s will not return these bytes unless {@code reset()} is used.
-	 * <p>
-	 * This method will not throw an {@link EOFException} if the end of the
-	 * input is reached before {@code count} bytes where skipped.
-	 *
-	 * @param count the number of bytes to skip.
-	 * @return the number of bytes actually skipped.
-	 * @throws IOException if a problem occurs during skipping.
-	 * @see #mark(int)
-	 * @see #reset()
-	 */
-	public final int skipBytes(int count) throws IOException {
-		int skipped = 0;
-		long skip;
-		while (skipped < count && (skip = in.skip(count - skipped)) != 0) {
-			skipped += skip;
-		}
-		return skipped;
-	}
+    
+    private final byte[] scratch = new byte[8];
+    
+    /**
+     * Constructs a new DataInputStream on the InputStream {@code in}. All
+     * reads are then filtered through this stream. Note that data read by this
+     * stream is not in a human readable format and was most likely created by a
+     * DataOutputStream.
+     * <p>
+     * <p><strong>Warning:</strong> passing a null source creates an invalid
+     * {@code DataInputStream}. All operations on such a stream will fail.
+     *
+     * @param in the source InputStream the filter reads from.
+     * @see DataOutputStream
+     * @see RandomAccessFile
+     */
+    public DataInputStream(InputStream in) {
+        super(in);
+    }
+    
+    // overridden to add 'final'
+    @Override
+    public final int read(byte[] buffer) throws IOException {
+        return super.read(buffer);
+    }
+    
+    @Override
+    public final int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
+        return in.read(buffer, byteOffset, byteCount);
+    }
+    
+    public final boolean readBoolean() throws IOException {
+        int temp = in.read();
+        if (temp < 0) {
+            throw new EOFException();
+        }
+        return temp != 0;
+    }
+    
+    public final byte readByte() throws IOException {
+        int temp = in.read();
+        if (temp < 0) {
+            throw new EOFException();
+        }
+        return (byte) temp;
+    }
+    
+    public final char readChar() throws IOException {
+        return (char) readShort();
+    }
+    
+    public final double readDouble() throws IOException {
+        return Double.longBitsToDouble(readLong());
+    }
+    
+    public final float readFloat() throws IOException {
+        return Float.intBitsToFloat(readInt());
+    }
+    
+    public final void readFully(byte[] dst) throws IOException {
+        readFully(dst, 0, dst.length);
+    }
+    
+    public final void readFully(byte[] dst, int offset, int byteCount) throws IOException {
+        JTranscIoTools.readFully(in, dst, offset, byteCount);
+    }
+    
+    public final int readInt() throws IOException {
+        JTranscIoTools.readFully(in, scratch, 0, SizeOf.INT);
+        return JTranscBits.readInt32BE(scratch, 0);
+    }
+    
+    /**
+     * @deprecated This method cannot be trusted to convert bytes to characters correctly.
+     * Wrap this stream with a {@link BufferedReader} instead.
+     */
+    @Deprecated
+    public final String readLine() throws IOException {
+        StringBuilder line = new StringBuilder(80); // Typical line length
+        boolean foundTerminator = false;
+        while (true) {
+            int nextByte = in.read();
+            switch (nextByte) {
+                case -1:
+                    if (line.length() == 0 && !foundTerminator) {
+                        return null;
+                    }
+                    return line.toString();
+                case (byte) '\r':
+                    if (foundTerminator) {
+                        ((PushbackInputStream) in).unread(nextByte);
+                        return line.toString();
+                    }
+                    foundTerminator = true;
+                    /* Have to be able to peek ahead one byte */
+                    if (!(in.getClass() == PushbackInputStream.class)) {
+                        in = new PushbackInputStream(in);
+                    }
+                    break;
+                case (byte) '\n':
+                    return line.toString();
+                default:
+                    if (foundTerminator) {
+                        ((PushbackInputStream) in).unread(nextByte);
+                        return line.toString();
+                    }
+                    line.append((char) nextByte);
+            }
+        }
+    }
+    
+    public final long readLong() throws IOException {
+        JTranscIoTools.readFully(in, scratch, 0, SizeOf.LONG);
+        return JTranscBits.readInt64BE(scratch, 0);
+    }
+    
+    public final short readShort() throws IOException {
+        JTranscIoTools.readFully(in, scratch, 0, SizeOf.SHORT);
+        return JTranscBits.readInt16BE(scratch, 0);
+    }
+    
+    public final int readUnsignedByte() throws IOException {
+        int temp = in.read();
+        if (temp < 0) {
+            throw new EOFException();
+        }
+        return temp;
+    }
+    
+    public final int readUnsignedShort() throws IOException {
+        return ((int) readShort()) & 0xffff;
+    }
+    
+    public final String readUTF() throws IOException {
+        return decodeUTF(readUnsignedShort());
+    }
+    
+    String decodeUTF(int utfSize) throws IOException {
+        return decodeUTF(utfSize, this);
+    }
+    
+    private static String decodeUTF(int utfSize, DataInput in) throws IOException {
+        byte[] buf = new byte[utfSize];
+        in.readFully(buf, 0, utfSize);
+        return ModifiedUtf8.decode(buf);
+    }
+    
+    public static String readUTF(DataInput in) throws IOException {
+        return decodeUTF(in.readUnsignedShort(), in);
+    }
+    
+    /**
+     * Skips {@code count} number of bytes in this stream. Subsequent {@code
+     * read()}s will not return these bytes unless {@code reset()} is used.
+     * <p>
+     * This method will not throw an {@link EOFException} if the end of the
+     * input is reached before {@code count} bytes where skipped.
+     *
+     * @param count the number of bytes to skip.
+     * @return the number of bytes actually skipped.
+     * @throws IOException if a problem occurs during skipping.
+     * @see #mark(int)
+     * @see #reset()
+     */
+    public final int skipBytes(int count) throws IOException {
+        int skipped = 0;
+        long skip;
+        while (skipped < count && (skip = in.skip(count - skipped)) != 0) {
+            skipped += skip;
+        }
+        return skipped;
+    }
 }

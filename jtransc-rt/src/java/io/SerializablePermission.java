@@ -24,11 +24,21 @@ import java.security.Permission;
  * Legacy security code; do not use.
  */
 public final class SerializablePermission extends BasicPermission {
-    public SerializablePermission(String permissionName) { super(""); }
-
-    public SerializablePermission(String name, String actions) { super("", ""); }
-
-    @Override public String getActions() { return null; }
-
-    @Override public boolean implies(Permission permission) { return true; }
+    public SerializablePermission(String permissionName) {
+        super("");
+    }
+    
+    public SerializablePermission(String name, String actions) {
+        super("", "");
+    }
+    
+    @Override
+    public String getActions() {
+        return null;
+    }
+    
+    @Override
+    public boolean implies(Permission permission) {
+        return true;
+    }
 }

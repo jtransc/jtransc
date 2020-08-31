@@ -4,7 +4,10 @@ import java.nio.charset.Charset
 buildscript {
 	ext {
 		// Kotlin JVM
-		kotlin_version = "1.3.72"
+		kotlin_version = "1.4.0"
+
+		// Bintray
+		bintrayVersion = "1.7.3"
 	}
 
 	repositories {
@@ -20,7 +23,8 @@ buildscript {
 }
 
 plugins {
-	id "com.jfrog.bintray" version "1.7.3"
+	// Bintray
+	id "com.jfrog.bintray" version "$bintrayVersion"
 }
 
 apply plugin: 'idea'

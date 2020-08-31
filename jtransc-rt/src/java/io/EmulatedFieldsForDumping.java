@@ -22,29 +22,27 @@ package java.io;
  * fields for an object being dumped. It is a concrete implementation for
  * ObjectOutputStream.PutField
  *
- *
  * @see ObjectOutputStream.PutField
  * @see EmulatedFieldsForLoading
  */
 class EmulatedFieldsForDumping extends ObjectOutputStream.PutField {
     // Record the ObjectOutputStream that created this PutField for checking in 'write'.
     private final ObjectOutputStream oos;
-
+    
     // The actual representation, with a more powerful API (set&get)
     private EmulatedFields emulatedFields;
-
+    
     /**
      * Constructs a new instance of EmulatedFieldsForDumping.
      *
-     * @param streamClass
-     *            a ObjectStreamClass, which describe the fields to be emulated
-     *            (names, types, etc).
+     * @param streamClass a ObjectStreamClass, which describe the fields to be emulated
+     *                    (names, types, etc).
      */
     EmulatedFieldsForDumping(ObjectOutputStream oos, ObjectStreamClass streamClass) {
         this.oos = oos;
         this.emulatedFields = new EmulatedFields(streamClass.fields(), (ObjectStreamField[]) null);
     }
-
+    
     /**
      * Return the actual EmulatedFields instance used by the receiver. We have
      * the actual work in a separate class so that the code can be shared. The
@@ -55,141 +53,120 @@ class EmulatedFieldsForDumping extends ObjectOutputStream.PutField {
     EmulatedFields emulatedFields() {
         return emulatedFields;
     }
-
+    
     /**
      * Find and set the byte value of a given field named <code>name</code> in
      * the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, byte value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Find and set the char value of a given field named <code>name</code> in
      * the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, char value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Find and set the double value of a given field named <code>name</code>
      * in the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, double value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Find and set the float value of a given field named <code>name</code>
      * in the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, float value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Find and set the int value of a given field named <code>name</code> in
      * the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, int value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Find and set the long value of a given field named <code>name</code> in
      * the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, long value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Find and set the Object value of a given field named <code>name</code>
      * in the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, Object value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Find and set the short value of a given field named <code>name</code>
      * in the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, short value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Find and set the boolean value of a given field named <code>name</code>
      * in the receiver.
      *
-     * @param name
-     *            A String, the name of the field to set
-     * @param value
-     *            New value for the field.
+     * @param name  A String, the name of the field to set
+     * @param value New value for the field.
      */
     @Override
     public void put(String name, boolean value) {
         emulatedFields.put(name, value);
     }
-
+    
     /**
      * Write the field values to the specified ObjectOutput.
      *
-     * @param output
-     *            the ObjectOutput
-     *
-     * @throws IOException
-     *             If an IO exception happened when writing the field values.
+     * @param output the ObjectOutput
+     * @throws IOException If an IO exception happened when writing the field values.
      */
     @Override
     @Deprecated

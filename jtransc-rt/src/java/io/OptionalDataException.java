@@ -31,28 +31,27 @@ public class OptionalDataException extends ObjectStreamException {
      * {@code true} indicates that there is no more primitive data available.
      */
     public boolean eof;
-
+    
     /**
      * The number of bytes of primitive data (int, char, long etc.) that are
      * available.
      */
     public int length;
-
+    
     /**
      * Constructs a new {@code OptionalDataException} with its stack trace
      * filled in.
      */
     public OptionalDataException() {
     }
-
+    
     /**
      * Constructs a new {@code OptionalDataException} with its stack trace and
      * detail message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
-	public OptionalDataException(String detailMessage) {
+    public OptionalDataException(String detailMessage) {
         super(detailMessage);
     }
 }

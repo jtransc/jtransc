@@ -29,38 +29,33 @@ package java.io;
  * @see FileWriter
  */
 public class FileReader extends InputStreamReader {
-
+    
     /**
      * Constructs a new FileReader on the given {@code file}.
      *
-     * @param file
-     *            a File to be opened for reading characters from.
-     * @throws FileNotFoundException
-     *             if {@code file} does not exist.
+     * @param file a File to be opened for reading characters from.
+     * @throws FileNotFoundException if {@code file} does not exist.
      */
     public FileReader(File file) throws FileNotFoundException {
         super(new FileInputStream(file));
     }
-
+    
     /**
      * Construct a new FileReader on the given FileDescriptor {@code fd}. Since
      * a previously opened FileDescriptor is passed as an argument, no
      * FileNotFoundException can be thrown.
      *
-     * @param fd
-     *            the previously opened file descriptor.
+     * @param fd the previously opened file descriptor.
      */
     public FileReader(FileDescriptor fd) {
         super(new FileInputStream(fd));
     }
-
+    
     /**
      * Construct a new FileReader on the given file named {@code filename}.
      *
-     * @param filename
-     *            an absolute or relative path specifying the file to open.
-     * @throws FileNotFoundException
-     *             if there is no file named {@code filename}.
+     * @param filename an absolute or relative path specifying the file to open.
+     * @throws FileNotFoundException if there is no file named {@code filename}.
      */
     public FileReader(String filename) throws FileNotFoundException {
         super(new FileInputStream(filename));

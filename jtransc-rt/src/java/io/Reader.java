@@ -41,7 +41,7 @@ public abstract class Reader implements Readable, Closeable {
      * The object used to synchronize access to the reader.
      */
     protected Object lock;
-
+    
     /**
      * Constructs a new {@code Reader} with {@code this} as the object used to
      * synchronize critical sections.
@@ -49,15 +49,13 @@ public abstract class Reader implements Readable, Closeable {
     protected Reader() {
         lock = this;
     }
-
+    
     /**
      * Constructs a new {@code Reader} with {@code lock} used to synchronize
      * critical sections.
      *
-     * @param lock
-     *            the {@code Object} used to synchronize critical sections.
-     * @throws NullPointerException
-     *             if {@code lock} is {@code null}.
+     * @param lock the {@code Object} used to synchronize critical sections.
+     * @throws NullPointerException if {@code lock} is {@code null}.
      */
     protected Reader(Object lock) {
         if (lock == null) {
@@ -65,16 +63,15 @@ public abstract class Reader implements Readable, Closeable {
         }
         this.lock = lock;
     }
-
+    
     /**
      * Closes this reader. Implementations of this method should free any
      * resources associated with the reader.
      *
-     * @throws IOException
-     *             if an error occurs while closing this reader.
+     * @throws IOException if an error occurs while closing this reader.
      */
     public abstract void close() throws IOException;
-
+    
     /**
      * Sets a mark position in this reader. The parameter {@code readLimit}
      * indicates how many characters can be read before the mark is invalidated.
@@ -84,20 +81,17 @@ public abstract class Reader implements Readable, Closeable {
      * This default implementation simply throws an {@code IOException};
      * subclasses must provide their own implementation.
      *
-     * @param readLimit
-     *            the number of characters that can be read before the mark is
-     *            invalidated.
-     * @throws IllegalArgumentException
-     *             if {@code readLimit < 0}.
-     * @throws IOException
-     *             if an error occurs while setting a mark in this reader.
+     * @param readLimit the number of characters that can be read before the mark is
+     *                  invalidated.
+     * @throws IllegalArgumentException if {@code readLimit < 0}.
+     * @throws IOException              if an error occurs while setting a mark in this reader.
      * @see #markSupported()
      * @see #reset()
      */
     public void mark(int readLimit) throws IOException {
         throw new IOException();
     }
-
+    
     /**
      * Indicates whether this reader supports the {@code mark()} and
      * {@code reset()} methods. This default implementation returns
@@ -108,16 +102,15 @@ public abstract class Reader implements Readable, Closeable {
     public boolean markSupported() {
         return false;
     }
-
+    
     /**
      * Reads a single character from this reader and returns it as an integer
      * with the two higher-order bytes set to 0. Returns -1 if the end of the
      * reader has been reached.
      *
      * @return the character read or -1 if the end of the reader has been
-     *         reached.
-     * @throws IOException
-     *             if this reader is closed or some other I/O error occurs.
+     * reached.
+     * @throws IOException if this reader is closed or some other I/O error occurs.
      */
     public int read() throws IOException {
         synchronized (lock) {
@@ -128,30 +121,28 @@ public abstract class Reader implements Readable, Closeable {
             return -1;
         }
     }
-
+    
     /**
      * Reads characters from this reader and stores them in the character array
      * {@code buffer} starting at offset 0. Returns the number of characters
      * actually read or -1 if the end of the reader has been reached.
      *
-     * @throws IOException
-     *             if this reader is closed or some other I/O error occurs.
+     * @throws IOException if this reader is closed or some other I/O error occurs.
      */
     public int read(char[] buffer) throws IOException {
         return read(buffer, 0, buffer.length);
     }
-
+    
     /**
      * Reads up to {@code count} characters from this reader and stores them
      * at {@code offset} in the character array {@code buffer}. Returns the number
      * of characters actually read or -1 if the end of the reader has been
      * reached.
      *
-     * @throws IOException
-     *             if this reader is closed or some other I/O error occurs.
+     * @throws IOException if this reader is closed or some other I/O error occurs.
      */
     public abstract int read(char[] buffer, int offset, int count) throws IOException;
-
+    
     /**
      * Indicates whether this reader is ready to be read without blocking.
      * Returns {@code true} if this reader will not block when {@code read} is
@@ -159,8 +150,7 @@ public abstract class Reader implements Readable, Closeable {
      * implementation always returns {@code false}.
      *
      * @return always {@code false}.
-     * @throws IOException
-     *             if this reader is closed or some other I/O error occurs.
+     * @throws IOException if this reader is closed or some other I/O error occurs.
      * @see #read()
      * @see #read(char[])
      * @see #read(char[], int, int)
@@ -168,7 +158,7 @@ public abstract class Reader implements Readable, Closeable {
     public boolean ready() throws IOException {
         return false;
     }
-
+    
     /**
      * Resets this reader's position to the last {@code mark()} location.
      * Invocations of {@code read()} and {@code skip()} will occur from this new
@@ -176,15 +166,14 @@ public abstract class Reader implements Readable, Closeable {
      * {@code reset()} is implementation specific. This default
      * implementation throws an {@code IOException}.
      *
-     * @throws IOException
-     *             always thrown in this default implementation.
+     * @throws IOException always thrown in this default implementation.
      * @see #mark(int)
      * @see #markSupported()
      */
     public void reset() throws IOException {
         throw new IOException();
     }
-
+    
     /**
      * Skips {@code charCount} characters in this reader. Subsequent calls of
      * {@code read} methods will not return these characters unless {@code
@@ -192,10 +181,8 @@ public abstract class Reader implements Readable, Closeable {
      * charCount} characters.
      *
      * @return the number of characters actually skipped.
-     * @throws IllegalArgumentException
-     *             if {@code charCount < 0}.
-     * @throws IOException
-     *             if this reader is closed or some other I/O error occurs.
+     * @throws IllegalArgumentException if {@code charCount < 0}.
+     * @throws IOException              if this reader is closed or some other I/O error occurs.
      * @see #mark(int)
      * @see #markSupported()
      * @see #reset()
@@ -224,20 +211,16 @@ public abstract class Reader implements Readable, Closeable {
             return skipped;
         }
     }
-
+    
     /**
      * Reads characters and puts them into the {@code target} character buffer.
      *
-     * @param target
-     *            the destination character buffer.
+     * @param target the destination character buffer.
      * @return the number of characters put into {@code target} or -1 if the end
-     *         of this reader has been reached before a character has been read.
-     * @throws IOException
-     *             if any I/O error occurs while reading from this reader.
-     * @throws NullPointerException
-     *             if {@code target} is {@code null}.
-     * @throws ReadOnlyBufferException
-     *             if {@code target} is read-only.
+     * of this reader has been reached before a character has been read.
+     * @throws IOException             if any I/O error occurs while reading from this reader.
+     * @throws NullPointerException    if {@code target} is {@code null}.
+     * @throws ReadOnlyBufferException if {@code target} is read-only.
      */
     public int read(CharBuffer target) throws IOException {
         int length = target.length();

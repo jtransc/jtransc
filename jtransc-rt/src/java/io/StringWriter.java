@@ -19,8 +19,6 @@ package java.io;
 
 import com.jtransc.JTranscArrays;
 
-import java.util.Arrays;
-
 /**
  * A specialized {@link Writer} that writes characters to a {@code StringBuffer}
  * in a sequential manner, appending them in the process. The result can later
@@ -30,9 +28,9 @@ import java.util.Arrays;
  * @see StringReader
  */
 public class StringWriter extends Writer {
-
+    
     private StringBuffer buf;
-
+    
     /**
      * Constructs a new {@code StringWriter} which has a {@link StringBuffer}
      * allocated with the default size of 16 characters. The {@code
@@ -43,15 +41,14 @@ public class StringWriter extends Writer {
         buf = new StringBuffer(16);
         lock = buf;
     }
-
+    
     /**
      * Constructs a new {@code StringWriter} which has a {@link StringBuffer}
      * allocated with a size of {@code initialSize} characters. The {@code
      * StringBuffer} is also the {@code lock} used to synchronize access to this
      * writer.
      *
-     * @param initialSize
-     *            the initial size of the target string buffer.
+     * @param initialSize the initial size of the target string buffer.
      */
     public StringWriter(int initialSize) {
         if (initialSize < 0) {
@@ -60,20 +57,19 @@ public class StringWriter extends Writer {
         buf = new StringBuffer(initialSize);
         lock = buf;
     }
-
+    
     /**
      * Calling this method has no effect. In contrast to most {@code Writer} subclasses,
      * the other methods in {@code StringWriter} do not throw an {@code IOException} if
      * {@code close()} has been called.
      *
-     * @throws IOException
-     *             if an error occurs while closing this writer.
+     * @throws IOException if an error occurs while closing this writer.
      */
     @Override
     public void close() throws IOException {
         /* empty */
     }
-
+    
     /**
      * Calling this method has no effect.
      */
@@ -81,7 +77,7 @@ public class StringWriter extends Writer {
     public void flush() {
         /* empty */
     }
-
+    
     /**
      * Gets a reference to this writer's internal {@link StringBuffer}. Any
      * changes made to the returned buffer are reflected in this writer.
@@ -91,7 +87,7 @@ public class StringWriter extends Writer {
     public StringBuffer getBuffer() {
         return buf;
     }
-
+    
     /**
      * Gets a copy of the contents of this writer as a string.
      *
@@ -101,20 +97,16 @@ public class StringWriter extends Writer {
     public String toString() {
         return buf.toString();
     }
-
+    
     /**
      * Writes {@code count} characters starting at {@code offset} in {@code buf}
      * to this writer's {@code StringBuffer}.
      *
-     * @param chars
-     *            the non-null character array to write.
-     * @param offset
-     *            the index of the first character in {@code chars} to write.
-     * @param count
-     *            the maximum number of characters to write.
-     * @throws IndexOutOfBoundsException
-     *             if {@code offset < 0} or {@code count < 0}, or if {@code
-     *             offset + count} is greater than the size of {@code buf}.
+     * @param chars  the non-null character array to write.
+     * @param offset the index of the first character in {@code chars} to write.
+     * @param count  the maximum number of characters to write.
+     * @throws IndexOutOfBoundsException if {@code offset < 0} or {@code count < 0}, or if {@code
+     *                                   offset + count} is greater than the size of {@code buf}.
      */
     @Override
     public void write(char[] chars, int offset, int count) {
@@ -124,57 +116,50 @@ public class StringWriter extends Writer {
         }
         buf.append(chars, offset, count);
     }
-
+    
     /**
      * Writes one character to this writer's {@code StringBuffer}. Only the two
      * least significant bytes of the integer {@code oneChar} are written.
      *
-     * @param oneChar
-     *            the character to write to this writer's {@code StringBuffer}.
+     * @param oneChar the character to write to this writer's {@code StringBuffer}.
      */
     @Override
     public void write(int oneChar) {
         buf.append((char) oneChar);
     }
-
+    
     /**
      * Writes the characters from the specified string to this writer's {@code
      * StringBuffer}.
      *
-     * @param str
-     *            the non-null string containing the characters to write.
+     * @param str the non-null string containing the characters to write.
      */
     @Override
     public void write(String str) {
         buf.append(str);
     }
-
+    
     /**
      * Writes {@code count} characters from {@code str} starting at {@code
      * offset} to this writer's {@code StringBuffer}.
      *
-     * @param str
-     *            the non-null string containing the characters to write.
-     * @param offset
-     *            the index of the first character in {@code str} to write.
-     * @param count
-     *            the number of characters from {@code str} to write.
-     * @throws StringIndexOutOfBoundsException
-     *             if {@code offset < 0} or {@code count < 0}, or if {@code
-     *             offset + count} is greater than the length of {@code str}.
+     * @param str    the non-null string containing the characters to write.
+     * @param offset the index of the first character in {@code str} to write.
+     * @param count  the number of characters from {@code str} to write.
+     * @throws StringIndexOutOfBoundsException if {@code offset < 0} or {@code count < 0}, or if {@code
+     *                                         offset + count} is greater than the length of {@code str}.
      */
     @Override
     public void write(String str, int offset, int count) {
         String sub = str.substring(offset, offset + count);
         buf.append(sub);
     }
-
+    
     /**
      * Appends the character {@code c} to this writer's {@code StringBuffer}.
      * This method works the same way as {@link #write(int)}.
      *
-     * @param c
-     *            the character to append to the target stream.
+     * @param c the character to append to the target stream.
      * @return this writer.
      */
     @Override
@@ -182,15 +167,14 @@ public class StringWriter extends Writer {
         write(c);
         return this;
     }
-
+    
     /**
      * Appends the character sequence {@code csq} to this writer's {@code
      * StringBuffer}. This method works the same way as {@code
      * StringWriter.write(csq.toString())}. If {@code csq} is {@code null}, then
      * the string "null" is written to the target stream.
      *
-     * @param csq
-     *            the character sequence appended to the target.
+     * @param csq the character sequence appended to the target.
      * @return this writer.
      */
     @Override
@@ -201,7 +185,7 @@ public class StringWriter extends Writer {
         write(csq.toString());
         return this;
     }
-
+    
     /**
      * Appends a subsequence of the character sequence {@code csq} to this
      * writer's {@code StringBuffer}. This method works the same way as {@code
@@ -209,19 +193,15 @@ public class StringWriter extends Writer {
      * csq} is {@code null}, then the specified subsequence of the string "null"
      * will be written to the target.
      *
-     * @param csq
-     *            the character sequence appended to the target.
-     * @param start
-     *            the index of the first char in the character sequence appended
-     *            to the target.
-     * @param end
-     *            the index of the character following the last character of the
-     *            subsequence appended to the target.
+     * @param csq   the character sequence appended to the target.
+     * @param start the index of the first char in the character sequence appended
+     *              to the target.
+     * @param end   the index of the character following the last character of the
+     *              subsequence appended to the target.
      * @return this writer.
-     * @throws IndexOutOfBoundsException
-     *             if {@code start > end}, {@code start < 0}, {@code end < 0} or
-     *             either {@code start} or {@code end} are greater or equal than
-     *             the length of {@code csq}.
+     * @throws IndexOutOfBoundsException if {@code start > end}, {@code start < 0}, {@code end < 0} or
+     *                                   either {@code start} or {@code end} are greater or equal than
+     *                                   the length of {@code csq}.
      */
     @Override
     public StringWriter append(CharSequence csq, int start, int end) {

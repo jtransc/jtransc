@@ -24,30 +24,30 @@ package java.io;
 final class SerializationHandleMap {
     /* Default load factor of 0.75; */
     private static final int LOAD_FACTOR = 7500;
-
+    
     private Object[] keys;
     private int[] values;
-
+    
     /* Actual number of key-value pairs. */
     private int size;
-
+    
     /* Maximum number of elements that can be put in this map before having to rehash. */
     private int threshold;
-
+    
     public SerializationHandleMap() {
         this.size = 0;
         this.threshold = 21; // Copied from IdentityHashMap.
         int arraySize = (int) (((long) threshold * 10000) / LOAD_FACTOR);
         resizeArrays(arraySize);
     }
-
+    
     private void resizeArrays(int newSize) {
         Object[] oldKeys = keys;
         int[] oldValues = values;
-
+        
         this.keys = new Object[newSize];
         this.values = new int[newSize];
-
+        
         if (oldKeys != null) {
             for (int i = 0; i < oldKeys.length; ++i) {
                 Object key = oldKeys[i];
@@ -58,7 +58,7 @@ final class SerializationHandleMap {
             }
         }
     }
-
+    
     public int get(Object key) {
         int index = findIndex(key, keys);
         if (keys[index] == key) {
@@ -66,7 +66,7 @@ final class SerializationHandleMap {
         }
         return -1;
     }
-
+    
     /**
      * Returns the index where the key is found at, or the index of the next
      * empty spot if the key is not found in this table.
@@ -87,17 +87,17 @@ final class SerializationHandleMap {
         }
         return index;
     }
-
+    
     private int getModuloHash(Object key, int length) {
         return (SystemInt.identityHashCode(key) & 0x7FFFFFFF) % length;
     }
-
+    
     public int put(Object key, int value) {
         Object _key = key;
         int _value = value;
-
+        
         int index = findIndex(_key, keys);
-
+        
         // if the key doesn't exist in the table
         if (keys[index] != _key) {
             if (++size > threshold) {
@@ -108,33 +108,33 @@ final class SerializationHandleMap {
             keys[index] = _key;
             values[index] = -1;
         }
-
+        
         // insert value to where it needs to go, return the old value
         int result = values[index];
         values[index] = _value;
         return result;
     }
-
+    
     private void rehash() {
         int newSize = keys.length * 2;
         resizeArrays(newSize);
         threshold = (int) ((long) (keys.length) * LOAD_FACTOR / 10000);
     }
-
+    
     public int remove(Object key) {
         boolean hashedOk;
         int index, next, hash;
         int result;
         Object object;
         index = next = findIndex(key, keys);
-
+        
         if (keys[index] != key) {
             return -1;
         }
-
+        
         // store the value for this key
         result = values[index];
-
+        
         // shift the following elements up if needed
         // until we reach an empty spot
         int length = keys.length;
@@ -144,7 +144,7 @@ final class SerializationHandleMap {
             if (object == null) {
                 break;
             }
-
+            
             hash = getModuloHash(object, length);
             hashedOk = hash > index;
             if (next < index) {
@@ -159,14 +159,14 @@ final class SerializationHandleMap {
             }
         }
         size--;
-
+        
         // clear both the key and the value
         keys[index] = null;
         values[index] = -1;
-
+        
         return result;
     }
-
+    
     public boolean isEmpty() {
         return size == 0;
     }

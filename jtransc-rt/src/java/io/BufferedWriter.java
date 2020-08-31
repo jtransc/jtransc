@@ -20,8 +20,6 @@ package java.io;
 import com.jtransc.JTranscArrays;
 import libcore.util.SneakyThrow;
 
-import java.util.Arrays;
-
 /**
  * Wraps an existing {@link Writer} and <em>buffers</em> the output. Expensive
  * interaction with the underlying reader is minimized, since most (smaller)
@@ -29,7 +27,7 @@ import java.util.Arrays;
  * some extra space is required to hold the buffer and that copying takes place
  * when filling that buffer, but this is usually outweighed by the performance
  * benefits.
- *
+ * <p>
  * <p/>A typical application pattern for the class looks like this:<p/>
  *
  * <pre>
@@ -39,13 +37,13 @@ import java.util.Arrays;
  * @see BufferedReader
  */
 public class BufferedWriter extends Writer {
-
+    
     private Writer out;
-
+    
     private char[] buf;
-
+    
     private int pos;
-
+    
     /**
      * Constructs a new {@code BufferedWriter}, providing {@code out} with a buffer
      * of 8192 chars.
@@ -55,12 +53,12 @@ public class BufferedWriter extends Writer {
     public BufferedWriter(Writer out) {
         this(out, 8192);
     }
-
+    
     /**
      * Constructs a new {@code BufferedWriter}, providing {@code out} with {@code size} chars
      * of buffer.
      *
-     * @param out the {@code OutputStream} the buffer writes to.
+     * @param out  the {@code OutputStream} the buffer writes to.
      * @param size the size of buffer in chars.
      * @throws IllegalArgumentException if {@code size <= 0}.
      */
@@ -72,14 +70,13 @@ public class BufferedWriter extends Writer {
         this.out = out;
         this.buf = new char[size];
     }
-
+    
     /**
      * Closes this writer. The contents of the buffer are flushed, the target
      * writer is closed, and the buffer is released. Only the first invocation
      * of close has any effect.
      *
-     * @throws IOException
-     *             if an error occurs while closing this writer.
+     * @throws IOException if an error occurs while closing this writer.
      */
     @Override
     public void close() throws IOException {
@@ -87,7 +84,7 @@ public class BufferedWriter extends Writer {
             if (isClosed()) {
                 return;
             }
-
+            
             Throwable thrown = null;
             try {
                 flushInternal();
@@ -95,7 +92,7 @@ public class BufferedWriter extends Writer {
                 thrown = e;
             }
             buf = null;
-
+            
             try {
                 out.close();
             } catch (Throwable e) {
@@ -104,19 +101,18 @@ public class BufferedWriter extends Writer {
                 }
             }
             out = null;
-
+            
             if (thrown != null) {
                 SneakyThrow.sneakyThrow(thrown);
             }
         }
     }
-
+    
     /**
      * Flushes this writer. The contents of the buffer are committed to the
      * target writer and it is then flushed.
      *
-     * @throws IOException
-     *             if an error occurs while flushing this writer.
+     * @throws IOException if an error occurs while flushing this writer.
      */
     @Override
     public void flush() throws IOException {
@@ -126,13 +122,13 @@ public class BufferedWriter extends Writer {
             out.flush();
         }
     }
-
+    
     private void checkNotClosed() throws IOException {
         if (isClosed()) {
             throw new IOException("BufferedWriter is closed");
         }
     }
-
+    
     /**
      * Flushes the internal buffer.
      */
@@ -142,7 +138,7 @@ public class BufferedWriter extends Writer {
         }
         pos = 0;
     }
-
+    
     /**
      * Indicates whether this writer is closed.
      *
@@ -151,36 +147,30 @@ public class BufferedWriter extends Writer {
     private boolean isClosed() {
         return out == null;
     }
-
+    
     /**
      * Writes a newline to this writer. On Android, this is {@code "\n"}.
      * The target writer may or may not be flushed when a newline is written.
      *
-     * @throws IOException
-     *             if an error occurs attempting to write to this writer.
+     * @throws IOException if an error occurs attempting to write to this writer.
      */
     public void newLine() throws IOException {
         write(System.lineSeparator());
     }
-
+    
     /**
      * Writes {@code count} characters starting at {@code offset} in
      * {@code buffer} to this writer. If {@code count} is greater than this
      * writer's buffer, then the buffer is flushed and the characters are
      * written directly to the target writer.
      *
-     * @param buffer
-     *            the array containing characters to write.
-     * @param offset
-     *            the start position in {@code buffer} for retrieving characters.
-     * @param count
-     *            the maximum number of characters to write.
-     * @throws IndexOutOfBoundsException
-     *             if {@code offset < 0} or {@code count < 0}, or if
-     *             {@code offset + count} is greater than the size of
-     *             {@code buffer}.
-     * @throws IOException
-     *             if this writer is closed or another I/O error occurs.
+     * @param buffer the array containing characters to write.
+     * @param offset the start position in {@code buffer} for retrieving characters.
+     * @param count  the maximum number of characters to write.
+     * @throws IndexOutOfBoundsException if {@code offset < 0} or {@code count < 0}, or if
+     *                                   {@code offset + count} is greater than the size of
+     *                                   {@code buffer}.
+     * @throws IOException               if this writer is closed or another I/O error occurs.
      */
     @Override
     public void write(char[] buffer, int offset, int count) throws IOException {
@@ -212,23 +202,21 @@ public class BufferedWriter extends Writer {
                         out.write(buffer, offset, available);
                         return;
                     }
-
+                    
                     System.arraycopy(buffer, offset, this.buf, pos, available);
                     pos += available;
                 }
             }
         }
     }
-
+    
     /**
      * Writes the character {@code oneChar} to this writer. If the buffer
      * gets full by writing this character, this writer is flushed. Only the
      * lower two bytes of the integer {@code oneChar} are written.
      *
-     * @param oneChar
-     *            the character to write.
-     * @throws IOException
-     *             if this writer is closed or another I/O error occurs.
+     * @param oneChar the character to write.
+     * @throws IOException if this writer is closed or another I/O error occurs.
      */
     @Override
     public void write(int oneChar) throws IOException {
@@ -241,7 +229,7 @@ public class BufferedWriter extends Writer {
             buf[pos++] = (char) oneChar;
         }
     }
-
+    
     /**
      * Writes {@code count} characters starting at {@code offset} in {@code str}
      * to this writer. If {@code count} is greater than this writer's buffer,
@@ -249,18 +237,13 @@ public class BufferedWriter extends Writer {
      * directly to the target writer. If count is negative no characters are
      * written to the buffer. This differs from the behavior of the superclass.
      *
-     * @param str
-     *            the non-null String containing characters to write.
-     * @param offset
-     *            the start position in {@code str} for retrieving characters.
-     * @param count
-     *            maximum number of characters to write.
-     * @throws IOException
-     *             if this writer has already been closed or another I/O error
-     *             occurs.
-     * @throws IndexOutOfBoundsException
-     *             if {@code offset < 0} or {@code offset + count} is greater
-     *             than the length of {@code str}.
+     * @param str    the non-null String containing characters to write.
+     * @param offset the start position in {@code str} for retrieving characters.
+     * @param count  maximum number of characters to write.
+     * @throws IOException               if this writer has already been closed or another I/O error
+     *                                   occurs.
+     * @throws IndexOutOfBoundsException if {@code offset < 0} or {@code offset + count} is greater
+     *                                   than the length of {@code str}.
      */
     @Override
     public void write(String str, int offset, int count) throws IOException {

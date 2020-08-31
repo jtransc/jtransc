@@ -27,13 +27,12 @@ public class EOFException extends IOException {
      */
     public EOFException() {
     }
-
+    
     /**
      * Constructs a new {@code EOFException} with its stack trace and detail
      * message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
     public EOFException(String detailMessage) {
         super(detailMessage);

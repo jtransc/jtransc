@@ -19,7 +19,6 @@ package java.io;
 
 import com.jtransc.JTranscArrays;
 
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -33,22 +32,19 @@ public class SequenceInputStream extends InputStream {
      * An enumeration which will return types of InputStream.
      */
     private Enumeration<? extends InputStream> e;
-
+    
     /**
      * The current input stream.
      */
     private InputStream in;
-
+    
     /**
      * Constructs a new {@code SequenceInputStream} using the two streams
      * {@code s1} and {@code s2} as the sequence of streams to read from.
      *
-     * @param s1
-     *            the first stream to get bytes from.
-     * @param s2
-     *            the second stream to get bytes from.
-     * @throws NullPointerException
-     *             if {@code s1} is {@code null}.
+     * @param s1 the first stream to get bytes from.
+     * @param s2 the second stream to get bytes from.
+     * @throws NullPointerException if {@code s1} is {@code null}.
      */
     public SequenceInputStream(InputStream s1, InputStream s2) {
         if (s1 == null) {
@@ -59,16 +55,14 @@ public class SequenceInputStream extends InputStream {
         e = inVector.elements();
         in = s1;
     }
-
+    
     /**
      * Constructs a new SequenceInputStream using the elements returned from
      * Enumeration {@code e} as the stream sequence. The instances returned by
      * {@code e.nextElement()} must be of type {@link InputStream}.
      *
-     * @param e
-     *            the enumeration of {@code InputStreams} to get bytes from.
-     * @throws NullPointerException
-     *             if any of the elements in {@code e} is {@code null}.
+     * @param e the enumeration of {@code InputStreams} to get bytes from.
+     * @throws NullPointerException if any of the elements in {@code e} is {@code null}.
      */
     public SequenceInputStream(Enumeration<? extends InputStream> e) {
         this.e = e;
@@ -79,7 +73,7 @@ public class SequenceInputStream extends InputStream {
             }
         }
     }
-
+    
     @Override
     public int available() throws IOException {
         if (e != null && in != null) {
@@ -87,12 +81,11 @@ public class SequenceInputStream extends InputStream {
         }
         return 0;
     }
-
+    
     /**
      * Closes all streams in this sequence of input stream.
      *
-     * @throws IOException
-     *             if an error occurs while closing any of the input streams.
+     * @throws IOException if an error occurs while closing any of the input streams.
      */
     @Override
     public void close() throws IOException {
@@ -101,7 +94,7 @@ public class SequenceInputStream extends InputStream {
         }
         e = null;
     }
-
+    
     /**
      * Sets up the next InputStream or leaves it alone if there are none left.
      *
@@ -120,7 +113,7 @@ public class SequenceInputStream extends InputStream {
             in = null;
         }
     }
-
+    
     /**
      * Reads a single byte from this sequence of input streams and returns it as
      * an integer in the range from 0 to 255. It tries to read from the current
@@ -129,11 +122,10 @@ public class SequenceInputStream extends InputStream {
      * input stream in the sequence has been reached, or an exception is thrown.
      *
      * @return the byte read or -1 if either the end of the last stream in the
-     *         sequence has been reached or this input stream sequence is
-     *         closed.
-     * @throws IOException
-     *             if an error occurs while reading the current source input
-     *             stream.
+     * sequence has been reached or this input stream sequence is
+     * closed.
+     * @throws IOException if an error occurs while reading the current source input
+     *                     stream.
      */
     @Override
     public int read() throws IOException {
@@ -146,7 +138,7 @@ public class SequenceInputStream extends InputStream {
         }
         return -1;
     }
-
+    
     /**
      * Reads up to {@code byteCount} bytes from this sequence of input streams and
      * stores them in the byte array {@code buffer} starting at {@code byteOffset}.
@@ -164,12 +156,9 @@ public class SequenceInputStream extends InputStream {
      * will close that substream and start with the next one. If there are no
      * more substreams it will return -1.
      *
-     * @throws IndexOutOfBoundsException
-     *     if {@code byteOffset < 0 || byteCount < 0 || byteOffset + byteCount > buffer.length}.
-     * @throws IOException
-     *             if an I/O error occurs.
-     * @throws NullPointerException
-     *             if {@code buffer == null}.
+     * @throws IndexOutOfBoundsException if {@code byteOffset < 0 || byteCount < 0 || byteOffset + byteCount > buffer.length}.
+     * @throws IOException               if an I/O error occurs.
+     * @throws NullPointerException      if {@code buffer == null}.
      */
     @Override
     public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {

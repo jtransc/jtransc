@@ -28,8 +28,7 @@ public class InvalidObjectException extends ObjectStreamException {
      * Constructs an {@code InvalidObjectException} with its stack trace and
      * detail message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
     public InvalidObjectException(String detailMessage) {
         super(detailMessage);

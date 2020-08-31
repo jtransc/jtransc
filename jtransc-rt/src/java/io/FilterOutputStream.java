@@ -17,34 +17,34 @@
 package java.io;
 
 public class FilterOutputStream extends OutputStream {
-	protected OutputStream out;
-
-	public FilterOutputStream(OutputStream out) {
-		this.out = out;
-	}
-
-	public void write(int value) throws IOException {
-		out.write(value);
-	}
-
-	public void write(byte value[]) throws IOException {
-		write(value, 0, value.length);
-	}
-
-	public void write(byte value[], int offset, int length) throws IOException {
-		for (int n = 0; n < length; n++) write(value[offset + n]);
-	}
-
-	public void flush() throws IOException {
-		out.flush();
-	}
-
-	public void close() throws IOException {
-		OutputStream ostream = out;
-		try {
-			flush();
-		} finally {
-			ostream.close();
-		}
-	}
+    protected OutputStream out;
+    
+    public FilterOutputStream(OutputStream out) {
+        this.out = out;
+    }
+    
+    public void write(int value) throws IOException {
+        out.write(value);
+    }
+    
+    public void write(byte value[]) throws IOException {
+        write(value, 0, value.length);
+    }
+    
+    public void write(byte value[], int offset, int length) throws IOException {
+        for (int n = 0; n < length; n++) write(value[offset + n]);
+    }
+    
+    public void flush() throws IOException {
+        out.flush();
+    }
+    
+    public void close() throws IOException {
+        OutputStream ostream = out;
+        try {
+            flush();
+        } finally {
+            ostream.close();
+        }
+    }
 }

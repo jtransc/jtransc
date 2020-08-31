@@ -25,23 +25,18 @@ public interface Externalizable extends Serializable {
     /**
      * Reads the next object from the ObjectInput <code>input</code>.
      *
-     * @param input
-     *            the ObjectInput from which the next object is read.
-     * @throws IOException
-     *             if an error occurs attempting to read from {@code input}.
-     * @throws ClassNotFoundException
-     *             if the class of the instance being loaded cannot be found.
+     * @param input the ObjectInput from which the next object is read.
+     * @throws IOException            if an error occurs attempting to read from {@code input}.
+     * @throws ClassNotFoundException if the class of the instance being loaded cannot be found.
      */
     public void readExternal(ObjectInput input) throws IOException,
-            ClassNotFoundException;
-
+        ClassNotFoundException;
+    
     /**
      * Writes the receiver to the ObjectOutput <code>output</code>.
      *
-     * @param output
-     *            the ObjectOutput to write the object to.
-     * @throws IOException
-     *             if an error occurs attempting to write to {@code output}.
+     * @param output the ObjectOutput to write the object to.
+     * @throws IOException if an error occurs attempting to write to {@code output}.
      */
     public void writeExternal(ObjectOutput output) throws IOException;
 }

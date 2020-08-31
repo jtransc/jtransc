@@ -27,22 +27,23 @@ public class InterruptedIOException extends IOException {
      * The number of bytes transferred before the I/O interrupt occurred.
      */
     public int bytesTransferred;
-
+    
     /**
      * Constructs a new instance.
      */
     public InterruptedIOException() {
     }
-
+    
     /**
      * Constructs a new instance with the given detail message.
      */
     public InterruptedIOException(String detailMessage) {
         super(detailMessage);
     }
-
+    
     /**
      * Constructs a new instance with given detail message and cause.
+     *
      * @hide internal use only
      */
     public InterruptedIOException(String detailMessage, Throwable cause) {

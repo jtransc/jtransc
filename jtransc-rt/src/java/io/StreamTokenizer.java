@@ -32,38 +32,38 @@ public class StreamTokenizer {
      * {@code TT_NUMBER}).
      */
     public double nval;
-
+    
     /**
      * Contains a string if the current token is a word ({@code ttype} ==
      * {@code TT_WORD}).
      */
     public String sval;
-
+    
     /**
      * The constant representing the end of the stream.
      */
     public static final int TT_EOF = -1;
-
+    
     /**
      * The constant representing the end of the line.
      */
     public static final int TT_EOL = '\n';
-
+    
     /**
      * The constant representing a number token.
      */
     public static final int TT_NUMBER = -2;
-
+    
     /**
      * The constant representing a word token.
      */
     public static final int TT_WORD = -3;
-
+    
     /**
      * Internal representation of unknown state.
      */
     private static final int TT_UNKNOWN = -4;
-
+    
     /**
      * After calling {@code nextToken()}, {@code ttype} contains the type of
      * token that has been read. When a single character is read, its value
@@ -79,43 +79,43 @@ public class StreamTokenizer {
      * </ul>
      */
     public int ttype = TT_UNKNOWN;
-
+    
     /**
      * Internal character meanings, 0 implies TOKEN_ORDINARY
      */
     private byte[] tokenTypes = new byte[256];
-
+    
     private static final byte TOKEN_COMMENT = 1;
-
+    
     private static final byte TOKEN_QUOTE = 2;
-
+    
     private static final byte TOKEN_WHITE = 4;
-
+    
     private static final byte TOKEN_WORD = 8;
-
+    
     private static final byte TOKEN_DIGIT = 16;
-
+    
     private int lineNumber = 1;
-
+    
     private boolean forceLowercase;
-
+    
     private boolean isEOLSignificant;
-
+    
     private boolean slashStarComments;
-
+    
     private boolean slashSlashComments;
-
+    
     private boolean pushBackToken;
-
+    
     private boolean lastCr;
-
+    
     /* One of these will have the stream */
     private InputStream inStream;
-
+    
     private Reader inReader;
-
+    
     private int peekChar = -2;
-
+    
     /**
      * Private constructor to initialize the default values according to the
      * specification.
@@ -151,16 +151,14 @@ public class StreamTokenizer {
          * defaults and are not needed in constructor.
          */
     }
-
+    
     /**
      * Constructs a new {@code StreamTokenizer} with {@code is} as source input
      * stream. This constructor is deprecated; instead, the constructor that
      * takes a {@code Reader} as an argument should be used.
      *
-     * @param is
-     *            the source stream from which to parse tokens.
-     * @throws NullPointerException
-     *             if {@code is} is {@code null}.
+     * @param is the source stream from which to parse tokens.
+     * @throws NullPointerException if {@code is} is {@code null}.
      * @deprecated Use {@link #StreamTokenizer(Reader)} instead.
      */
     @Deprecated
@@ -171,7 +169,7 @@ public class StreamTokenizer {
         }
         inStream = is;
     }
-
+    
     /**
      * Constructs a new {@code StreamTokenizer} with {@code r} as source reader.
      * The tokenizer's initial state is as follows:
@@ -188,8 +186,7 @@ public class StreamTokenizer {
      * <li>C-style and C++-style comments are not recognized.</LI>
      * </ul>
      *
-     * @param r
-     *            the source reader from which to parse tokens.
+     * @param r the source reader from which to parse tokens.
      */
     public StreamTokenizer(Reader r) {
         this();
@@ -198,31 +195,29 @@ public class StreamTokenizer {
         }
         inReader = r;
     }
-
+    
     /**
      * Specifies that the character {@code ch} shall be treated as a comment
      * character.
      *
-     * @param ch
-     *            the character to be considered a comment character.
+     * @param ch the character to be considered a comment character.
      */
     public void commentChar(int ch) {
         if (ch >= 0 && ch < tokenTypes.length) {
             tokenTypes[ch] = TOKEN_COMMENT;
         }
     }
-
+    
     /**
      * Specifies whether the end of a line is significant and should be returned
      * as {@code TT_EOF} in {@code ttype} by this tokenizer.
      *
-     * @param flag
-     *            {@code true} if EOL is significant, {@code false} otherwise.
+     * @param flag {@code true} if EOL is significant, {@code false} otherwise.
      */
     public void eolIsSignificant(boolean flag) {
         isEOLSignificant = flag;
     }
-
+    
     /**
      * Returns the current line number.
      *
@@ -231,27 +226,25 @@ public class StreamTokenizer {
     public int lineno() {
         return lineNumber;
     }
-
+    
     /**
      * Specifies whether word tokens should be converted to lower case when they
      * are stored in {@code sval}.
      *
-     * @param flag
-     *            {@code true} if {@code sval} should be converted to lower
-     *            case, {@code false} otherwise.
+     * @param flag {@code true} if {@code sval} should be converted to lower
+     *             case, {@code false} otherwise.
      */
     public void lowerCaseMode(boolean flag) {
         forceLowercase = flag;
     }
-
+    
     /**
      * Parses the next token from this tokenizer's source stream or reader. The
      * type of the token is stored in the {@code ttype} field, additional
      * information may be stored in the {@code nval} or {@code sval} fields.
      *
      * @return the value of {@code ttype}.
-     * @throws IOException
-     *             if an I/O error occurs while parsing the next token.
+     * @throws IOException if an I/O error occurs while parsing the next token.
      */
     public int nextToken() throws IOException {
         if (pushBackToken) {
@@ -262,7 +255,7 @@ public class StreamTokenizer {
         }
         sval = null; // Always reset sval to null
         int currentChar = peekChar == -2 ? read() : peekChar;
-
+        
         if (lastCr && currentChar == '\n') {
             lastCr = false;
             currentChar = read();
@@ -270,9 +263,9 @@ public class StreamTokenizer {
         if (currentChar == -1) {
             return (ttype = TT_EOF);
         }
-
+        
         byte currentType = currentChar > 255 ? TOKEN_WORD
-                : tokenTypes[currentChar];
+            : tokenTypes[currentChar];
         while ((currentType & TOKEN_WHITE) != 0) {
             /**
              * Skip over white space until we hit a new line or a real token
@@ -302,9 +295,9 @@ public class StreamTokenizer {
                 return (ttype = TT_EOF);
             }
             currentType = currentChar > 255 ? TOKEN_WORD
-                    : tokenTypes[currentChar];
+                : tokenTypes[currentChar];
         }
-
+        
         /**
          * Check for digits before checking for words since digits can be
          * contained within words.
@@ -319,7 +312,7 @@ public class StreamTokenizer {
                 digits.append((char) currentChar);
                 currentChar = read();
                 if ((currentChar < '0' || currentChar > '9')
-                        && (haveDecimal || currentChar != '.')) {
+                    && (haveDecimal || currentChar != '.')) {
                     break;
                 }
             }
@@ -343,7 +336,7 @@ public class StreamTokenizer {
                 word.append((char) currentChar);
                 currentChar = read();
                 if (currentChar == -1
-                        || (currentChar < 256 && (tokenTypes[currentChar] & (TOKEN_WORD | TOKEN_DIGIT)) == 0)) {
+                    || (currentChar < 256 && (tokenTypes[currentChar] & (TOKEN_WORD | TOKEN_DIGIT)) == 0)) {
                     break;
                 }
             }
@@ -360,7 +353,7 @@ public class StreamTokenizer {
             StringBuilder quoteString = new StringBuilder();
             int peekOne = read();
             while (peekOne >= 0 && peekOne != matchQuote && peekOne != '\r'
-                    && peekOne != '\n') {
+                && peekOne != '\n') {
                 boolean readPeek = true;
                 if (peekOne == '\\') {
                     int c1 = read();
@@ -454,7 +447,7 @@ public class StreamTokenizer {
             } else if (currentChar == '/' && slashSlashComments) {
                 // Skip to EOF or new line then return the next token
                 while ((currentChar = read()) >= 0 && currentChar != '\r'
-                        && currentChar != '\n') {
+                    && currentChar != '\n') {
                     // Intentionally empty
                 }
                 peekChar = currentChar;
@@ -469,42 +462,39 @@ public class StreamTokenizer {
         if (currentType == TOKEN_COMMENT) {
             // Skip to EOF or new line then return the next token
             while ((currentChar = read()) >= 0 && currentChar != '\r'
-                    && currentChar != '\n') {
+                && currentChar != '\n') {
                 // Intentionally empty
             }
             peekChar = currentChar;
             return nextToken();
         }
-
+        
         peekChar = read();
         return (ttype = currentChar);
     }
-
+    
     /**
      * Specifies that the character {@code ch} shall be treated as an ordinary
      * character by this tokenizer. That is, it has no special meaning as a
      * comment character, word component, white space, string delimiter or
      * number.
      *
-     * @param ch
-     *            the character to be considered an ordinary character.
+     * @param ch the character to be considered an ordinary character.
      */
     public void ordinaryChar(int ch) {
         if (ch >= 0 && ch < tokenTypes.length) {
             tokenTypes[ch] = 0;
         }
     }
-
+    
     /**
      * Specifies that the characters in the range from {@code low} to {@code hi}
      * shall be treated as an ordinary character by this tokenizer. That is,
      * they have no special meaning as a comment character, word component,
      * white space, string delimiter or number.
      *
-     * @param low
-     *            the first character in the range of ordinary characters.
-     * @param hi
-     *            the last character in the range of ordinary characters.
+     * @param low the first character in the range of ordinary characters.
+     * @param hi  the last character in the range of ordinary characters.
      */
     public void ordinaryChars(int low, int hi) {
         if (low < 0) {
@@ -517,7 +507,7 @@ public class StreamTokenizer {
             tokenTypes[i] = 0;
         }
     }
-
+    
     /**
      * Specifies that this tokenizer shall parse numbers.
      */
@@ -528,7 +518,7 @@ public class StreamTokenizer {
         tokenTypes['.'] |= TOKEN_DIGIT;
         tokenTypes['-'] |= TOKEN_DIGIT;
     }
-
+    
     /**
      * Indicates that the current token should be pushed back and returned again
      * the next time {@code nextToken()} is called.
@@ -536,20 +526,19 @@ public class StreamTokenizer {
     public void pushBack() {
         pushBackToken = true;
     }
-
+    
     /**
      * Specifies that the character {@code ch} shall be treated as a quote
      * character.
      *
-     * @param ch
-     *            the character to be considered a quote character.
+     * @param ch the character to be considered a quote character.
      */
     public void quoteChar(int ch) {
         if (ch >= 0 && ch < tokenTypes.length) {
             tokenTypes[ch] = TOKEN_QUOTE;
         }
     }
-
+    
     private int read() throws IOException {
         // Call the read for the appropriate stream
         if (inStream == null) {
@@ -557,7 +546,7 @@ public class StreamTokenizer {
         }
         return inStream.read();
     }
-
+    
     /**
      * Specifies that all characters shall be treated as ordinary characters.
      */
@@ -566,32 +555,30 @@ public class StreamTokenizer {
             tokenTypes[i] = 0;
         }
     }
-
+    
     /**
      * Specifies whether "slash-slash" (C++-style) comments shall be recognized.
      * This kind of comment ends at the end of the line.
      *
-     * @param flag
-     *            {@code true} if {@code //} should be recognized as the start
-     *            of a comment, {@code false} otherwise.
+     * @param flag {@code true} if {@code //} should be recognized as the start
+     *             of a comment, {@code false} otherwise.
      */
     public void slashSlashComments(boolean flag) {
         slashSlashComments = flag;
     }
-
+    
     /**
      * Specifies whether "slash-star" (C-style) comments shall be recognized.
      * Slash-star comments cannot be nested and end when a star-slash
      * combination is found.
      *
-     * @param flag
-     *            {@code true} if {@code /*} should be recognized as the start
-     *            of a comment, {@code false} otherwise.
+     * @param flag {@code true} if {@code /*} should be recognized as the start
+     *             of a comment, {@code false} otherwise.
      */
     public void slashStarComments(boolean flag) {
         slashStarComments = flag;
     }
-
+    
     /**
      * Returns the state of this tokenizer in a readable format.
      *
@@ -629,15 +616,13 @@ public class StreamTokenizer {
         result.append(lineNumber);
         return result.toString();
     }
-
+    
     /**
      * Specifies that the characters in the range from {@code low} to {@code hi}
      * shall be treated as whitespace characters by this tokenizer.
      *
-     * @param low
-     *            the first character in the range of whitespace characters.
-     * @param hi
-     *            the last character in the range of whitespace characters.
+     * @param low the first character in the range of whitespace characters.
+     * @param hi  the last character in the range of whitespace characters.
      */
     public void whitespaceChars(int low, int hi) {
         if (low < 0) {
@@ -650,16 +635,14 @@ public class StreamTokenizer {
             tokenTypes[i] = TOKEN_WHITE;
         }
     }
-
+    
     /**
      * Specifies that the characters in the range from {@code low} to {@code hi}
      * shall be treated as word characters by this tokenizer. A word consists of
      * a word character followed by zero or more word or number characters.
      *
-     * @param low
-     *            the first character in the range of word characters.
-     * @param hi
-     *            the last character in the range of word characters.
+     * @param low the first character in the range of word characters.
+     * @param hi  the last character in the range of word characters.
      */
     public void wordChars(int low, int hi) {
         if (low < 0) {

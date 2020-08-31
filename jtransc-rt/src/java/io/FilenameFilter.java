@@ -25,17 +25,15 @@ package java.io;
  * @see File#list(FilenameFilter)
  */
 public interface FilenameFilter {
-
+    
     /**
      * Indicates if a specific filename matches this filter.
      *
-     * @param dir
-     *            the directory in which the {@code filename} was found.
-     * @param filename
-     *            the name of the file in {@code dir} to test.
-     * @return  {@code true} if the filename matches the filter
-     *            and can be included in the list, {@code false}
-     *            otherwise.
+     * @param dir      the directory in which the {@code filename} was found.
+     * @param filename the name of the file in {@code dir} to test.
+     * @return {@code true} if the filename matches the filter
+     * and can be included in the list, {@code false}
+     * otherwise.
      */
     public abstract boolean accept(File dir, String filename);
 }

@@ -28,13 +28,12 @@ public class UnsupportedEncodingException extends IOException {
      */
     public UnsupportedEncodingException() {
     }
-
+    
     /**
      * Constructs a new {@code UnsupportedEncodingException} with its stack
      * trace and detail message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
     public UnsupportedEncodingException(String detailMessage) {
         super(detailMessage);
