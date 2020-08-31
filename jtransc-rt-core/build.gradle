@@ -1,9 +1,6 @@
 apply from: '../includeCommon.gradle'
 apply from: '../includeNoKotlin.gradle'
 
-targetCompatibility = 1.7
-sourceCompatibility = 1.7
-
 dependencies {
-	compile project(':jtransc-annotations')
+	implementation project(':jtransc-annotations')
 }
