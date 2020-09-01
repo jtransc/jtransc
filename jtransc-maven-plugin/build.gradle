@@ -1,6 +1,16 @@
 apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 
+ext {
+	// Aether Util
+	aetherUtilVersion = "1.1.0"
+}
+
 dependencies {
+	// Aether Util
+	implementation "org.eclipse.aether:aether-util:$aetherUtilVersion"
+
 	implementation project(':jtransc-main')
+	implementation project(":jtransc-core")
+	implementation project(":jtransc-utils")
 }

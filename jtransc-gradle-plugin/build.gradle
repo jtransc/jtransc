@@ -39,7 +39,7 @@ dependencies {
 
 	//provided "org.jetbrains.kotlin:gradle-api:2.2"
 
-	implementation gradleApi()
+	api gradleApi()
 	implementation localGroovy()
 }
 

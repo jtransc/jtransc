@@ -11,6 +11,8 @@ dependencies {
 	implementation "org.rauschig:jarchivelib:$jArchiveLibVersion"
 
 	implementation project(':jtransc-core')
+	implementation project(":jtransc-annotations")
+	implementation project(":jtransc-utils")
 
 	testImplementation project(':jtransc-gen-common-tests')
 }

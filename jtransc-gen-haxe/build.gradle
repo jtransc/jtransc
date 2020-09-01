@@ -4,6 +4,8 @@ apply from: '../include.gradle'
 dependencies {
 	implementation project(':jtransc-core')
 	implementation project(":jtransc-utils")
+	implementation project(":jtransc-annotations")
+	implementation project(":jtransc-rt-core")
 
 	testImplementation project(':jtransc-gen-common-tests')
 }
