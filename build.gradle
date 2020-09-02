@@ -43,6 +43,9 @@ allprojects { project ->
 		// Kotlin JVM
 		general_kotlin_version = kotlin_version
 
+		// Junit
+		junitVersion = "4.12"
+
 		project.ext.kotlin_version = kotlinVersion
 		project.ext.group = "com.jtransc"
 		project.ext.jtranscVersion = "${jtranscVersion}"
@@ -64,6 +67,11 @@ allprojects { project ->
 	targetCompatibility = 1.8
 
 	//apply from: '../include.gradle'
+
+	dependencies {
+		// Junit
+		testImplementation "junit:junit:$junitVersion"
+	}
 }
 
 def sed = { String file, /* language=RegExp */ String regexp, String replacement ->
