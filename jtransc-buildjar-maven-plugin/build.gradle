@@ -2,14 +2,24 @@ apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 
 ext {
-	// Maven Plugin API
-	mavenPluginApiVersion = "3.3.9"
+	// Maven Core
+	mavenCoreVersion = "3.6.3"
+	// Maven Plugin Tools
+	mavenPluginToolsVersion = "3.6.0"
+}
+
+repositories {
+	mavenCentral()
 }
 
 dependencies {
-	// Maven Plugin API
-	api "org.apache.maven:maven-plugin-api:$mavenPluginApiVersion"
+	// Maven Core
+	implementation "org.apache.maven:maven-core:$mavenCoreVersion"
+	// Maven Plugin Tools
+	provided "org.apache.maven.plugin-tools:maven-plugin-annotations:$mavenPluginToolsVersion"
 
 	implementation project(':jtransc-core')
 	implementation project(':jtransc-gen-haxe')
+	implementation project(":jtransc-utils")
+	implementation project(":jtransc-asm")
 }

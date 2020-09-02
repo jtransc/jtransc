@@ -19,6 +19,7 @@ dependencies {
 	implementation project(':jtransc-gen-php')
 	implementation project(':jtransc-gen-as3')
 	implementation project(':jtransc-gen-dart')
+	implementation project(":jtransc-asm")
 
 	provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 	//compileOnly project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime

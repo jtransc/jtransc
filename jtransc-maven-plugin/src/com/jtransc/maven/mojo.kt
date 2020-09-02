@@ -18,7 +18,6 @@ package com.jtransc.maven
 
 import com.jtransc.*
 import com.jtransc.ast.AstBuildSettings
-import com.jtransc.ast.AstTypes
 import com.jtransc.ast.ConfigMinimizeNames
 import com.jtransc.ast.ConfigTreeShaking
 import com.jtransc.injector.Injector

@@ -4,11 +4,19 @@ apply from: '../include.gradle'
 ext {
 	// Aether Util
 	aetherUtilVersion = "1.1.0"
+	// Maven Core
+	mavenCoreVersion = "3.3.9"
+	// Maven Plugin Annotations
+	mavenPluginAnnotationsVersion = "3.4"
 }
 
 dependencies {
 	// Aether Util
 	implementation "org.eclipse.aether:aether-util:$aetherUtilVersion"
+	// Maven Core
+	implementation "org.apache.maven:maven-core:$mavenCoreVersion"
+	// Maven Plugin Annotations
+	implementation "org.apache.maven.plugin-tools:maven-plugin-annotations:$mavenPluginAnnotationsVersion"
 
 	implementation project(':jtransc-main')
 	implementation project(":jtransc-core")
