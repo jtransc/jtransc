@@ -19,8 +19,6 @@ package java.io;
 
 import com.jtransc.JTranscArrays;
 
-import java.util.Arrays;
-
 /**
  * A specialized {@link InputStream} that reads bytes from a {@code String} in
  * a sequential manner.
@@ -33,26 +31,24 @@ public class StringBufferInputStream extends InputStream {
      * The source string containing the data to read.
      */
     protected String buffer;
-
+    
     /**
      * The total number of characters in the source string.
      */
     protected int count;
-
+    
     /**
      * The current position within the source string.
      */
     protected int pos;
-
+    
     /**
      * Construct a new {@code StringBufferInputStream} with {@code str} as
      * source. The size of the stream is set to the {@code length()} of the
      * string.
      *
-     * @param str
-     *            the source string for this stream.
-     * @throws NullPointerException
-     *             if {@code str} is {@code null}.
+     * @param str the source string for this stream.
+     * @throws NullPointerException if {@code str} is {@code null}.
      */
     public StringBufferInputStream(String str) {
         if (str == null) {
@@ -61,26 +57,27 @@ public class StringBufferInputStream extends InputStream {
         buffer = str;
         count = str.length();
     }
-
+    
     @Override
     public synchronized int available() {
         return count - pos;
     }
-
+    
     /**
      * Reads a single byte from the source string and returns it as an integer
      * in the range from 0 to 255. Returns -1 if the end of the source string
      * has been reached.
      *
      * @return the byte read or -1 if the end of the source string has been
-     *         reached.
+     * reached.
      */
     @Override
     public synchronized int read() {
         return pos < count ? buffer.charAt(pos++) & 0xFF : -1;
     }
-
-    @Override public synchronized int read(byte[] buffer, int byteOffset, int byteCount) {
+    
+    @Override
+    public synchronized int read(byte[] buffer, int byteOffset, int byteCount) {
         if (buffer == null) {
             throw new NullPointerException("buffer == null");
         }
@@ -88,7 +85,7 @@ public class StringBufferInputStream extends InputStream {
         if (byteCount == 0) {
             return 0;
         }
-
+        
         int copylen = count - pos < byteCount ? count - pos : byteCount;
         for (int i = 0; i < copylen; ++i) {
             buffer[byteOffset + i] = (byte) this.buffer.charAt(pos + i);
@@ -96,7 +93,7 @@ public class StringBufferInputStream extends InputStream {
         pos += copylen;
         return copylen;
     }
-
+    
     /**
      * Resets this stream to the beginning of the source string.
      */
@@ -104,7 +101,7 @@ public class StringBufferInputStream extends InputStream {
     public synchronized void reset() {
         pos = 0;
     }
-
+    
     /**
      * Skips {@code charCount} characters in the source string. It does nothing and
      * returns 0 if {@code charCount} is negative. Less than {@code charCount} characters are
@@ -118,7 +115,7 @@ public class StringBufferInputStream extends InputStream {
         if (charCount <= 0) {
             return 0;
         }
-
+        
         int numskipped;
         if (this.count - pos < charCount) {
             numskipped = this.count - pos;

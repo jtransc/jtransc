@@ -26,8 +26,7 @@ public class SyncFailedException extends IOException {
      * Constructs a new {@code SyncFailedException} with its stack trace and
      * detail message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
     public SyncFailedException(String detailMessage) {
         super(detailMessage);

@@ -8,14 +8,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @HaxeAddMembers({
-	"public var input:haxe.io.Input;"
+    "public var input:haxe.io.Input;"
 })
 class JTranscHaxeInputStream extends InputStream {
-	@HaxeMethodBody("this.input = p0._wrapped;")
-	public JTranscHaxeInputStream(JTranscWrapped value) {
-	}
-
-	@Override
-	@HaxeMethodBody("return this.input.readByte();")
-	public native int read() throws IOException;
+    @HaxeMethodBody("this.input = p0._wrapped;")
+    public JTranscHaxeInputStream(JTranscWrapped value) {
+    }
+    
+    @Override
+    @HaxeMethodBody("return this.input.readByte();")
+    public native int read() throws IOException;
 }

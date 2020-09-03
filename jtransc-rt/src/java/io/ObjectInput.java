@@ -29,72 +29,63 @@ public interface ObjectInput extends DataInput, AutoCloseable {
      * blocking.
      *
      * @return the number of bytes available.
-     * @throws IOException
-     *             if an I/O error occurs.
+     * @throws IOException if an I/O error occurs.
      */
     public int available() throws IOException;
-
+    
     /**
      * Closes this stream. Implementations of this method should free any
      * resources used by the stream.
      *
-     * @throws IOException
-     *             if an I/O error occurs while closing the input stream.
+     * @throws IOException if an I/O error occurs while closing the input stream.
      */
     public void close() throws IOException;
-
+    
     /**
      * Reads a single byte from this stream and returns it as an integer in the
      * range from 0 to 255. Returns -1 if the end of this stream has been
      * reached. Blocks if no input is available.
      *
      * @return the byte read or -1 if the end of this stream has been reached.
-     * @throws IOException
-     *             if this stream is closed or another I/O error occurs.
+     * @throws IOException if this stream is closed or another I/O error occurs.
      */
     public int read() throws IOException;
-
+    
     /**
      * Reads bytes from this stream into the byte array {@code buffer}. Blocks
      * while waiting for input. Returns the number of bytes read,
      * or -1 if the end of this stream has been reached.
      *
-     * @throws IOException
-     *             if this stream is closed or another I/O error occurs.
+     * @throws IOException if this stream is closed or another I/O error occurs.
      */
     public int read(byte[] buffer) throws IOException;
-
+    
     /**
      * Reads up to {@code byteCount} bytes from this stream and stores them in
      * byte array {@code buffer} starting at offset {@code byteOffset}. Blocks while
      * waiting for input. Returns the number of bytes read or -1 if the end of this stream has been
      * reached.
      *
-     * @throws IOException
-     *             if this stream is closed or another I/O error occurs.
+     * @throws IOException if this stream is closed or another I/O error occurs.
      */
     public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException;
-
+    
     /**
      * Reads the next object from this stream.
      *
      * @return the object read.
-     *
-     * @throws ClassNotFoundException
-     *             if the object's class cannot be found.
-     * @throws IOException
-     *             if this stream is closed or another I/O error occurs.
+     * @throws ClassNotFoundException if the object's class cannot be found.
+     * @throws IOException            if this stream is closed or another I/O error occurs.
      */
     public Object readObject() throws ClassNotFoundException, IOException;
-
+    
     /**
      * Skips {@code byteCount} bytes on this stream. Less than {@code byteCount} byte are
      * skipped if the end of this stream is reached before the operation
      * completes.
      *
      * @return the number of bytes actually skipped.
-     * @throws IOException
-     *             if this stream is closed or another I/O error occurs.
+     * @throws IOException if this stream is closed or another I/O error occurs.
      */
     public long skip(long byteCount) throws IOException;
 }

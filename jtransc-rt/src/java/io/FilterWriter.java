@@ -28,29 +28,27 @@ package java.io;
  * @see FilterReader
  */
 public abstract class FilterWriter extends Writer {
-
+    
     /**
      * The Writer being filtered.
      */
     protected Writer out;
-
+    
     /**
      * Constructs a new FilterWriter on the Writer {@code out}. All writes are
      * now filtered through this writer.
      *
-     * @param out
-     *            the target Writer to filter writes on.
+     * @param out the target Writer to filter writes on.
      */
     protected FilterWriter(Writer out) {
         super(out);
         this.out = out;
     }
-
+    
     /**
      * Closes this writer. This implementation closes the target writer.
      *
-     * @throws IOException
-     *             if an error occurs attempting to close this writer.
+     * @throws IOException if an error occurs attempting to close this writer.
      */
     @Override
     public void close() throws IOException {
@@ -58,13 +56,12 @@ public abstract class FilterWriter extends Writer {
             out.close();
         }
     }
-
+    
     /**
      * Flushes this writer to ensure all pending data is sent out to the target
      * writer. This implementation flushes the target writer.
      *
-     * @throws IOException
-     *             if an error occurs attempting to flush this writer.
+     * @throws IOException if an error occurs attempting to flush this writer.
      */
     @Override
     public void flush() throws IOException {
@@ -72,19 +69,15 @@ public abstract class FilterWriter extends Writer {
             out.flush();
         }
     }
-
+    
     /**
      * Writes {@code count} characters from the char array {@code buffer}
      * starting at position {@code offset} to the target writer.
      *
-     * @param buffer
-     *            the buffer to write.
-     * @param offset
-     *            the index of the first character in {@code buffer} to write.
-     * @param count
-     *            the number of characters in {@code buffer} to write.
-     * @throws IOException
-     *             if an error occurs while writing to this writer.
+     * @param buffer the buffer to write.
+     * @param offset the index of the first character in {@code buffer} to write.
+     * @param count  the number of characters in {@code buffer} to write.
+     * @throws IOException if an error occurs while writing to this writer.
      */
     @Override
     public void write(char[] buffer, int offset, int count) throws IOException {
@@ -92,15 +85,13 @@ public abstract class FilterWriter extends Writer {
             out.write(buffer, offset, count);
         }
     }
-
+    
     /**
      * Writes the specified character {@code oneChar} to the target writer. Only the
      * two least significant bytes of the integer {@code oneChar} are written.
      *
-     * @param oneChar
-     *            the char to write to the target writer.
-     * @throws IOException
-     *             if an error occurs while writing to this writer.
+     * @param oneChar the char to write to the target writer.
+     * @throws IOException if an error occurs while writing to this writer.
      */
     @Override
     public void write(int oneChar) throws IOException {
@@ -108,20 +99,16 @@ public abstract class FilterWriter extends Writer {
             out.write(oneChar);
         }
     }
-
+    
     /**
      * Writes {@code count} characters from the string {@code str} starting at
      * position {@code index} to this writer. This implementation writes
      * {@code str} to the target writer.
      *
-     * @param str
-     *            the string to be written.
-     * @param offset
-     *            the index of the first character in {@code str} to write.
-     * @param count
-     *            the number of chars in {@code str} to write.
-     * @throws IOException
-     *             if an error occurs while writing to this writer.
+     * @param str    the string to be written.
+     * @param offset the index of the first character in {@code str} to write.
+     * @param count  the number of chars in {@code str} to write.
+     * @throws IOException if an error occurs while writing to this writer.
      */
     @Override
     public void write(String str, int offset, int count) throws IOException {

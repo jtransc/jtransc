@@ -1,10 +1,3 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'signing'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 group = "${project.ext.group}"
 version = "${project.ext.jtranscVersion}"
 
@@ -32,10 +25,6 @@ sourceSets {
 	main.resources.srcDirs = [ 'resources' ]
 	test.java.srcDirs = [ 'test' ]
 	test.resources.srcDirs = [ 'testresources' ]
-}
-
-dependencies {
-	testCompile 'junit:junit:4.12'
 }
 
 if (System.getenv("JTRANCS_DEPLOY") != null) {

@@ -28,28 +28,26 @@ package java.io;
  * @see FilterWriter
  */
 public abstract class FilterReader extends Reader {
-
+    
     /**
      * The target Reader which is being filtered.
      */
     protected Reader in;
-
+    
     /**
      * Constructs a new FilterReader on the Reader {@code in}.
      *
-     * @param in
-     *            The non-null Reader to filter reads on.
+     * @param in The non-null Reader to filter reads on.
      */
     protected FilterReader(Reader in) {
         super(in);
         this.in = in;
     }
-
+    
     /**
      * Closes this reader. This implementation closes the filtered reader.
      *
-     * @throws IOException
-     *             if an error occurs while closing this reader.
+     * @throws IOException if an error occurs while closing this reader.
      */
     @Override
     public void close() throws IOException {
@@ -57,7 +55,7 @@ public abstract class FilterReader extends Reader {
             in.close();
         }
     }
-
+    
     /**
      * Sets a mark position in this reader. The parameter {@code readlimit}
      * indicates how many bytes can be read before the mark is invalidated.
@@ -66,11 +64,9 @@ public abstract class FilterReader extends Reader {
      * <p>
      * This implementation sets a mark in the filtered reader.
      *
-     * @param readlimit
-     *            the number of bytes that can be read from this reader before
-     *            the mark is invalidated.
-     * @throws IOException
-     *             if an error occurs while marking this reader.
+     * @param readlimit the number of bytes that can be read from this reader before
+     *                  the mark is invalidated.
+     * @throws IOException if an error occurs while marking this reader.
      * @see #markSupported()
      * @see #reset()
      */
@@ -80,13 +76,13 @@ public abstract class FilterReader extends Reader {
             in.mark(readlimit);
         }
     }
-
+    
     /**
      * Indicates whether this reader supports {@code mark()} and {@code reset()}.
      * This implementation returns whether the filtered reader supports marking.
      *
      * @return {@code true} if {@code mark()} and {@code reset()} are supported
-     *         by the filtered reader, {@code false} otherwise.
+     * by the filtered reader, {@code false} otherwise.
      * @see #mark(int)
      * @see #reset()
      * @see #skip(long)
@@ -97,16 +93,15 @@ public abstract class FilterReader extends Reader {
             return in.markSupported();
         }
     }
-
+    
     /**
      * Reads a single character from the filtered reader and returns it as an
      * integer with the two higher-order bytes set to 0. Returns -1 if the end
      * of the filtered reader has been reached.
      *
      * @return The character read or -1 if the end of the filtered reader has
-     *         been reached.
-     * @throws IOException
-     *             if an error occurs while reading from this reader.
+     * been reached.
+     * @throws IOException if an error occurs while reading from this reader.
      */
     @Override
     public int read() throws IOException {
@@ -114,15 +109,14 @@ public abstract class FilterReader extends Reader {
             return in.read();
         }
     }
-
+    
     /**
      * Reads up to {@code count} characters from the filtered reader and stores them
      * in the byte array {@code buffer} starting at {@code offset}. Returns the
      * number of characters actually read or -1 if no characters were read and
      * the end of the filtered reader was encountered.
      *
-     * @throws IOException
-     *             if an error occurs while reading from this reader.
+     * @throws IOException if an error occurs while reading from this reader.
      */
     @Override
     public int read(char[] buffer, int offset, int count) throws IOException {
@@ -130,7 +124,7 @@ public abstract class FilterReader extends Reader {
             return in.read(buffer, offset, count);
         }
     }
-
+    
     /**
      * Indicates whether this reader is ready to be read without blocking. If
      * the result is {@code true}, the next {@code read()} will not block. If
@@ -138,9 +132,8 @@ public abstract class FilterReader extends Reader {
      * {@code read()} is sent.
      *
      * @return {@code true} if this reader will not block when {@code read()}
-     *         is called, {@code false} if unknown or blocking will occur.
-     * @throws IOException
-     *             if the reader is closed or some other I/O error occurs.
+     * is called, {@code false} if unknown or blocking will occur.
+     * @throws IOException if the reader is closed or some other I/O error occurs.
      */
     @Override
     public boolean ready() throws IOException {
@@ -148,7 +141,7 @@ public abstract class FilterReader extends Reader {
             return in.ready();
         }
     }
-
+    
     /**
      * Resets this reader's position to the last marked location. Invocations of
      * {@code read()} and {@code skip()} will occur from this new location. If
@@ -156,9 +149,8 @@ public abstract class FilterReader extends Reader {
      * {@code reset()} in the Reader subclass that is filtered by this reader.
      * The default behavior for Reader is to throw an {@code IOException}.
      *
-     * @throws IOException
-     *             if a problem occurred or the filtered reader does not support
-     *             {@code mark()} and {@code reset()}.
+     * @throws IOException if a problem occurred or the filtered reader does not support
+     *                     {@code mark()} and {@code reset()}.
      * @see #mark(int)
      * @see #markSupported()
      */
@@ -168,16 +160,15 @@ public abstract class FilterReader extends Reader {
             in.reset();
         }
     }
-
+    
     /**
      * Skips {@code charCount} characters in this reader. Subsequent calls to {@code read}
      * will not return these characters unless {@code reset} is used. The
      * default implementation is to skip characters in the filtered reader.
      *
      * @return the number of characters actually skipped.
-     * @throws IOException
-     *             if the filtered reader is closed or some other I/O error
-     *             occurs.
+     * @throws IOException if the filtered reader is closed or some other I/O error
+     *                     occurs.
      * @see #mark(int)
      * @see #markSupported()
      * @see #reset()

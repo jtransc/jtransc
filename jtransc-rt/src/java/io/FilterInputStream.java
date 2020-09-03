@@ -28,12 +28,12 @@ package java.io;
  * @see FilterOutputStream
  */
 public class FilterInputStream extends InputStream {
-
+    
     /**
      * The source input stream that is filtered.
      */
     protected volatile InputStream in;
-
+    
     /**
      * Constructs a new {@code FilterInputStream} with the specified input
      * stream as source.
@@ -47,23 +47,22 @@ public class FilterInputStream extends InputStream {
     protected FilterInputStream(InputStream in) {
         this.in = in;
     }
-
+    
     @Override
     public int available() throws IOException {
         return in.available();
     }
-
+    
     /**
      * Closes this stream. This implementation closes the filtered stream.
      *
-     * @throws IOException
-     *             if an error occurs while closing this stream.
+     * @throws IOException if an error occurs while closing this stream.
      */
     @Override
     public void close() throws IOException {
         in.close();
     }
-
+    
     /**
      * Sets a mark position in this stream. The parameter {@code readlimit}
      * indicates how many bytes can be read before the mark is invalidated.
@@ -72,9 +71,8 @@ public class FilterInputStream extends InputStream {
      * <p>
      * This implementation sets a mark in the filtered stream.
      *
-     * @param readlimit
-     *            the number of bytes that can be read from this stream before
-     *            the mark is invalidated.
+     * @param readlimit the number of bytes that can be read from this stream before
+     *                  the mark is invalidated.
      * @see #markSupported()
      * @see #reset()
      */
@@ -82,14 +80,14 @@ public class FilterInputStream extends InputStream {
     public synchronized void mark(int readlimit) {
         in.mark(readlimit);
     }
-
+    
     /**
      * Indicates whether this stream supports {@code mark()} and {@code reset()}.
      * This implementation returns whether or not the filtered stream supports
      * marking.
      *
      * @return {@code true} if {@code mark()} and {@code reset()} are supported,
-     *         {@code false} otherwise.
+     * {@code false} otherwise.
      * @see #mark(int)
      * @see #reset()
      * @see #skip(long)
@@ -98,38 +96,37 @@ public class FilterInputStream extends InputStream {
     public boolean markSupported() {
         return in.markSupported();
     }
-
+    
     /**
      * Reads a single byte from the filtered stream and returns it as an integer
      * in the range from 0 to 255. Returns -1 if the end of this stream has been
      * reached.
      *
      * @return the byte read or -1 if the end of the filtered stream has been
-     *         reached.
-     * @throws IOException
-     *             if the stream is closed or another IOException occurs.
+     * reached.
+     * @throws IOException if the stream is closed or another IOException occurs.
      */
     @Override
     public int read() throws IOException {
         return in.read();
     }
-
-	public int read(byte b[]) throws IOException {
-		return read(b, 0, b.length);
-	}
-
-    @Override public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
+    
+    public int read(byte b[]) throws IOException {
+        return read(b, 0, b.length);
+    }
+    
+    @Override
+    public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
         return in.read(buffer, byteOffset, byteCount);
     }
-
+    
     /**
      * Resets this stream to the last marked location. This implementation
      * resets the target stream.
      *
-     * @throws IOException
-     *             if this stream is already closed, no mark has been set or the
-     *             mark is no longer valid because more than {@code readlimit}
-     *             bytes have been read since setting the mark.
+     * @throws IOException if this stream is already closed, no mark has been set or the
+     *                     mark is no longer valid because more than {@code readlimit}
+     *                     bytes have been read since setting the mark.
      * @see #mark(int)
      * @see #markSupported()
      */
@@ -137,7 +134,7 @@ public class FilterInputStream extends InputStream {
     public synchronized void reset() throws IOException {
         in.reset();
     }
-
+    
     /**
      * Skips {@code byteCount} bytes in this stream. Subsequent
      * calls to {@code read} will not return these bytes unless {@code reset} is
@@ -145,8 +142,7 @@ public class FilterInputStream extends InputStream {
      * filtered stream.
      *
      * @return the number of bytes actually skipped.
-     * @throws IOException
-     *             if this stream is closed or another IOException occurs.
+     * @throws IOException if this stream is closed or another IOException occurs.
      * @see #mark(int)
      * @see #reset()
      */

@@ -26,8 +26,7 @@ public interface Flushable {
      * Flushes the object by writing out any buffered data to the underlying
      * output.
      *
-     * @throws IOException
-     *             if there are any issues writing the data.
+     * @throws IOException if there are any issues writing the data.
      */
     void flush() throws IOException;
 }

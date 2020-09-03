@@ -33,13 +33,12 @@ public class StreamCorruptedException extends ObjectStreamException {
      */
     public StreamCorruptedException() {
     }
-
+    
     /**
      * Constructs a new {@code StreamCorruptedException} with its stack trace
      * and detail message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
     public StreamCorruptedException(String detailMessage) {
         super(detailMessage);

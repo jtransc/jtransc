@@ -2,19 +2,29 @@ import java.nio.charset.Charset
 
 // http://jedicoder.blogspot.com.es/2011/11/automated-gradle-project-deployment-to.html
 buildscript {
-	ext.kotlin_version = kotlinVersion
+	ext {
+		// Kotlin JVM
+		kotlin_version = "1.4.0"
+
+		// Bintray
+		bintrayVersion = "1.7.3"
+	}
+
 	repositories {
 		mavenLocal()
 		mavenCentral()
 		jcenter()
 	}
+
 	dependencies {
+		// Kotlin JVM
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 	}
 }
 
 plugins {
-	id "com.jfrog.bintray" version "1.7.3"
+	// Bintray
+	id "com.jfrog.bintray" version "$bintrayVersion"
 }
 
 apply plugin: 'idea'
@@ -29,21 +39,39 @@ allprojects { project ->
 	//task hello << {task ->
 	//	println "I'm $task.project.name: ${task.project.ext.jtranscVersion}"
 	//}
+	ext {
+		// Kotlin JVM
+		general_kotlin_version = kotlin_version
+
+		// Junit
+		junitVersion = "4.12"
+
+		project.ext.kotlin_version = kotlinVersion
+		project.ext.group = "com.jtransc"
+		project.ext.jtranscVersion = "${jtranscVersion}"
+	}
+
 	repositories {
 		jcenter()
 	}
+
+	apply plugin: 'java'
 	apply plugin: 'maven'
 	apply plugin: 'maven-publish'
-	apply plugin: 'java'
+	apply plugin: 'signing'
+
 	apply plugin: 'com.jfrog.bintray'
 
-	project.ext.kotlin_version = kotlinVersion
-	project.ext.group = "com.jtransc"
-	project.ext.jtranscVersion = "${jtranscVersion}"
-
-
+	// Java target version
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
 
 	//apply from: '../include.gradle'
+
+	dependencies {
+		// Junit
+		testImplementation "junit:junit:$junitVersion"
+	}
 }
 
 def sed = { String file, /* language=RegExp */ String regexp, String replacement ->

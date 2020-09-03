@@ -1,7 +1,5 @@
 package com.jtransc.onetimescripts
 
-import com.jtransc.text.isPrintable
-import com.jtransc.text.uescape
 import com.jtransc.text.uquote
 import java.nio.charset.Charset
 
@@ -15,10 +13,10 @@ fun handleCharset(charsetName: String) {
 		val unicode = char.toInt()
 		out += char
 	}
-	println("""charsets.set("${charset.name().toUpperCase()}", new JTranscSingleByteCharset("${charset.name().toUpperCase()}", new String[] { ${aliases.map { "\"${it.toUpperCase()}\"" }.joinToString(", ")} }, ${out.uquote()}));""")
+	println("""charsets.set("${charset.name().toUpperCase()}", new JTranscSingleByteCharset("${charset.name().toUpperCase()}", new String[] { ${aliases.joinToString(", ") { "\"${it.toUpperCase()}\"" }} }, ${out.uquote()}));""".trimMargin())
 }
 
-fun main(args: Array<String>) {
+fun main() {
 	handleCharset("cp866")
 	handleCharset("ISO-8859-1")
 	handleCharset("US-ASCII")

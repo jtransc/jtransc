@@ -36,33 +36,30 @@ public class InvalidClassException extends ObjectStreamException {
      * The fully qualified name of the class that caused the problem.
      */
     public String classname;
-
+    
     /**
      * Constructs a new {@code InvalidClassException} with its stack trace and
      * detailed message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
     public InvalidClassException(String detailMessage) {
         super(detailMessage);
     }
-
+    
     /**
      * Constructs a new {@code InvalidClassException} with its stack trace,
      * detail message and the fully qualified name of the class which caused the
      * exception filled in.
      *
-     * @param className
-     *            the name of the class that caused the exception.
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param className     the name of the class that caused the exception.
+     * @param detailMessage the detail message for this exception.
      */
     public InvalidClassException(String className, String detailMessage) {
         super(detailMessage);
         this.classname = className;
     }
-
+    
     /**
      * Returns the detail message which was provided when the exception was
      * created. {@code null} is returned if no message was provided at creation
@@ -70,7 +67,7 @@ public class InvalidClassException extends ObjectStreamException {
      * values are concatenated and returned.
      *
      * @return the detail message, possibly concatenated with the name of the
-     *         class that caused the problem.
+     * class that caused the problem.
      */
     @Override
     public String getMessage() {

@@ -20,7 +20,7 @@ package java.io;
  * An {@code AutoCloseable} whose close method may throw an {@link IOException}.
  */
 public interface Closeable extends AutoCloseable {
-
+    
     /**
      * Closes the object and release any system resources it holds.
      *

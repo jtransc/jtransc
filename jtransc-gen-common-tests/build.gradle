@@ -4,18 +4,26 @@ apply plugin: 'idea'
 
 evaluationDependsOn(':jtransc-rt')
 
+ext {
+	// Junit
+	junitVersion = "4.12"
+}
+
 dependencies {
-	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.ext.kotlin_version}"
-	compile "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
+	// Junit
+	implementation "junit:junit:$junitVersion"
 
-	compile project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
-	provided project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
+	// Kotlin
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${project.ext.kotlin_version}"
+	implementation "org.jetbrains.kotlin:kotlin-reflect:${project.ext.kotlin_version}"
 
-	compile project(':jtransc-core')
-	compile project(":jtransc-rt-core-kotlin")
-	compile project(":jtransc-rt-extended-charsets")
-	compile project(':jtransc-utils')
-	compile "junit:junit:4.12"
+	// Needs to be provided so it doesn't include at runtime
+	provided project(':jtransc-rt')
+
+	implementation project(':jtransc-core')
+	implementation project(":jtransc-rt-core-kotlin")
+	implementation project(":jtransc-rt-extended-charsets")
+	implementation project(':jtransc-utils')
 }
 
 idea {

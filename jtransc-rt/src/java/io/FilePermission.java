@@ -23,9 +23,17 @@ import java.security.Permission;
  * Legacy security code; do not use.
  */
 public final class FilePermission extends Permission implements Serializable {
-    public FilePermission(String path, String actions) { super(""); }
-
-    @Override public String getActions() { return null; }
-
-    @Override public boolean implies(Permission permission) { return true; }
+    public FilePermission(String path, String actions) {
+        super("");
+    }
+    
+    @Override
+    public String getActions() {
+        return null;
+    }
+    
+    @Override
+    public boolean implies(Permission permission) {
+        return true;
+    }
 }

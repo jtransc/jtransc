@@ -22,14 +22,14 @@ import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
 import com.jtransc.annotation.haxe.HaxeNativeConversion;
 import com.jtransc.io.JTranscIoTools;
 
-@HaxeAddFilesTemplate(base = "hx", value = { "hx/JavaHaxeInput.hx" })
+@HaxeAddFilesTemplate(base = "hx", value = {"hx/JavaHaxeInput.hx"})
 @HaxeNativeConversion(
-	haxeType = "haxe.io.Input",
-	toHaxe = "new JavaHaxeInput.Haxe(@self)",
-	toJava = "new JavaHaxeInput.Java(@self)"
+    haxeType = "haxe.io.Input",
+    toHaxe = "new JavaHaxeInput.Haxe(@self)",
+    toJava = "new JavaHaxeInput.Java(@self)"
 )
 public abstract class InputStream extends Object implements Closeable {
-
+    
     /**
      * This constructor does nothing. It is provided for signature
      * compatibility.
@@ -37,7 +37,7 @@ public abstract class InputStream extends Object implements Closeable {
     public InputStream() {
         /* empty */
     }
-
+    
     /**
      * Returns an estimated number of bytes that can be read or skipped without blocking for more
      * input.
@@ -78,18 +78,17 @@ public abstract class InputStream extends Object implements Closeable {
     public int available() throws IOException {
         return 0;
     }
-
+    
     /**
      * Closes this stream. Concrete implementations of this class should free
      * any resources during close. This implementation does nothing.
      *
-     * @throws IOException
-     *             if an error occurs while closing this stream.
+     * @throws IOException if an error occurs while closing this stream.
      */
     public void close() throws IOException {
         /* empty */
     }
-
+    
     /**
      * Sets a mark position in this InputStream. The parameter {@code readlimit}
      * indicates how many bytes can be read before the mark is invalidated.
@@ -99,16 +98,15 @@ public abstract class InputStream extends Object implements Closeable {
      * This default implementation does nothing and concrete subclasses must
      * provide their own implementation.
      *
-     * @param readlimit
-     *            the number of bytes that can be read from this stream before
-     *            the mark is invalidated.
+     * @param readlimit the number of bytes that can be read from this stream before
+     *                  the mark is invalidated.
      * @see #markSupported()
      * @see #reset()
      */
     public void mark(int readlimit) {
         /* empty */
     }
-
+    
     /**
      * Indicates whether this stream supports the {@code mark()} and
      * {@code reset()} methods. The default implementation returns {@code false}.
@@ -120,35 +118,32 @@ public abstract class InputStream extends Object implements Closeable {
     public boolean markSupported() {
         return false;
     }
-
+    
     /**
      * Reads a single byte from this stream and returns it as an integer in the
      * range from 0 to 255. Returns -1 if the end of the stream has been
      * reached. Blocks until one byte has been read, the end of the source
      * stream is detected or an exception is thrown.
      *
-     * @throws IOException
-     *             if the stream is closed or another IOException occurs.
+     * @throws IOException if the stream is closed or another IOException occurs.
      */
     public abstract int read() throws IOException;
-
+    
     /**
      * Equivalent to {@code read(buffer, 0, buffer.length)}.
      */
     public int read(byte[] buffer) throws IOException {
         return read(buffer, 0, buffer.length);
     }
-
+    
     /**
      * Reads up to {@code byteCount} bytes from this stream and stores them in
      * the byte array {@code buffer} starting at {@code byteOffset}.
      * Returns the number of bytes actually read or -1 if the end of the stream
      * has been reached.
      *
-     * @throws IndexOutOfBoundsException
-     *   if {@code byteOffset < 0 || byteCount < 0 || byteOffset + byteCount > buffer.length}.
-     * @throws IOException
-     *             if the stream is closed or another IOException occurs.
+     * @throws IndexOutOfBoundsException if {@code byteOffset < 0 || byteCount < 0 || byteOffset + byteCount > buffer.length}.
+     * @throws IOException               if the stream is closed or another IOException occurs.
      */
     public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
         JTranscArrays.checkOffsetAndCount(buffer.length, byteOffset, byteCount);
@@ -166,7 +161,7 @@ public abstract class InputStream extends Object implements Closeable {
         }
         return byteCount;
     }
-
+    
     /**
      * Resets this stream to the last marked location. Throws an
      * {@code IOException} if the number of bytes read since the mark has been
@@ -176,13 +171,12 @@ public abstract class InputStream extends Object implements Closeable {
      * This implementation always throws an {@code IOException} and concrete
      * subclasses should provide the proper implementation.
      *
-     * @throws IOException
-     *             if this stream is closed or another IOException occurs.
+     * @throws IOException if this stream is closed or another IOException occurs.
      */
     public synchronized void reset() throws IOException {
         throw new IOException();
     }
-
+    
     /**
      * Skips at most {@code n} bytes in this stream. This method does nothing and returns
      * 0 if {@code n} is negative, but some subclasses may throw.
@@ -195,8 +189,7 @@ public abstract class InputStream extends Object implements Closeable {
      *
      * @param byteCount the number of bytes to skip.
      * @return the number of bytes actually skipped.
-     * @throws IOException
-     *             if this stream is closed or another IOException occurs.
+     * @throws IOException if this stream is closed or another IOException occurs.
      */
     public long skip(long byteCount) throws IOException {
         return JTranscIoTools.skipByReading(this, byteCount);

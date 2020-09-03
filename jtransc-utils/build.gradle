@@ -1,16 +1,17 @@
 apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 
-apply plugin: "kotlin" // or apply plugin: "kotlin2js" if targeting JavaScript
+apply plugin: "kotlin"
+// or apply plugin: "kotlin2js" if targeting JavaScript
 
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-	compile project(':jtransc-rt-core')
-}
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-dependencies {
+	implementation project(':jtransc-rt-core')
+
+	implementation project(":jtransc-annotations")
 }

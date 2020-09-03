@@ -28,32 +28,29 @@ import java.lang.ref.WeakReference;
  * @see ObjectInputStream#readFields()
  */
 public class ObjectStreamField implements Comparable<Object> {
-
+    
     // Declared name of the field
     private String name;
-
+    
     // Declared type of the field
     private Object type;
-
+    
     // offset of this field in the object
     int offset;
-
+    
     // Cached version of intern'ed type String
     private String typeString;
-
+    
     private boolean unshared;
-
+    
     private boolean isDeserialized;
-
+    
     /**
      * Constructs an ObjectStreamField with the specified name and type.
      *
-     * @param name
-     *            the name of the field.
-     * @param cl
-     *            the type of the field.
-     * @throws NullPointerException
-     *             if {@code name} or {@code cl} is {@code null}.
+     * @param name the name of the field.
+     * @param cl   the type of the field.
+     * @throws NullPointerException if {@code name} or {@code cl} is {@code null}.
      */
     public ObjectStreamField(String name, Class<?> cl) {
         if (name == null) {
@@ -64,20 +61,16 @@ public class ObjectStreamField implements Comparable<Object> {
         this.name = name;
         this.type = new WeakReference<Class<?>>(cl);
     }
-
+    
     /**
      * Constructs an ObjectStreamField with the specified name, type and the
      * indication if it is unshared.
      *
-     * @param name
-     *            the name of the field.
-     * @param cl
-     *            the type of the field.
-     * @param unshared
-     *            {@code true} if the field is written and read unshared;
-     *            {@code false} otherwise.
-     * @throws NullPointerException
-     *             if {@code name} or {@code cl} is {@code null}.
+     * @param name     the name of the field.
+     * @param cl       the type of the field.
+     * @param unshared {@code true} if the field is written and read unshared;
+     *                 {@code false} otherwise.
+     * @throws NullPointerException if {@code name} or {@code cl} is {@code null}.
      * @see ObjectOutputStream#writeUnshared(Object)
      */
     public ObjectStreamField(String name, Class<?> cl, boolean unshared) {
@@ -90,15 +83,13 @@ public class ObjectStreamField implements Comparable<Object> {
         this.type = (cl.getClassLoader() == null) ? cl : new WeakReference<Class<?>>(cl);
         this.unshared = unshared;
     }
-
+    
     /**
      * Constructs an ObjectStreamField with the given name and the given type.
      * The type may be null.
      *
-     * @param signature
-     *            A String representing the type of the field
-     * @param name
-     *            a String, the name of the field, or null
+     * @param signature A String representing the type of the field
+     * @param name      a String, the name of the field, or null
      */
     ObjectStreamField(String signature, String name) {
         if (name == null) {
@@ -109,34 +100,33 @@ public class ObjectStreamField implements Comparable<Object> {
         defaultResolve();
         this.isDeserialized = true;
     }
-
+    
     /**
      * Compares this field descriptor to the specified one. Checks first if one
      * of the compared fields has a primitive type and the other one not. If so,
      * the field with the primitive type is considered to be "smaller". If both
      * fields are equal, their names are compared.
      *
-     * @param o
-     *            the object to compare with.
+     * @param o the object to compare with.
      * @return -1 if this field is "smaller" than field {@code o}, 0 if both
-     *         fields are equal; 1 if this field is "greater" than field {@code
-     *         o}.
+     * fields are equal; 1 if this field is "greater" than field {@code
+     * o}.
      */
     public int compareTo(Object o) {
         ObjectStreamField f = (ObjectStreamField) o;
         boolean thisPrimitive = this.isPrimitive();
         boolean fPrimitive = f.isPrimitive();
-
+        
         // If one is primitive and the other isn't, we have enough info to
         // compare
         if (thisPrimitive != fPrimitive) {
             return thisPrimitive ? -1 : 1;
         }
-
+        
         // Either both primitives or both not primitives. Compare based on name.
         return this.getName().compareTo(f.getName());
     }
-
+    
     /**
      * Gets the name of this field.
      *
@@ -145,7 +135,7 @@ public class ObjectStreamField implements Comparable<Object> {
     public String getName() {
         return name;
     }
-
+    
     /**
      * Gets the offset of this field in the object.
      *
@@ -154,7 +144,7 @@ public class ObjectStreamField implements Comparable<Object> {
     public int getOffset() {
         return offset;
     }
-
+    
     /**
      * Return the type of the field the receiver represents, this is an internal
      * method
@@ -168,7 +158,7 @@ public class ObjectStreamField implements Comparable<Object> {
         }
         return (Class<?>) type;
     }
-
+    
     /**
      * Gets the type of this field.
      *
@@ -181,7 +171,7 @@ public class ObjectStreamField implements Comparable<Object> {
         }
         return cl;
     }
-
+    
     /**
      * Gets a character code for the type of this field. The following codes are
      * used:
@@ -204,7 +194,7 @@ public class ObjectStreamField implements Comparable<Object> {
     public char getTypeCode() {
         return typeCodeOf(getTypeInternal());
     }
-
+    
     private char typeCodeOf(Class<?> type) {
         if (type == int.class) {
             return 'I';
@@ -228,13 +218,13 @@ public class ObjectStreamField implements Comparable<Object> {
             return 'L';
         }
     }
-
+    
     /**
      * Gets the type signature used by the VM to represent the type of this
      * field.
      *
      * @return the signature of this field's class or {@code null} if this
-     *         field's type is primitive.
+     * field's type is primitive.
      */
     public String getTypeString() {
         if (isPrimitive()) {
@@ -248,35 +238,34 @@ public class ObjectStreamField implements Comparable<Object> {
         }
         return typeString;
     }
-
+    
     /**
      * Indicates whether this field's type is a primitive type.
      *
      * @return {@code true} if this field's type is primitive; {@code false} if
-     *         the type of this field is a regular class.
+     * the type of this field is a regular class.
      */
     public boolean isPrimitive() {
         Class<?> t = getTypeInternal();
         return t != null && t.isPrimitive();
     }
-
+    
     boolean writeField(DataOutputStream out) throws IOException {
         Class<?> t = getTypeInternal();
         out.writeByte(typeCodeOf(t));
         out.writeUTF(name);
         return (t != null && t.isPrimitive());
     }
-
+    
     /**
      * Sets this field's offset in the object.
      *
-     * @param newValue
-     *            the field's new offset.
+     * @param newValue the field's new offset.
      */
     protected void setOffset(int newValue) {
         this.offset = newValue;
     }
-
+    
     /**
      * Returns a string containing a concise, human-readable description of this
      * field descriptor.
@@ -287,19 +276,19 @@ public class ObjectStreamField implements Comparable<Object> {
     public String toString() {
         return this.getClass().getName() + '(' + getName() + ':' + getTypeInternal() + ')';
     }
-
+    
     void resolve(ClassLoader loader) {
         if (typeString == null && isPrimitive()) {
             // primitive type declared in a serializable class
             typeString = String.valueOf(getTypeCode());
         }
-
+        
         if (typeString.length() == 1) {
             if (defaultResolve()) {
                 return;
             }
         }
-
+        
         String className = typeString.replace('/', '.');
         if (className.charAt(0) == 'L') {
             // remove L and ;
@@ -312,7 +301,7 @@ public class ObjectStreamField implements Comparable<Object> {
             // Ignored
         }
     }
-
+    
     /**
      * Indicates whether this field is unshared.
      *
@@ -321,44 +310,44 @@ public class ObjectStreamField implements Comparable<Object> {
     public boolean isUnshared() {
         return unshared;
     }
-
+    
     void setUnshared(boolean unshared) {
         this.unshared = unshared;
     }
-
+    
     /**
      * Resolves typeString into type. Returns true if the type is primitive
      * and false otherwise.
      */
     private boolean defaultResolve() {
         switch (typeString.charAt(0)) {
-        case 'I':
-            type = int.class;
-            return true;
-        case 'B':
-            type = byte.class;
-            return true;
-        case 'C':
-            type = char.class;
-            return true;
-        case 'S':
-            type = short.class;
-            return true;
-        case 'Z':
-            type = boolean.class;
-            return true;
-        case 'J':
-            type = long.class;
-            return true;
-        case 'F':
-            type = float.class;
-            return true;
-        case 'D':
-            type = double.class;
-            return true;
-        default:
-            type = Object.class;
-            return false;
+            case 'I':
+                type = int.class;
+                return true;
+            case 'B':
+                type = byte.class;
+                return true;
+            case 'C':
+                type = char.class;
+                return true;
+            case 'S':
+                type = short.class;
+                return true;
+            case 'Z':
+                type = boolean.class;
+                return true;
+            case 'J':
+                type = long.class;
+                return true;
+            case 'F':
+                type = float.class;
+                return true;
+            case 'D':
+                type = double.class;
+                return true;
+            default:
+                type = Object.class;
+                return false;
         }
     }
 }

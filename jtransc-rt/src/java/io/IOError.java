@@ -26,8 +26,7 @@ public class IOError extends Error {
     /**
      * Constructs a new instance with its cause filled in.
      *
-     * @param cause
-     *            The detail cause for the error.
+     * @param cause The detail cause for the error.
      */
     public IOError(Throwable cause) {
         super(cause);

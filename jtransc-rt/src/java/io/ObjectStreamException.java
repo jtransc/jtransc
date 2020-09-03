@@ -36,13 +36,12 @@ public abstract class ObjectStreamException extends IOException {
      */
     protected ObjectStreamException() {
     }
-
+    
     /**
      * Constructs a new {@code ObjectStreamException} with its stack trace and
      * detail message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
     protected ObjectStreamException(String detailMessage) {
         super(detailMessage);

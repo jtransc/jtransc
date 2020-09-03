@@ -4,7 +4,10 @@ apply from: '../include.gradle'
 apply plugin: "kotlin"
 
 dependencies {
-	testCompile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-	testCompile project(":jtransc-utils")
-	compile project(":jtransc-rt-core")
+	testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+	implementation project(":jtransc-rt-core")
+	implementation project(":jtransc-annotations")
+
+	testImplementation project(":jtransc-utils")
 }

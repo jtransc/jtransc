@@ -33,23 +33,21 @@ public class WriteAbortedException extends ObjectStreamException {
      * the object.
      */
     public Exception detail;
-
+    
     /**
      * Constructs a new {@code WriteAbortedException} with its stack trace,
      * detail message and the exception which caused the underlying problem when
      * serializing the object filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
-     * @param rootCause
-     *            the exception that was thrown when serializing the object.
+     * @param detailMessage the detail message for this exception.
+     * @param rootCause     the exception that was thrown when serializing the object.
      */
     public WriteAbortedException(String detailMessage, Exception rootCause) {
         super(detailMessage);
         detail = rootCause;
         initCause(rootCause);
     }
-
+    
     /**
      * Gets the extra information message which was provided when this exception
      * was created. Returns {@code null} if no message was provided at creation
@@ -65,7 +63,7 @@ public class WriteAbortedException extends ObjectStreamException {
         }
         return msg;
     }
-
+    
     /**
      * Gets the cause of this exception or {@code null} if there is no cause.
      *

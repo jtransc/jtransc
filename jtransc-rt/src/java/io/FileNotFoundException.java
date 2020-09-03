@@ -30,15 +30,14 @@ public class FileNotFoundException extends IOException {
     @JTranscSync
     public FileNotFoundException() {
     }
-
+    
     /**
      * Constructs a new {@code FileNotFoundException} with its stack trace and
      * detail message filled in.
      *
-     * @param detailMessage
-     *            the detail message for this exception.
+     * @param detailMessage the detail message for this exception.
      */
-	@JTranscSync
+    @JTranscSync
     public FileNotFoundException(String detailMessage) {
         super(detailMessage);
     }
