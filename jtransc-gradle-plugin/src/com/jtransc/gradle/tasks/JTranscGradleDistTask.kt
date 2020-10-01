@@ -6,7 +6,7 @@ import org.gradle.api.tasks.TaskAction
 
 open class JTranscGradleDistTask() : AbstractJTranscGradleTask() {
 	companion object {
-		val name: String = JTranscGradleRunTask::class.java.name
+		val name: String = JTranscGradleDistTask::class.java.name
 	}
 
 	@Suppress("unused")

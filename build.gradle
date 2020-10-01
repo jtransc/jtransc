@@ -157,15 +157,16 @@ subprojects {
 
 	def props = rootProject.extensions.getExtraProperties()
 
-	if (!props.has("gitVersion")) {
-		try {
-			props.set("gitVersion", "git describe".execute().text.trim())
-		} catch (Throwable) {
-			props.set("gitVersion", "${jtranscVersion}")
-		}
-	}
+	//if (!props.has("gitVersion")) {
+	//	try {
+	//		props.set("gitVersion", "git describe".execute().text.trim())
+	//	} catch (Throwable) {
+	//		props.set("gitVersion", "${jtranscVersion}")
+	//	}
+	//}
 
-	def publicationVersion = (("$project.version".endsWith("-SNAPSHOT")) ? (props.get("gitVersion") ?: "git describe".execute().text.trim()) : "$project.version") ?: "$project.version" ?: "unknown"
+	//def publicationVersion = ("$project.version".endsWith("-SNAPSHOT") ? (props.get("gitVersion") ?: "$project.version") ?: "$project.version" ?: "unknown"
+	def publicationVersion = project.version
 
 	publishing {
 		publications {
@@ -238,6 +239,11 @@ subprojects {
 		}
 		compileTestKotlin {
 			kotlinOptions.suppressWarnings = true
+		}
+		dependencies {
+			// Kotlin
+			implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
+			implementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
 		}
 	}
 

@@ -56,8 +56,8 @@ open class JTranscGradlePlugin : Plugin<Project> {
 		project.task(mapOf(
 			"type" to JTranscGradleReport::class.java,
 			"group" to "other",
-			"description" to "Reports the status of the runtime implementation",
-			"overwrite" to true
+			"description" to "Reports the status of the runtime implementation"
+			//, "overwrite" to true
 		), "jtranscReport", JTranscGradlePlugin.LambdaClosure({ it: JTranscGradleReport ->
 		})).dependsOn("build")
 

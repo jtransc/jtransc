@@ -11,10 +11,6 @@ dependencies {
 	// Junit
 	implementation "junit:junit:$junitVersion"
 
-	// Kotlin
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
-	implementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-
 	// Needs to be provided so it doesn't include at runtime
 	provided project(':jtransc-rt')
 

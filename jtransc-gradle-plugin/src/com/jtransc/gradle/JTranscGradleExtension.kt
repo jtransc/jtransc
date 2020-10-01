@@ -35,8 +35,8 @@ open class JTranscGradleExtension(val project: Project) {
 			project.task(mapOf(
 				"type" to clazz,
 				"group" to group,
-				"description" to "$verb the application as $name; target=$target, debug=$debug, outputFile=$outputFile",
-				"overwrite" to true
+				"description" to "$verb the application as $name; target=$target, debug=$debug, outputFile=$outputFile"
+				//, "overwrite" to true
 			), name, JTranscGradlePlugin.LambdaClosure({ it: AbstractJTranscGradleTask ->
 				it.target = target
 				it.outputFile = outputFile
