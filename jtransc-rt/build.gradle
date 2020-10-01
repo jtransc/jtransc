@@ -1,6 +1,3 @@
-apply from: '../includeCommon.gradle'
-apply from: '../includeNoKotlin.gradle'
-
 sourceSets {
 	main.java.srcDirs = ['src', 'regexodus/src']
 }

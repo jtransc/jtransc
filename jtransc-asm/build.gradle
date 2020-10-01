@@ -1,2 +1,0 @@
-apply from: '../includeCommon.gradle'
-apply from: '../include.gradle'

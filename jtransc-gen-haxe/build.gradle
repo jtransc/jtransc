@@ -1,6 +1,3 @@
-apply from: '../includeCommon.gradle'
-apply from: '../include.gradle'
-
 dependencies {
 	implementation project(':jtransc-core')
 	implementation project(":jtransc-utils")

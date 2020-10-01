@@ -1,6 +1,3 @@
-apply from: '../includeCommon.gradle'
-apply from: '../include.gradle'
-
 ext {
 	// Aether Util
 	aetherUtilVersion = "1.1.0"

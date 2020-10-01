@@ -10,7 +10,7 @@ buildscript {
 
 	dependencies {
 		// Kotlin JVM
-		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 	}
 }
 
@@ -33,13 +33,12 @@ allprojects { project ->
 	//}
 	ext {
 		// Kotlin JVM
-		general_kotlin_version = kotlin_version
+		general_kotlinVersion = kotlinVersion
 
 		// Junit
 		junitVersion = "4.12"
 
-		project.ext.kotlin_version = kotlinVersion
-		project.ext.group = "com.jtransc"
+		project.ext.kotlinVersion = kotlinVersion
 		project.ext.jtranscVersion = "${jtranscVersion}"
 	}
 
@@ -53,6 +52,8 @@ allprojects { project ->
 	apply plugin: 'signing'
 
 	apply plugin: 'com.jfrog.bintray'
+
+	project.version = jtranscVersion
 
 	// Java target version
 	sourceCompatibility = 1.8
@@ -80,7 +81,7 @@ task updateVersion() {
 	doLast {
 		def newversion = jtranscVersion
 		println "Updating jtransc to version '$newversion'"
-		println "Updating kotlin to version '$kotlin_version'"
+		println "Updating kotlin to version '$kotlinVersion'"
 
 		def isSnapshot = "$newversion".endsWith("-SNAPSHOT")
 
@@ -103,9 +104,9 @@ task updateVersion() {
 		}
 
 		// Kotlin version
-		sed("jtransc-utils/src/com/jtransc/KotlinVersion.kt", 'val KotlinVersion = "(.*)"', "val KotlinVersion = \"$kotlin_version\"")
-		sed("jtransc-maven-plugin/resources/META-INF/maven/plugin.xml", '<!--kotlin--><version>(.*)<\\/version>', "<!--kotlin--><version>$kotlin_version</version>")
-		sed("jtransc-maven-plugin/example/pom.xml", '<!--kotlin--><version>(.*)<\\/version>', "<!--kotlin--><version>$kotlin_version</version>")
+		sed("jtransc-utils/src/com/jtransc/KotlinVersion.kt", 'val KotlinVersion = "(.*)"', "val KotlinVersion = \"$kotlinVersion\"")
+		sed("jtransc-maven-plugin/resources/META-INF/maven/plugin.xml", '<!--kotlin--><version>(.*)<\\/version>', "<!--kotlin--><version>$kotlinVersion</version>")
+		sed("jtransc-maven-plugin/example/pom.xml", '<!--kotlin--><version>(.*)<\\/version>', "<!--kotlin--><version>$kotlinVersion</version>")
 	}
 }
 
@@ -144,5 +145,177 @@ idea {
 			file("gradle"), file("inception"),
 			file("jtransc-intellij-plugin"), file("jtransc-main-run")
 		]
+	}
+}
+
+subprojects {
+	def hasKotlin = project.name != "jtransc-annotations"
+
+	apply plugin: 'maven-publish'
+	apply plugin: 'com.jfrog.bintray'
+	apply plugin: 'jacoco'
+
+	def props = rootProject.extensions.getExtraProperties()
+
+	if (!props.has("gitVersion")) {
+		try {
+			props.set("gitVersion", "git describe".execute().text.trim())
+		} catch (Throwable) {
+			props.set("gitVersion", "${jtranscVersion}")
+		}
+	}
+
+	def publicationVersion = (("$project.version".endsWith("-SNAPSHOT")) ? (props.get("gitVersion") ?: "git describe".execute().text.trim()) : "$project.version") ?: "$project.version" ?: "unknown"
+
+	publishing {
+		publications {
+			MyPublication(MavenPublication) {
+				from components.java
+				groupId group
+				artifactId project.name
+				version publicationVersion
+			}
+		}
+	}
+
+	bintray {
+		user = System.getenv("BINTRAY_USER") ?: properties['BINTRAY_USER'] ?: rootProject.properties['BINTRAY_USER']
+		key = System.getenv("BINTRAY_KEY") ?: properties['BINTRAY_USER'] ?: rootProject.properties['BINTRAY_KEY']
+
+		publications = ['MyPublication']
+
+		dryRun = false
+		publish = true
+		if ("$project.version".endsWith("-SNAPSHOT")) {
+			override = true
+		}
+
+		pkg {
+			userOrg = 'jtransc'
+			repo = 'jtransc'
+			name = 'jtransc'
+			//name = rootProject.name
+			licenses = ['Apache-2.0']
+			vcsUrl = 'https://github.com/jtransc/jtransc.git'
+		}
+	}
+
+	jacocoTestReport {
+		reports {
+			xml.enabled true
+			html.enabled false
+			csv.enabled false
+		}
+	}
+
+	check.dependsOn jacocoTestReport
+
+	group = group
+	version = "${project.ext.jtranscVersion}"
+
+	compileJava.options.encoding = 'UTF-8'
+	compileTestJava.options.encoding = 'UTF-8'
+
+	configurations {
+		provided
+	}
+	sourceSets {
+		main { compileClasspath += configurations.provided }
+	}
+
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+
+	if (hasKotlin) {
+		apply plugin: 'kotlin'
+
+		// https://kotlinlang.org/docs/reference/using-gradle.html#compiler-options
+
+		compileKotlin {
+			kotlinOptions.suppressWarnings = true
+		}
+		compileTestKotlin {
+			kotlinOptions.suppressWarnings = true
+		}
+	}
+
+	sourceSets {
+		main.java.srcDirs = [ 'src' ]
+		main.resources.srcDirs = [ 'resources' ]
+		test.java.srcDirs = [ 'test' ]
+		test.resources.srcDirs = [ 'testresources' ]
+		if (hasKotlin) {
+			main.kotlin.srcDirs = ['src']
+			test.kotlin.srcDirs = ['test']
+		}
+	}
+
+	if (System.getenv("JTRANCS_DEPLOY") != null) {
+		task javadoc2(type: Javadoc) {
+			failOnError = false
+		}
+
+		task javadocJar(type: Jar, dependsOn: javadoc2) {
+			classifier = 'javadoc'
+			from 'build/docs/javadoc'
+		}
+
+		task sourcesJar(type: Jar) {
+			from sourceSets.main.allSource
+			classifier = 'sources'
+		}
+
+		artifacts {
+			archives jar
+			archives javadocJar
+			archives sourcesJar
+		}
+
+		signing {
+			sign configurations.archives
+		}
+
+		uploadArchives {
+			repositories {
+				mavenDeployer {
+					beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+					repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+						authentication(userName: sonatypeUsername, password: sonatypePassword)
+					}
+
+					pom.project {
+						name "${project.name}"
+						packaging 'jar'
+						description 'JVM AOT compiler currently generating JavaScript, C++, Haxe, with initial focus on Kotlin and games.'
+						url 'https://github.com/jtransc/jtransc/'
+						inceptionYear '2015'
+
+						scm {
+							url 'scm:git@github.com:jtransc/jtransc.git'
+							connection 'scm:git@github.com:jtransc/jtransc.git'
+							developerConnection 'scm:git@github.com:jtransc/jtransc.git'
+						}
+
+						licenses {
+							license {
+								name 'The Apache Software License, Version 2.0'
+								url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+								distribution 'repo'
+							}
+						}
+
+						developers {
+							developer {
+								id 'soywiz'
+								name 'Carlos Ballesteros Velasco'
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }

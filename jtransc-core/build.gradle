@@ -1,6 +1,3 @@
-apply from: '../includeCommon.gradle'
-apply from: '../include.gradle'
-
 dependencies {
 	// Maven Plugin Annotations
 	implementation "org.apache.maven.plugin-tools:maven-plugin-annotations:$mavenPluginAnnotationsVersion"

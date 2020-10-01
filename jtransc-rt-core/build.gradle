@@ -1,6 +1,3 @@
-apply from: '../includeCommon.gradle'
-apply from: '../includeNoKotlin.gradle'
-
 dependencies {
 	implementation project(':jtransc-annotations')
 }

@@ -1,10 +1,5 @@
-apply from: '../includeCommon.gradle'
-apply from: '../include.gradle'
-
-apply plugin: "kotlin"
-
 dependencies {
-	testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+	testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
 
 	implementation project(":jtransc-rt-core")
 	implementation project(":jtransc-annotations")
