@@ -66,3 +66,15 @@ class CSharpCompiler(
 	val MCS by lazy { "mcs" }
 	val CSC by lazy { processUtils.locateCommand("csc") ?: dotNetV4Folder["csc"].path }
 }
+// project.csproj
+/*
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Program</RootNamespace>
+  </PropertyGroup>
+
+</Project>
+ */

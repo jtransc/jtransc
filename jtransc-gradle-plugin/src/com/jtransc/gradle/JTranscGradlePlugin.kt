@@ -11,6 +11,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.util.*
 
+val Project.jtransc get() = extensions.getByType(JTranscGradleExtension::class.java)
+fun Project.jtransc(block: JTranscGradleExtension.() -> Unit) = block(jtransc)
+
 /**
  * References:
  * - https://docs.gradle.org/current/userguide/java_plugin.html
