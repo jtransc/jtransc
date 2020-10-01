@@ -2,14 +2,6 @@ import java.nio.charset.Charset
 
 // http://jedicoder.blogspot.com.es/2011/11/automated-gradle-project-deployment-to.html
 buildscript {
-	ext {
-		// Kotlin JVM
-		kotlin_version = "1.4.0"
-
-		// Bintray
-		bintrayVersion = "1.7.3"
-	}
-
 	repositories {
 		mavenLocal()
 		mavenCentral()

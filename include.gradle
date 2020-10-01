@@ -9,6 +9,13 @@ repositories {
 	mavenCentral()
 }
 
+compileKotlin {
+	kotlinOptions.suppressWarnings = true
+}
+compileTestKotlin {
+	kotlinOptions.suppressWarnings = true
+}
+
 group = "${project.ext.group}"
 version = "${project.ext.jtranscVersion}"
 

@@ -1,23 +1,6 @@
 apply from: '../includeCommon.gradle'
 apply from: '../include.gradle'
 
-ext {
-	// Maven Plugin Annotations
-	mavenPluginAnnotationsVersion = "3.4"
-	// Maven Core
-	mavenCoreVersion = "3.3.9"
-	// Plexus Archiver
-	plexusArchiverVersion = "2.1.1"
-	// Maven Artifact Resolver
-	mavenArtifactResolverVersion = "1.0"
-	// Aether API
-	aetherApiVersion = "1.1.0"
-	// Aether Util
-	aetherUtilVersion = "1.1.0"
-	// Maven Compat
-	mavenCompatVersion = "3.0"
-}
-
 dependencies {
 	// Maven Plugin Annotations
 	implementation "org.apache.maven.plugin-tools:maven-plugin-annotations:$mavenPluginAnnotationsVersion"
