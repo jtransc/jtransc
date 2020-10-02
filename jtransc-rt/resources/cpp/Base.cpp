@@ -5,6 +5,8 @@
 #endif
 
 //#define _JTRANSC_USE_DYNAMIC_LIB 1
+//#define INLINE_ARRAYS 1
+#define ENABLE_SYNCHRONIZED 1
 
 #ifdef _WIN32
 	#define _JTRANSC_UNIX_LIKE_ 0
@@ -384,19 +386,39 @@ struct N {
 	static void monitorExit(JAVA_OBJECT obj);
 };
 
-/* Used for synchronized methods.*/
-class SynchronizedMethodLocker{
-    JAVA_OBJECT obj;
-public:
-	SynchronizedMethodLocker(JAVA_OBJECT obj){
-	    this->obj=obj;
-		N::monitorEnter(obj);
+struct java_lang_ObjectBase : public __GC {
+	#ifdef ENABLE_SYNCHRONIZED
+		std::recursive_mutex mtx;
+	#endif
+
+	//std::mutex mtx;
+	void __monitorEnter__() {
+		#ifdef ENABLE_SYNCHRONIZED
+			mtx.lock();
+		#endif
 	}
-	~SynchronizedMethodLocker(){
-		N::monitorExit(this->obj);
+	void __monitorExit__() {
+		#ifdef ENABLE_SYNCHRONIZED
+			mtx.unlock();
+		#endif
 	}
 };
 
+/* Used for synchronized methods.*/
+struct SynchronizedMethodLocker {
+    java_lang_ObjectBase *obj;
+	SynchronizedMethodLocker(java_lang_ObjectBase *obj) {
+	    this->obj = obj;
+	    if (obj != nullptr) {
+	    	obj->__monitorEnter__();
+	    }
+	}
+	~SynchronizedMethodLocker() {
+	    if (obj != nullptr) {
+	    	obj->__monitorExit__();
+	    }
+	}
+};
 
 struct DYN {
 	static void* openDynamicLib(const char*);
@@ -416,29 +438,7 @@ struct DYN {
 
 {{ ARRAY_HEADERS_PRE }}
 
-//#define INLINE_ARRAYS 1
-
-#ifdef INLINE_ARRAYS
-	#define __GC_ALLOC_JA_Z(size) __gcHeap.AllocCustomSize<JA_Z>(16 + 64 + sizeof(JA_Z) + size * sizeof(int8_t), size)
-	#define __GC_ALLOC_JA_B(size) __gcHeap.AllocCustomSize<JA_B>(16 + 64 + sizeof(JA_B) + size * sizeof(int8_t), size)
-	#define __GC_ALLOC_JA_C(size) __gcHeap.AllocCustomSize<JA_C>(16 + 64 + sizeof(JA_C) + size * sizeof(int16_t), size)
-	#define __GC_ALLOC_JA_S(size) __gcHeap.AllocCustomSize<JA_S>(16 + 64 + sizeof(JA_S) + size * sizeof(int16_t), size)
-	#define __GC_ALLOC_JA_I(size) __gcHeap.AllocCustomSize<JA_I>(16 + 64 + sizeof(JA_I) + size * sizeof(int32_t), size)
-	#define __GC_ALLOC_JA_J(size) __gcHeap.AllocCustomSize<JA_J>(16 + 64 + sizeof(JA_J) + size * sizeof(int64_t), size)
-	#define __GC_ALLOC_JA_F(size) __gcHeap.AllocCustomSize<JA_F>(16 + 64 + sizeof(JA_F) + size * sizeof(float32_t), size)
-	#define __GC_ALLOC_JA_D(size) __gcHeap.AllocCustomSize<JA_D>(16 + 64 + sizeof(JA_D) + size * sizeof(float64_t), size)
-	#define __GC_ALLOC_JA_L(size, desc) __gcHeap.AllocCustomSize<JA_L>(16 + 64 + sizeof(JA_L) + size * sizeof(void *), size, desc)
-#else
-	#define __GC_ALLOC_JA_Z(size) __gcHeap.Alloc<JA_Z>(size)
-	#define __GC_ALLOC_JA_B(size) __gcHeap.Alloc<JA_B>(size)
-	#define __GC_ALLOC_JA_C(size) __gcHeap.Alloc<JA_C>(size)
-	#define __GC_ALLOC_JA_S(size) __gcHeap.Alloc<JA_S>(size)
-	#define __GC_ALLOC_JA_I(size) __gcHeap.Alloc<JA_I>(size)
-	#define __GC_ALLOC_JA_J(size) __gcHeap.Alloc<JA_J>(size)
-	#define __GC_ALLOC_JA_F(size) __gcHeap.Alloc<JA_F>(size)
-	#define __GC_ALLOC_JA_D(size) __gcHeap.Alloc<JA_D>(size)
-	#define __GC_ALLOC_JA_L(size, desc) __gcHeap.Alloc<JA_L>(size, desc)
-#endif
+#define INLINE_ARRAYS_OFFSET 64
 
 struct JA_0 : public java_lang_Object {
 	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::wstring d) {
@@ -464,7 +464,7 @@ struct JA_0 : public java_lang_Object {
 	}
 
 	~JA_0() {
-		if (allocated) ::free(_data);
+		if (allocated) ::jtfree(_data);
 	}
 
 	void *_data;
@@ -472,13 +472,15 @@ struct JA_0 : public java_lang_Object {
 	int8_t elementSize;
 	std::wstring desc;
 	bool allocated;
-	int __data;
+	#ifdef INLINE_ARRAYS
+		int __inline_data;
+	#endif
 
 	std::wstring __GC_Name() { return L"JA_0"; }
 	int __GC_Size() { return sizeof(*this); }
 
 	#ifdef INLINE_ARRAYS
-		inline void *getStartPtrRaw() { return ((char *)&__data) + 64; }
+		inline void *getStartPtrRaw() { return ((char *)&__inline_data) + INLINE_ARRAYS_OFFSET; }
 	#else
 		inline void *getStartPtrRaw() { return _data; }
 	#endif
@@ -493,11 +495,10 @@ struct JA_0 : public java_lang_Object {
 		heap->allocatedArraySize -= length * elementSize;
     }
 
-
 	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
 		void * result = nullptr;
 		int64_t bytesSize = esize * (len + 1);
-		result = (void*)malloc(bytesSize);
+		result = (void*)jtalloc(bytesSize);
 		::memset(result, 0, bytesSize);
 		return result;
 	}
@@ -575,6 +576,9 @@ struct JA_Base : JA_0 {
 
 	void set(int32_t offset, T v) { checkBoundsThrowing(offset, length); fastSet(offset, v); };
 	T get(int32_t offset) { checkBoundsThrowing(offset, length); return fastGet(offset); };
+
+	//void set(int32_t offset, T v) { fastSet(offset, v); };
+	//T get(int32_t offset) { return fastGet(offset); };
 
 	void fill(int32_t from, int32_t to, T v) {
 		constexpr int32_t typesize = sizeof(T);
@@ -748,6 +752,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 	int __GC_Size() { return sizeof(*this); }
     void __GC_Trace(__GCVisitor* visitor) {
     	JA_Base::__GC_Trace(visitor);
+    	int length = this->length;
     	for (int n = 0; n < length; n++) {
 			visitor->Trace(this->fastGet(n));
     	}
@@ -798,6 +803,29 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 //JAVA_OBJECT JA_0::toLongArray  () { return __GC_ALLOC<JA_J>((void *)getStartPtr(), bytesLength() / 8); };
 //JAVA_OBJECT JA_0::toFloatArray () { return __GC_ALLOC<JA_F>((void *)getStartPtr(), bytesLength() / 4); };
 //JAVA_OBJECT JA_0::toDoubleArray() { return __GC_ALLOC<JA_D>((void *)getStartPtr(), bytesLength() / 8); };
+
+#ifdef INLINE_ARRAYS
+	JA_Z *__GC_ALLOC_JA_Z(int size) { return __gcHeap.AllocCustomSize<JA_Z>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_Z) + size * sizeof(int8_t), size); }
+	JA_B *__GC_ALLOC_JA_B(int size) { return __gcHeap.AllocCustomSize<JA_B>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_B) + size * sizeof(int8_t), size); }
+	JA_C *__GC_ALLOC_JA_C(int size) { return __gcHeap.AllocCustomSize<JA_C>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_C) + size * sizeof(int16_t), size); }
+	JA_S *__GC_ALLOC_JA_S(int size) { return __gcHeap.AllocCustomSize<JA_S>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_S) + size * sizeof(int16_t), size); }
+	JA_I *__GC_ALLOC_JA_I(int size) { return __gcHeap.AllocCustomSize<JA_I>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_I) + size * sizeof(int32_t), size); }
+	JA_J *__GC_ALLOC_JA_J(int size) { return __gcHeap.AllocCustomSize<JA_J>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_J) + size * sizeof(int64_t), size); }
+	JA_F *__GC_ALLOC_JA_F(int size) { return __gcHeap.AllocCustomSize<JA_F>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_F) + size * sizeof(float32_t), size); }
+	JA_D *__GC_ALLOC_JA_D(int size) { return __gcHeap.AllocCustomSize<JA_D>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_D) + size * sizeof(float64_t), size); }
+	JA_L *__GC_ALLOC_JA_L(int size, std::wstring desc) { return __gcHeap.AllocCustomSize<JA_L>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_L) + size * sizeof(void *), size, desc); }
+#else
+	JA_Z *__GC_ALLOC_JA_Z(int size) { return __gcHeap.Alloc<JA_Z>(size); }
+	JA_B *__GC_ALLOC_JA_B(int size) { return __gcHeap.Alloc<JA_B>(size); }
+	JA_C *__GC_ALLOC_JA_C(int size) { return __gcHeap.Alloc<JA_C>(size); }
+	JA_S *__GC_ALLOC_JA_S(int size) { return __gcHeap.Alloc<JA_S>(size); }
+	JA_I *__GC_ALLOC_JA_I(int size) { return __gcHeap.Alloc<JA_I>(size); }
+	JA_J *__GC_ALLOC_JA_J(int size) { return __gcHeap.Alloc<JA_J>(size); }
+	JA_F *__GC_ALLOC_JA_F(int size) { return __gcHeap.Alloc<JA_F>(size); }
+	JA_D *__GC_ALLOC_JA_D(int size) { return __gcHeap.Alloc<JA_D>(size); }
+	JA_L *__GC_ALLOC_JA_L(int size, std::wstring desc) { return __gcHeap.Alloc<JA_L>(size, desc); }
+#endif
+
 
 {{ ARRAY_HEADERS_POST }}
 
@@ -1345,16 +1373,12 @@ int64_t N::nanoTime() {
 
 void N::monitorEnter(JAVA_OBJECT obj) {
 	if (obj == nullptr) return;
-	//std::wcout << L"N::monitorEnter[1]\n";
-	obj->mtx.lock();
-	//std::wcout << L"N::monitorEnter[2]\n";
+	obj->__monitorEnter__();
 }
 
 void N::monitorExit(JAVA_OBJECT obj){
 	if (obj == nullptr) return;
-	//std::wcout << L"N::monitorExit[1]\n";
-	obj->mtx.unlock();
-	//std::wcout << L"N::monitorExit[2]\n";
+	obj->__monitorExit__();
 }
 
 void SIGSEGV_handler(int signal) {

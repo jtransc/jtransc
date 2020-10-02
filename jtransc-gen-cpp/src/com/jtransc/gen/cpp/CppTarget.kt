@@ -473,7 +473,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			""
 			//"public java_lang_Object"
 		} else if (clazz.fqname == "java.lang.Object") {
-			"public __GC"
+			"public java_lang_ObjectBase"
 		} else {
 			directExtendingAndImplementing.map { "public ${it.cppName}" }.joinToString(", ")
 		}
@@ -556,7 +556,11 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				val argsString = type.args.map { it.type.targetNameRef + " " + it.name }.joinToString(", ")
 				val zero = if (clazz.isInterface && !method.isStatic) " = 0" else ""
 				val inlineNone = if (method.isInline) "inline " else ""
-				val virtualStatic = if (method.isStatic) "static " else "virtual "
+				val virtualStatic = when {
+					method.isStatic -> "static "
+					method.isInstanceInit -> ""
+					else -> "virtual "
+				}
 				line("$inlineNone$virtualStatic${method.returnTypeWithThis.targetNameRef} ${method.targetName}($argsString)$zero;")
 			}
 			for (parentMethod in directImplementing.flatMap { it.methods }) {

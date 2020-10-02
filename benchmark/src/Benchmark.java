@@ -658,7 +658,8 @@ public class Benchmark {
 			@Override
 			public int run() {
 				Random random = new Random(0L);
-				byte[] bytes = new byte[64 * 1024];
+				int len = 64 * 1024;
+				byte[] bytes = new byte[len];
 				int sum = 0;
 				for (int n = 0; n < bytes.length; n++) {
 					bytes[n] = (byte) random.nextInt();

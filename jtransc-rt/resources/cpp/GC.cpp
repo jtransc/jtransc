@@ -15,8 +15,42 @@
 
 //#define __TRACE_GC 1
 
+#define ENABLE_GC 1
+//#define DUMMY_ALLOCATOR 1
+
 struct __GCVisitor;
 struct __GCHeap;
+
+#ifdef DUMMY_ALLOCATOR
+	int64_t BIG_HEAP_SIZE = (3LL * 1024LL * 1024LL * 1024LL) - 16;
+	char *BIG_HEAP = (char *)malloc(BIG_HEAP_SIZE + 1024);
+	char *BIG_HEAP_END = BIG_HEAP + BIG_HEAP_SIZE;
+
+	template <typename T> T GC_roundUp(T numToRound, T multiple) {
+		if (multiple == 0) return numToRound;
+		int remainder = numToRound % multiple;
+		if (remainder == 0) return numToRound;
+		return numToRound + multiple - remainder;
+	}
+
+	void *jtalloc(size_t size) {
+		//return malloc(size);
+		auto out = BIG_HEAP;
+		if (out + size >= BIG_HEAP_END) {
+			std::cout << "ERROR ALLOCATING" << out << " > " << BIG_HEAP_END << "\n";
+			abort();
+		}
+		BIG_HEAP += GC_roundUp(size, (size_t)128);
+		memset(out, 0, size);
+		return out;
+	}
+	void jtfree(void *ptr) {
+		//free(ptr);
+	}
+#else
+	void *jtalloc(size_t size) { return malloc(size); }
+	void jtfree(void *ptr) { free(ptr); }
+#endif
 
 struct __GC {
     __GC *next = nullptr;
@@ -110,8 +144,8 @@ struct __GCHeap {
     __GCVisitor visitor;
     std::atomic<bool> sweepingStop;
     //int gcCountThresold = 100000;
-    int gcCountThresold = 10000;
-    //int gcCountThresold = 1000;
+    //int gcCountThresold = 10000;
+    int gcCountThresold = 1000;
     //int gcCountThresold = 10;
     int gcSizeThresold = 4 * 1024 * 1024;
     bool enabled = true;
@@ -238,7 +272,8 @@ struct __GCHeap {
                 allocatedObjectSize -= todelete->__GC_Size();
                 allocatedCount--;
                 todelete->__GC_Dispose(this);
-                delete todelete;
+                jtfree(todelete);
+                //delete todelete;
             } else {
                 if (reset) {
                    current->markVersion = 0;
@@ -268,8 +303,12 @@ struct __GCHeap {
     void CheckStack(__GCStack *stack) {
         auto start = stack->start;
         void *value = nullptr;
+        void **end = &value;
+        #if __TRACE_GC
+        std::cout << "Checking stack: " << (start - end) << "\n";
+        #endif
 
-        for (void **ptr = &value; ptr <= start; ptr++) {
+        for (void **ptr = end; ptr <= start; ptr++) {
             void *value = *ptr;
             if (value > (void *)0x10000) {
                 if (allocated.find((__GC*)value) != allocated.end()) {
@@ -283,8 +322,13 @@ struct __GCHeap {
     }
 
     void GC() {
-        Mark();
-        Sweep();
+    	#ifdef ENABLE_GC
+    		#ifdef __TRACE_GC
+				std::cout << "GC: roots=" << roots.size() << ", threads=" << threads_to_stacks.size() << ", this->allocatedCount=" << this->allocatedCount << ", gcCountThresold=" << gcCountThresold << ", this->allocatedObjectSize=" << this->allocatedObjectSize << ", gcSizeThresold=" << gcSizeThresold << "\n";
+			#endif
+        	Mark();
+        	Sweep();
+        #endif
     }
 
     void Enable() {
@@ -297,22 +341,31 @@ struct __GCHeap {
 
 	template <typename T, typename... Args>
 	T* AllocCustomSize(int size, Args&&... args) {
+    	#ifdef ENABLE_GC
 		if (enabled) {
-			if (this->allocatedCount >= gcCountThresold) GC();
-			if (this->allocatedCount >= gcCountThresold) gcCountThresold *= 2;
+			if (this->allocatedCount >= gcCountThresold) {
+				GC();
+				if (this->allocatedCount >= gcCountThresold * 0.5) gcCountThresold *= 2;
+			}
 
-			if (this->allocatedObjectSize >= gcSizeThresold) GC();
-			if (this->allocatedObjectSize >= gcSizeThresold) gcSizeThresold *= 2;
+			if (this->allocatedObjectSize >= gcSizeThresold) {
+				GC();
+				if (this->allocatedObjectSize >= gcSizeThresold * 0.5) gcSizeThresold *= 2;
+			}
 		}
+		#endif
 
-		void *memory = malloc(size);
+		void *memory = jtalloc(size);
 		T *newobj = ::new (memory) T(std::forward<Args>(args)...);
+		//T *newobj = ::new T(std::forward<Args>(args)...);
+    	#ifdef ENABLE_GC
 		newobj->__GC_Init(this);
 		allocated.insert(newobj);
-		newobj->next = (__GC*)this->head;
 		this->allocatedObjectSize += size;
 		this->allocatedCount++;
+		newobj->next = (__GC*)this->head;
 		this->head = newobj;
+		#endif
 		return newobj;
 	};
 
