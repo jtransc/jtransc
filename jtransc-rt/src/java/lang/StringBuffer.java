@@ -22,7 +22,7 @@ import com.jtransc.annotation.JTranscAsync;
 public final class StringBuffer extends StringBuilder implements java.io.Serializable, CharSequence {
 	@JTranscAsync
 	public StringBuffer() {
-		this(16);
+		this(32);
 	}
 
 	@JTranscAsync

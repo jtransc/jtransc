@@ -803,6 +803,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun processCallArg(e: AstExpr, str: String, targetType: AstType) = doArgCast(targetType, str)
 
+	override fun genNew(className: String, commaArgs: String): String {
+		return "__GC_ALLOC<$className>($commaArgs)"
+	}
+
 	override val AstType.nativeDefaultString: String
 		get() {
 			if (this is AstType.REF) {

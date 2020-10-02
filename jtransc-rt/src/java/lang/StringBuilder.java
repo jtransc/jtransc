@@ -44,7 +44,7 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 	@JTranscSync
 	public StringBuilder() {
-		this(16);
+		this(32);
 	}
 
 	@JTranscMethodBody(target = "js", value = "this._str = ''; return this;")

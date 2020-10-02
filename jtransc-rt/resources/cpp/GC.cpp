@@ -305,13 +305,14 @@ struct __GCHeap {
 			if (this->allocatedObjectSize >= gcSizeThresold) gcSizeThresold *= 2;
 		}
 
-        void *memory = malloc(sizeof(T));
+		const int size = sizeof(T);
+        void *memory = malloc(size);
         T *newobj = ::new (memory) T(std::forward<Args>(args)...);
         newobj->__GC_Init(this);
         allocated.insert(newobj);
-        this->allocatedObjectSize += newobj->__GC_Size();
-        this->allocatedCount++;
         newobj->next = (__GC*)this->head;
+        this->allocatedObjectSize += size;
+        this->allocatedCount++;
         this->head = newobj;
         return newobj;
     };

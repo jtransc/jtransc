@@ -1015,16 +1015,20 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 			val className = e.target.targetName
 			imports += FqName(newClazz.nativeName!!)
 			val commaArgs = generateCallArgString(e.args.map { it.genExpr() }, isNativeCall = false)
-			return "(new $className($commaArgs))"
+			return genNew(className, commaArgs)
 		} else {
 			val className = e.target.targetName
 			return genExprCallBase(AstExpr.CALL_INSTANCE(
-				AstExpr.RAW(e.target, "(new $className())"),
+				AstExpr.RAW(e.target, genNew(className, "")),
 				e.constructor,
 				e.args.map { it.value },
 				isSpecial = true
 			))
 		}
+	}
+
+	open fun genNew(className: String, commaArgs: String): String {
+		return "(new $className($commaArgs))"
 	}
 
 	open fun genExprInstanceOf(e: AstExpr.INSTANCE_OF): String {
