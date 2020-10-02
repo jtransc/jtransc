@@ -330,7 +330,7 @@ public class Benchmark {
 			public int run() {
 				long a = 0;
 
-				for (int n = 0; n < 10000; n++) {
+				for (int n = 0; n < 100000; n++) {
 					a = (17777L * (long) n) + a / 3;
 				}
 
