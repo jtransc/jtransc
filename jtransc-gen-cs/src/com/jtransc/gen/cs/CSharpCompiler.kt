@@ -61,7 +61,7 @@ class CSharpCompiler(
 	 */
 
 	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf(), extraParams: Map<String?, String?>): List<String> {
-		return listOf("dotnet", "build", "-o", "bin")
+		return listOf("dotnet", "build", "-o", "bin", "--configuration", "Release")
 		/*
 		val compiler = getCompiler(extraParams)
 		when {

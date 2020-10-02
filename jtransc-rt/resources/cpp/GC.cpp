@@ -109,14 +109,24 @@ struct __GCHeap {
     __GC* head = nullptr;
     __GCVisitor visitor;
     std::atomic<bool> sweepingStop;
+    //int gcCountThresold = 100000;
     int gcCountThresold = 10000;
     //int gcCountThresold = 1000;
     //int gcCountThresold = 10;
     int gcSizeThresold = 4 * 1024 * 1024;
     bool enabled = true;
 
+    int GetTotalBytes() {
+    	return allocatedObjectSize + allocatedArraySize;
+    }
+
+    // @TODO
+    int GetFreeBytes() {
+    	return 16 * 1024 * 1024;
+    }
+
     void ShowStats() {
-        int totalSize = allocatedObjectSize + allocatedArraySize;
+        int totalSize = GetTotalBytes();
         std::wcout << L"Heap Stats. Object Count: " << allocatedCount << L", TotalSize: " << totalSize << L", ObjectSize: " << allocatedObjectSize << L", ArraySize: " << allocatedArraySize << L"\n";
 		fflush(stdout);
     }
@@ -180,7 +190,9 @@ struct __GCHeap {
         for (auto rootInfo : roots)  {
             auto rootPtr = rootInfo->root;
         	auto root = *rootPtr;
+			#if __TRACE_GC
 			std::cout << "rootName=" << rootInfo->name << ", rootPtr=" << rootPtr << ", root=" << root << "\n";
+			#endif
             visitor.Trace(root);
         }
         #if __TRACE_GC
@@ -333,3 +345,6 @@ struct __GCThread {
 #define __GC_ADD_ROOT_CONSTANT(name, v) __gcHeap.AddRoot((__GC**)v);
 #define __GC_ENABLE __gcHeap.Enable
 #define __GC_DISABLE __gcHeap.Disable
+#define GC_gcollect __GC_GC
+#define GC_get_free_bytes __gcHeap.GetFreeBytes
+#define GC_get_total_bytes __gcHeap.GetTotalBytes
