@@ -4,7 +4,7 @@
 #include <windows.h>
 #endif
 
-
+//#define _JTRANSC_USE_DYNAMIC_LIB 1
 
 #ifdef _WIN32
 	#define _JTRANSC_UNIX_LIKE_ 0
@@ -57,27 +57,7 @@
 //#define USE_PORTABLE_GC
 //#endif
 
-#ifdef USE_PORTABLE_GC
-#	include "GC_portable.cpp"
-#else
-#	include "GC_boehm.cpp"
-#endif
-
-//#define DO_NOT_USE_GC // For debugging purposes (to detect crashes related to GC)
-#ifdef DO_NOT_USE_GC
-	void* JT_MALLOC(std::size_t sz) { void* out = malloc(sz); memset(out, 0, sz); return out; }
-	void* JT_MALLOC_ATOMIC(std::size_t sz) { return malloc(sz); }
-#else
-	void* JT_MALLOC(std::size_t sz) { return GC_MALLOC(sz); }
-	void* JT_MALLOC_ATOMIC(std::size_t sz) { return GC_MALLOC_ATOMIC(sz); }
-#endif
-
-struct gc {
-	void* operator new(std::size_t sz) {
-		//std::printf("global op new called, size = %zu\n",sz);
-		return JT_MALLOC(sz);
-	}
-};
+#include "GC.cpp"
 
 #ifdef _WIN32
 	#ifdef _WIN64
@@ -159,7 +139,7 @@ inline Float32x4 abs(const Float32x4& l) { return { std::fabs(l.x), std::fabs(l.
 inline Float32x4 min(const Float32x4& l, const Float32x4& r){ return { std::fmin(l.x, r.x), std::fmin(l.y, r.y), std::fmin(l.z, r.z), std::fmin(l.w, r.w)}; };
 inline Float32x4 max(const Float32x4& l, const Float32x4& r){ return { std::fmax(l.x, r.x), std::fmax(l.y, r.y), std::fmax(l.z, r.z), std::fmax(l.w, r.w)}; };
 
-struct CLASS_TRACE { public:
+struct CLASS_TRACE {
 	const char* text;
 	static void print_indent() { for (int n = 0; n < TRACE_INDENT; n++) putchar(' '); };
 	CLASS_TRACE(const char* text) : text(text) { print_indent(); printf("Enter: %s\n", text); TRACE_INDENT++; };
@@ -242,7 +222,7 @@ template <typename TTo> TTo CC_CHECK_CAST1(void* i, int typeId, const char *from
 //	return res;
 //}
 
-struct N { public:
+struct N {
 	static Env env;
 
 	static int64_t NAN_LONG;
@@ -412,7 +392,7 @@ public:
 };
 
 
-struct DYN { public:
+struct DYN {
 	static void* openDynamicLib(const char*);
 	static void closeDynamicLib(void*);
 	static void* findDynamicSymbol(void*, const char*);
@@ -429,7 +409,7 @@ struct DYN { public:
 
 {{ ARRAY_HEADERS_PRE }}
 
-struct JA_0 : public java_lang_Object { public:
+struct JA_0 : public java_lang_Object {
 	void *_data;
 	int32_t length;
 	int8_t elementSize;
@@ -445,13 +425,8 @@ struct JA_0 : public java_lang_Object { public:
 	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
 		void * result = nullptr;
 		int64_t bytesSize = esize * (len + 1);
-		if (pointers) {
-			result = (void*)JT_MALLOC(bytesSize);
-			// this malloc already clears memory, so it is pointless doing this again
-		} else {
-			result = (void*)JT_MALLOC_ATOMIC(bytesSize);
-			::memset(result, 0, bytesSize);
-		}
+		result = (void*)malloc(bytesSize);
+		::memset(result, 0, bytesSize);
 		return result;
 	}
 
@@ -670,6 +645,14 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 		for (int32_t n = 0; n < len; n++) out[n] = this->fastGet(n);
 		return out;
 	}
+
+	int __GC_Size() { return sizeof(*this); }
+    void __GC_Trace(__GCVisitor* visitor) {
+    	JA_Base::__GC_Trace(visitor);
+    	for (int n = 0; n < length; n++) {
+			visitor->Trace(this->fastGet(n));
+    	}
+    }
 
 	static JA_0* createMultiSure(std::wstring desc, std::vector<int32_t> sizes) {
 		if (sizes.size() == 0) throw L"Multiarray with zero sizes";
@@ -1292,56 +1275,67 @@ void SIGFPE_handler(int signal) {
 
 
 	void* DYN::openDynamicLib(const char* libraryName){
-    	#if _JTRANSC_WINDOWS_
-    	return LoadLibrary(libraryName);
+		#if _JTRANSC_USE_DYNAMIC_LIB
+			#if _JTRANSC_WINDOWS_
+			return LoadLibrary(libraryName);
 
-    	#elif _JTRANSC_UNIX_LIKE_
-    	return dlopen(libraryName, RTLD_LAZY | RTLD_LOCAL);
+			#elif _JTRANSC_UNIX_LIKE_
+			return dlopen(libraryName, RTLD_LAZY | RTLD_LOCAL);
 
-    	#else
-    	#   error "Dynamic loading unsupported on this target"
-    	#endif
+			#else
+			#   error "Dynamic loading unsupported on this target"
+			#endif
+		#else
+			std::cout << "WARNING not enabled DYN::openDynamicLib " << libraryName << "\n";
+			return nullptr;
+		#endif
 	}
 
 	void DYN::closeDynamicLib(void* handle){
-		#if _JTRANSC_WINDOWS_
-        FreeLibrary((HMODULE)handle);
+		#if _JTRANSC_USE_DYNAMIC_LIB
+			#if _JTRANSC_WINDOWS_
+			FreeLibrary((HMODULE)handle);
 
-        #elif _JTRANSC_UNIX_LIKE_
-        dlclose(handle);
+			#elif _JTRANSC_UNIX_LIKE_
+			dlclose(handle);
 
-        #else
-        #   error "Dynamic loading unsupported on this target"
-        #endif
+			#else
+			#   error "Dynamic loading unsupported on this target"
+			#endif
+		#endif
 	}
 
 	void* DYN::findDynamicSymbol(void* handle, const char* symbolToSearch){
-		#if _JTRANSC_WINDOWS_
-        void* symbol = GetProcAddress((HMODULE)handle, symbolToSearch);
+		#if _JTRANSC_USE_DYNAMIC_LIB
+			#if _JTRANSC_WINDOWS_
+			void* symbol = GetProcAddress((HMODULE)handle, symbolToSearch);
 
-        //TODO error handling, etc.
+			//TODO error handling, etc.
 
-        return symbol;
+			return symbol;
 
-        #elif _JTRANSC_UNIX_LIKE_
-        dlerror(); //Clear all old errors
-        void* symbol = dlsym(handle, symbolToSearch);
-        if(symbol){
-        	return symbol;
-        } else {
-        	const char* error = dlerror();
-        	if(error){
-        		return NULL;
-        		//throw error;
-        	} else {
-        		return NULL;
-        		//throw (std::string("Unknown error while trying to resolve ") + std::string(symbolToSearch) + std::string(" or the symbol refers to a null pointer!")).c_str();
-        	}
-        }
+			#elif _JTRANSC_UNIX_LIKE_
+			dlerror(); //Clear all old errors
+			void* symbol = dlsym(handle, symbolToSearch);
+			if(symbol){
+				return symbol;
+			} else {
+				const char* error = dlerror();
+				if(error){
+					return NULL;
+					//throw error;
+				} else {
+					return NULL;
+					//throw (std::string("Unknown error while trying to resolve ") + std::string(symbolToSearch) + std::string(" or the symbol refers to a null pointer!")).c_str();
+				}
+			}
 
-        #else
-        #   error "Dynamic loading unsupported on this target"
-        #endif
+			#else
+			#   error "Dynamic loading unsupported on this target"
+			#endif
+		#else
+			return nullptr;
+		#endif
 	}
 
 	void* DYN::jtvmResolveNative(JAVA_OBJECT clazz, const char* shortMangledName, const char* longMangledName, void** ptr){
@@ -3074,15 +3068,7 @@ const struct JNINativeInterface_ jni = {
 
 Env N::env;
 
-void N::startup() {
-	/*
-	GC_set_no_dls(0);
-	GC_set_dont_precollect(1);
-	*/
-
-	//GC_set_all_interior_pointers(0);
-	GC_init_main_thread();
-
+void N_startup2() {
 	/*
 	GC_clear_roots();
 	GC_add_roots(&STRINGS_START, &STRINGS_END);
@@ -3103,6 +3089,17 @@ void N::startup() {
 	std::signal(SIGFPE, SIGFPE_handler);
 
 	N::initStringPool();
+}
+
+void N::startup() {
+	/*
+	GC_set_no_dls(0);
+	GC_set_dont_precollect(1);
+	*/
+
+	//GC_set_all_interior_pointers(0);
+	__GC_REGISTER_THREAD();
+	N_startup2();
 };
 
 // Type Table Footer

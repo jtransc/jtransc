@@ -1,3 +1,4 @@
+/*
 import com.jtransc.gen.cpp.libs.BdwgcLib
 import com.jtransc.vfs.MemoryVfs
 import com.jtransc.vfs.ZipVfs
@@ -30,3 +31,4 @@ class BdwgcZipTest {
 		println(data.read().size)
 	}
 }
+*/

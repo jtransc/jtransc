@@ -1,5 +1,6 @@
 package com.jtransc.gen.cpp.libs
 
+/*
 import com.jtransc.JTranscSystem
 import com.jtransc.error.ignoreErrors
 import com.jtransc.vfs.LocalVfs
@@ -71,3 +72,4 @@ open class BoostLib : Lib("boost") {
 		}
 	}
 }
+*/

@@ -1,5 +1,6 @@
 package com.jtransc.gen.cpp.libs
 
+/*
 import com.jtransc.JTranscSystem
 import com.jtransc.vfs.*
 import java.io.File
@@ -56,3 +57,4 @@ open class BdwgcLib : Lib("bdwgc") {
 		}
 	}
 }
+*/

@@ -31,12 +31,9 @@ import java.util.Map;
 
 @JTranscAddMembers(target = "d", value = "static {% CLASS java.lang.Thread %} _dCurrentThread; Thread thread;")
 @JTranscAddMembers(target = "cs", value = "System.Threading.Thread _cs_thread;")
-@JTranscAddIncludes(target = "cpp", cond = "USE_BOOST", value = {"thread", "map", "boost/thread.hpp", "boost/chrono.hpp"})
 @JTranscAddIncludes(target = "cpp", value = {"thread", "map"})
-@JTranscAddMembers(target = "cpp", cond = "USE_BOOST", value = "boost::thread t_;")
-@JTranscAddMembers(target = "cpp", cond = "!USE_BOOST", value = "std::thread t_;")
-@JTranscAddMembers(target = "cpp", cond = "USE_BOOST", value = "static std::map<boost::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
-@JTranscAddMembers(target = "cpp", cond = "!USE_BOOST", value = "static std::map<std::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
+@JTranscAddMembers(target = "cpp", value = "std::thread t_;")
+@JTranscAddMembers(target = "cpp", value = "static std::map<std::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
 @HaxeAddMembers({
 	"private static var threadsMap = new haxe.ds.ObjectMap<Dynamic, {% CLASS java.lang.Thread %}>();",
 	"#if cpp var _cpp_thread: cpp.vm.Thread; #end",
@@ -61,7 +58,6 @@ public class Thread implements Runnable {
 		"}",
 		"return _dCurrentThread;",
 	})
-	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "return _cpp_threads[boost::this_thread::get_id()];")
 	@JTranscMethodBody(target = "cpp", value = "return _cpp_threads[std::this_thread::get_id()];")
 	@HaxeMethodBody(target = "cpp", value = "return threadsMap.get(cpp.vm.Thread.current().handle);")
 	@JTranscMethodBody(target = "js", value = {
@@ -98,7 +94,6 @@ public class Thread implements Runnable {
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0));")
-	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "boost::this_thread::sleep_for(boost::chrono::milliseconds(p0));")
 	@JTranscMethodBody(target = "cpp", value = "std::this_thread::sleep_for(std::chrono::milliseconds(p0));")
 	//@JTranscMethodBody(target = "js", value = {
 	//	"{% if IS_ASYNC %}return new Promise((resolve, reject) => { setTimeout(resolve, p0); });" +
@@ -111,7 +106,6 @@ public class Thread implements Runnable {
 	}
 
 	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0) + dur!(\"nsecs\")(p1));")
-	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = "boost::this_thread::sleep_for(boost::chrono::milliseconds(p0));")
 	@JTranscMethodBody(target = "cpp", value = "std::this_thread::sleep_for(std::chrono::milliseconds(p0));")
 	//FIXME
 	public static void sleep(long millis, int nanos) throws InterruptedException {
@@ -215,9 +209,6 @@ public class Thread implements Runnable {
 	@JTranscMethodBody(target = "cs", value = {
 		"_cs_thread = new System.Threading.Thread(new System.Threading.ThreadStart(delegate() { this{% IMETHOD java.lang.Thread:runInternal:()V %}();  }));",
 		"_cs_thread.Start();",
-	})
-	@JTranscMethodBody(target = "cpp", cond = "USE_BOOST", value = {
-		"t_ = std::thread(&{% SMETHOD java.lang.Thread:runInternalStatic:(Ljava/lang/Thread;)V %}, this);",
 	})
 	@JTranscMethodBody(target = "cpp", value = {
 		"t_ = std::thread(&{% SMETHOD java.lang.Thread:runInternalStatic:(Ljava/lang/Thread;)V %}, this);",

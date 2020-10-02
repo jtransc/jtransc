@@ -469,7 +469,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			""
 			//"public java_lang_Object"
 		} else if (clazz.fqname == "java.lang.Object") {
-			"public gc"
+			"public __GC"
 		} else {
 			directExtendingAndImplementing.map { "public ${it.cppName}" }.joinToString(", ")
 		}
