@@ -139,6 +139,8 @@ inline Float32x4 abs(const Float32x4& l) { return { std::fabs(l.x), std::fabs(l.
 inline Float32x4 min(const Float32x4& l, const Float32x4& r){ return { std::fmin(l.x, r.x), std::fmin(l.y, r.y), std::fmin(l.z, r.z), std::fmin(l.w, r.w)}; };
 inline Float32x4 max(const Float32x4& l, const Float32x4& r){ return { std::fmax(l.x, r.x), std::fmax(l.y, r.y), std::fmax(l.z, r.z), std::fmax(l.w, r.w)}; };
 
+const wchar_t *FUNCTION_NAME = L"Unknown";
+
 struct CLASS_TRACE {
 	const char* text;
 	static void print_indent() { for (int n = 0; n < TRACE_INDENT; n++) putchar(' '); };
@@ -154,8 +156,10 @@ struct CLASS_TRACE {
 
 #if TRACING
 	#define TRACE_REGISTER(location) std::shared_ptr<CLASS_TRACE> __CLASS_TRACE(__GC_ALLOC<CLASS_TRACE>(location));
+	#define N_ENSURE_NPE(obj) N_ENSURE_NPE(obj)
 #else
 	#define TRACE_REGISTER(location) ;
+	#define N_ENSURE_NPE(obj) N::ensureNpe(obj)
 #endif
 
 // For referencing pointers

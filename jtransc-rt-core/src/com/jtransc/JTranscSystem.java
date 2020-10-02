@@ -53,6 +53,7 @@ public class JTranscSystem {
 		@HaxeMethodBody(target = "d", value = ""),
 		@HaxeMethodBody(""),
 	})
+	@JTranscMethodBody(target = "cpp", value = "__GC_DISABLE();")
 	static public void gcDisable() {
 	}
 
@@ -62,6 +63,7 @@ public class JTranscSystem {
 		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(true);"),
 		@HaxeMethodBody(target = "d", value = ""),
 	})
+	@JTranscMethodBody(target = "cpp", value = "__GC_ENABLE();")
 	static public void gcEnable() {
 	}
 
@@ -72,8 +74,14 @@ public class JTranscSystem {
 		@HaxeMethodBody(target = "d", value = ""),
 		@HaxeMethodBody(target = "cs", value = "System.GC.Collect()"),
 	})
+	@JTranscMethodBody(target = "cpp", value = "__GC_GC();")
 	static public void gc() {
 		System.gc();
+	}
+
+	@JTranscMethodBody(target = "cpp", value = "__GC_SHOW_STATS();")
+	static public void gcStats() {
+		JTranscConsole.log("JTranscSystem.gcStats not available");
 	}
 
 	@HaxeMethodBody("return true;")

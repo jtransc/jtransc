@@ -653,8 +653,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				//line("""SOBJ _this(this);""")
 			}
 
+			line("#ifdef TRACING")
 			line("""const wchar_t *FUNCTION_NAME = L"${method.containingClass.name}::${method.name}::${method.desc}";""")
 			line("""TRACE_REGISTER(FUNCTION_NAME);""")
+			line("#endif")
 
 			setCurrentMethod(method)
 			val body = method.body
@@ -843,7 +845,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 		if (clazz.isInterface) {
 			if (npe) {
-				return "(dynamic_cast<${clazz.cppNameRefCast}>(N::ensureNpe($objStr, FUNCTION_NAME)))"
+				return "(dynamic_cast<${clazz.cppNameRefCast}>(N_ENSURE_NPE($objStr)))"
 			} else {
 				return "(dynamic_cast<${clazz.cppNameRefCast}>($objStr))"
 			}
@@ -851,16 +853,16 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			if (clazz.name.targetName == JAVA_LANG_OBJECT) {
 				return "((p_java_lang_Object)($objStr))"
 				//return "($objStr)"
-				//return "(dynamic_cast<${clazz.cppNameRef}>(N::ensureNpe($objStr, FUNCTION_NAME)))"
+				//return "(dynamic_cast<${clazz.cppNameRef}>(N_ENSURE_NPE($objStr)))"
 			} else {
 				if (npe) {
-					return "(static_cast<${clazz.cppNameRefCast}>(N::ensureNpe($objStr, FUNCTION_NAME)))"
+					return "(static_cast<${clazz.cppNameRefCast}>(N_ENSURE_NPE($objStr)))"
 				} else {
 					return "(static_cast<${clazz.cppNameRefCast}>($objStr))"
 				}
 			}
-			//return "(static_cast<${clazz.cppNameRef}>(N::ensureNpe($objStr, FUNCTION_NAME)))"
-			//return "((${clazz.cppNameRef})(N::ensureNpe($objStr, FUNCTION_NAME)))"
+			//return "(static_cast<${clazz.cppNameRef}>(N_ENSURE_NPE($objStr)))"
+			//return "((${clazz.cppNameRef})(N_ENSURE_NPE($objStr)))"
 		}
 	}
 

@@ -93,11 +93,14 @@ struct __GCHeap {
     __GC* head = nullptr;
     __GCVisitor visitor;
     std::atomic<bool> sweepingStop;
-    int gcCountThresold = 10000;
+    //int gcCountThresold = 10000;
+    int gcCountThresold = 1000;
     int gcSizeThresold = 4 * 1024 * 1024;
+    bool enabled = true;
 
     void ShowStats() {
-        std::cout << "Heap Stats. Object Count: " << allocatedCount << ", TotalSize: " << allocatedSize << "\n";
+        std::wcout << L"Heap Stats. Object Count: " << allocatedCount << L", TotalSize: " << allocatedSize << L"\n";
+		fflush(stdout);
     }
 
     void AddRoot(__GC** root) {
@@ -241,13 +244,23 @@ struct __GCHeap {
         Sweep();
     }
 
+    void Enable() {
+    	enabled = true;
+    }
+
+    void Disable() {
+    	enabled = false;
+    }
+
     template <typename T, typename... Args>
     T* Alloc(Args&&... args) {
-        if (this->allocatedCount >= gcCountThresold) GC();
-        if (this->allocatedCount >= gcCountThresold) gcCountThresold *= 2;
+    	if (enabled) {
+			if (this->allocatedCount >= gcCountThresold) GC();
+			if (this->allocatedCount >= gcCountThresold) gcCountThresold *= 2;
 
-        if (this->allocatedSize >= gcSizeThresold) GC();
-        if (this->allocatedSize >= gcSizeThresold) gcSizeThresold *= 2;
+			if (this->allocatedSize >= gcSizeThresold) GC();
+			if (this->allocatedSize >= gcSizeThresold) gcSizeThresold *= 2;
+		}
 
         void *memory = malloc(sizeof(T));
         T *newobj = ::new (memory) T(std::forward<Args>(args)...);
@@ -282,3 +295,5 @@ struct __GCThread {
 #define __GC_SHOW_STATS __gcHeap.ShowStats
 #define __GC_ALLOC __gcHeap.Alloc
 #define __GC_ADD_ROOT(v) __gcHeap.AddRoot((__GC**)v);
+#define __GC_ENABLE __gcHeap.Enable
+#define __GC_Disable __gcHeap.Disable
