@@ -230,6 +230,10 @@ class AstProgram(
 			println("AstProgram. Can't find class '$name'")
 			println("AstProgram. ClassFile: $classFile")
 			println("AstProgram. File exists: " + resourcesVfs[classFile].exists + " : " + resourcesVfs[classFile].realpathOS)
+			println("ConfigClassPaths:")
+			for (classPath in injector.get<ConfigClassPaths>().classPaths) {
+				println(" - $classPath")
+			}
 
 			throw InvalidOperationException("AstProgram. Can't find class '$name'")
 		} else {
