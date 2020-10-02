@@ -12,24 +12,26 @@
 #include <thread>
 #include <chrono>
 
+//#define __TRACE_GC 1
+
 struct __GCVisitor;
 
 struct __GC {
     int markVersion = 0;
     __GC *next = nullptr;
 
-    virtual int __GC_Size() { return sizeof(__GC); }
+    virtual int __GC_Size() { return sizeof(*this); }
     virtual void __GC_Trace(__GCVisitor* visitor) {}
 
     __GC() {
         #if __TRACE_GC
-        std::cout << "Created GarbageCollectedBase - " << this << "\n";
+        std::cout << "Created __GC - " << this << "\n";
         #endif
     }
 
     virtual ~__GC() {
         #if __TRACE_GC
-        std::cout << "Deleted GarbageCollectedBase - " << this << "\n";
+        std::cout << "Deleted __GC - " << this << "\n";
         #endif
     }
 };
@@ -86,23 +88,23 @@ struct __GCHeap {
     int allocatedSize = 0;
     int allocatedCount = 0;
     std::unordered_set<__GC*> allocated;
-    std::unordered_set<__GC*> roots;
+    std::unordered_set<__GC**> roots;
     std::unordered_map<std::thread::id, __GCStack*> threads_to_stacks;
     __GC* head = nullptr;
     __GCVisitor visitor;
     std::atomic<bool> sweepingStop;
-    int gcCountThresold = 1000;
+    int gcCountThresold = 10000;
     int gcSizeThresold = 4 * 1024 * 1024;
 
     void ShowStats() {
         std::cout << "Heap Stats. Object Count: " << allocatedCount << ", TotalSize: " << allocatedSize << "\n";
     }
 
-    void AddRoot(__GC* root) {
+    void AddRoot(__GC** root) {
         roots.insert(root);
     }
 
-    void RemoveRoot(__GC* root) {
+    void RemoveRoot(__GC** root) {
         roots.erase(root);
     }
 
@@ -146,7 +148,7 @@ struct __GCHeap {
     void Mark() {
         visitor.version++;
         for (auto root : roots)  {
-            visitor.Trace(root);
+            visitor.Trace(*root);
         }
         #if __TRACE_GC
         std::cout << "threads_to_stacks.size(): " << threads_to_stacks.size() << "\n";
@@ -279,4 +281,4 @@ struct __GCThread {
 #define __GC_GC __gcHeap.GC
 #define __GC_SHOW_STATS __gcHeap.ShowStats
 #define __GC_ALLOC __gcHeap.Alloc
-#define __GC_ADD_ROOT __gcHeap.AddRoot
+#define __GC_ADD_ROOT(v) __gcHeap.AddRoot((__GC**)v);

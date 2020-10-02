@@ -153,7 +153,7 @@ struct CLASS_TRACE {
 };
 
 #if TRACING
-	#define TRACE_REGISTER(location) std::shared_ptr<CLASS_TRACE> __CLASS_TRACE(new CLASS_TRACE(location));
+	#define TRACE_REGISTER(location) std::shared_ptr<CLASS_TRACE> __CLASS_TRACE(__GC_ALLOC<CLASS_TRACE>(location));
 #else
 	#define TRACE_REGISTER(location) ;
 #endif
@@ -542,7 +542,7 @@ struct JA_B : JA_Base<int8_t> {
 
 	static JA_B* fromArray(std::wstring desc, std::vector<int8_t> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_B(len);
+		auto out = __GC_ALLOC<JA_B>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
@@ -553,7 +553,7 @@ struct JA_Z : public JA_B {
 
 	static JA_Z* fromArray(std::wstring desc, std::vector<int8_t> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_Z(len);
+		auto out = __GC_ALLOC<JA_Z>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
@@ -564,7 +564,7 @@ struct JA_S : JA_Base<int16_t> {
 
 	static JA_S* fromArray(std::wstring desc, std::vector<int16_t> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_S(len);
+		auto out = __GC_ALLOC<JA_S>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
@@ -575,7 +575,7 @@ struct JA_C : JA_Base<uint16_t> {
 
 	static JA_C* fromArray(std::wstring desc, std::vector<uint16_t> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_C(len);
+		auto out = __GC_ALLOC<JA_C>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
@@ -586,18 +586,18 @@ struct JA_I : JA_Base<int32_t> {
 
 	// @TODO: Try to move to JA_Base
 	static JA_I *fromVector(int32_t *data, int32_t count) {
-		return (JA_I * )(new JA_I(count))->setArray(0, count, (const int32_t *)data);
+		return (JA_I * )(__GC_ALLOC<JA_I>(count))->setArray(0, count, (const int32_t *)data);
 	};
 
-	static JA_I *fromArgValues() { return (JA_I * )(new JA_I(0)); };
-	static JA_I *fromArgValues(int32_t a0) { return (JA_I * )(new JA_I(1))->init(0, a0); };
-	static JA_I *fromArgValues(int32_t a0, int32_t a1) { return (JA_I * )(new JA_I(2))->init(0, a0)->init(1, a1); };
-	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2) { return (JA_I * )(new JA_I(3))->init(0, a0)->init(1, a1)->init(2, a2); };
-	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2, int32_t a3) { return (JA_I * )(new JA_I(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
+	static JA_I *fromArgValues() { return (JA_I * )(__GC_ALLOC<JA_I>(0)); };
+	static JA_I *fromArgValues(int32_t a0) { return (JA_I * )(__GC_ALLOC<JA_I>(1))->init(0, a0); };
+	static JA_I *fromArgValues(int32_t a0, int32_t a1) { return (JA_I * )(__GC_ALLOC<JA_I>(2))->init(0, a0)->init(1, a1); };
+	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2) { return (JA_I * )(__GC_ALLOC<JA_I>(3))->init(0, a0)->init(1, a1)->init(2, a2); };
+	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2, int32_t a3) { return (JA_I * )(__GC_ALLOC<JA_I>(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
 
 	static JA_I* fromArray(std::wstring desc, std::vector<int32_t> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_I(len);
+		auto out = __GC_ALLOC<JA_I>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
@@ -608,7 +608,7 @@ struct JA_J : JA_Base<int64_t> {
 
 	static JA_J* fromArray(std::wstring desc, std::vector<int64_t> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_J(len);
+		auto out = __GC_ALLOC<JA_J>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
@@ -619,7 +619,7 @@ struct JA_F : JA_Base<float> {
 
 	static JA_F* fromArray(std::wstring desc, std::vector<float> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_F(len);
+		auto out = __GC_ALLOC<JA_F>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
@@ -630,7 +630,7 @@ struct JA_D : JA_Base<double> {
 
 	static JA_D* fromArray(std::wstring desc, std::vector<double> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_D(len);
+		auto out = __GC_ALLOC<JA_D>(len);
 		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
@@ -660,21 +660,21 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 		int32_t size = sizes[0];
 
 		if (sizes.size() == 1) {
-			if (desc == std::wstring(L"[Z")) return new JA_Z(size);
-			if (desc == std::wstring(L"[B")) return new JA_B(size);
-			if (desc == std::wstring(L"[S")) return new JA_S(size);
-			if (desc == std::wstring(L"[C")) return new JA_C(size);
-			if (desc == std::wstring(L"[I")) return new JA_I(size);
-			if (desc == std::wstring(L"[J")) return new JA_J(size);
-			if (desc == std::wstring(L"[F")) return new JA_F(size);
-			if (desc == std::wstring(L"[D")) return new JA_D(size);
+			if (desc == std::wstring(L"[Z")) return __GC_ALLOC<JA_Z>(size);
+			if (desc == std::wstring(L"[B")) return __GC_ALLOC<JA_B>(size);
+			if (desc == std::wstring(L"[S")) return __GC_ALLOC<JA_S>(size);
+			if (desc == std::wstring(L"[C")) return __GC_ALLOC<JA_C>(size);
+			if (desc == std::wstring(L"[I")) return __GC_ALLOC<JA_I>(size);
+			if (desc == std::wstring(L"[J")) return __GC_ALLOC<JA_J>(size);
+			if (desc == std::wstring(L"[F")) return __GC_ALLOC<JA_F>(size);
+			if (desc == std::wstring(L"[D")) return __GC_ALLOC<JA_D>(size);
 			throw L"Invalid multiarray";
 		}
 
 		// std::vector<decltype(myvector)::value_type>(myvector.begin()+N, myvector.end()).swap(myvector);
 
 
-		auto out = new JA_L(size, desc);
+		auto out = __GC_ALLOC<JA_L>(size, desc);
 		auto subdesc = desc.substr(1);
 		auto subsizes = std::vector<int32_t>(sizes.begin() + 1, sizes.end());
 		for (int32_t n = 0; n < size; n++) {
@@ -685,20 +685,20 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 
 	static JA_L* fromArray(std::wstring desc, std::vector<JAVA_OBJECT> array) {
 		auto len = (int32_t)array.size();
-		auto out = new JA_L(len, desc);
+		auto out = __GC_ALLOC<JA_L>(len, desc);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
 		return out;
 	}
 };
 
-//JAVA_OBJECT JA_0::toBoolArray  () { return new JA_Z((void *)getStartPtr(), bytesLength() / 1); };
-//JAVA_OBJECT JA_0::toByteArray  () { return new JA_B((void *)getStartPtr(), bytesLength() / 1); };
-//JAVA_OBJECT JA_0::toCharArray  () { return new JA_C((void *)getStartPtr(), bytesLength() / 2); };
-//JAVA_OBJECT JA_0::toShortArray () { return new JA_S((void *)getStartPtr(), bytesLength() / 2); };
-//JAVA_OBJECT JA_0::toIntArray   () { return new JA_I((void *)getStartPtr(), bytesLength() / 4); };
-//JAVA_OBJECT JA_0::toLongArray  () { return new JA_J((void *)getStartPtr(), bytesLength() / 8); };
-//JAVA_OBJECT JA_0::toFloatArray () { return new JA_F((void *)getStartPtr(), bytesLength() / 4); };
-//JAVA_OBJECT JA_0::toDoubleArray() { return new JA_D((void *)getStartPtr(), bytesLength() / 8); };
+//JAVA_OBJECT JA_0::toBoolArray  () { return __GC_ALLOC<JA_Z>((void *)getStartPtr(), bytesLength() / 1); };
+//JAVA_OBJECT JA_0::toByteArray  () { return __GC_ALLOC<JA_B>((void *)getStartPtr(), bytesLength() / 1); };
+//JAVA_OBJECT JA_0::toCharArray  () { return __GC_ALLOC<JA_C>((void *)getStartPtr(), bytesLength() / 2); };
+//JAVA_OBJECT JA_0::toShortArray () { return __GC_ALLOC<JA_S>((void *)getStartPtr(), bytesLength() / 2); };
+//JAVA_OBJECT JA_0::toIntArray   () { return __GC_ALLOC<JA_I>((void *)getStartPtr(), bytesLength() / 4); };
+//JAVA_OBJECT JA_0::toLongArray  () { return __GC_ALLOC<JA_J>((void *)getStartPtr(), bytesLength() / 8); };
+//JAVA_OBJECT JA_0::toFloatArray () { return __GC_ALLOC<JA_F>((void *)getStartPtr(), bytesLength() / 4); };
+//JAVA_OBJECT JA_0::toDoubleArray() { return __GC_ALLOC<JA_D>((void *)getStartPtr(), bytesLength() / 8); };
 
 
 {{ ARRAY_HEADERS_POST }}
@@ -919,15 +919,15 @@ int32_t N::f2i(float v) {
 }
 
 //SOBJ N::strLiteral(wchar_t *ptr, int len) {
-//	SOBJ out(new {% CLASS java.lang.String %}());
+//	SOBJ out(__GC_ALLOC<{% CLASS java.lang.String %}>());
 //	return out.get()->sptr();
 //}
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(const wchar_t *str, int32_t len) {
-	p_java_lang_String out = new {% CLASS java.lang.String %}();
+	p_java_lang_String out = __GC_ALLOC<{% CLASS java.lang.String %}>();
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
-	p_JA_C array = new JA_C(len);
+	p_JA_C array = __GC_ALLOC<JA_C>(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	if (sizeof(wchar_t) == sizeof(uint16_t)) {
@@ -943,9 +943,9 @@ N::str(const wchar_t *str, int32_t len) {
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(std::wstring str) {
 	int32_t len = str.length();
-	p_java_lang_String out(new {% CLASS java.lang.String %}());
+	p_java_lang_String out(__GC_ALLOC<{% CLASS java.lang.String %}>());
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
-	p_JA_C array = new JA_C(len);
+	p_JA_C array = __GC_ALLOC<JA_C>(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	for (int32_t n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
@@ -965,9 +965,9 @@ N::str(std::string s) {
 N::str(const char *s) {
 	if (s == nullptr) return nullptr;
 	int32_t len = strlen(s);
-	p_java_lang_String out(new {% CLASS java.lang.String %}());
+	p_java_lang_String out(__GC_ALLOC<{% CLASS java.lang.String %}>());
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
-	p_JA_C array = new JA_C(len);
+	p_JA_C array = __GC_ALLOC<JA_C>(len);
 	p_JA_C arrayobj = array;
 	uint16_t *ptr = (uint16_t *)array->getStartPtr();
 	//::memcpy((void *)ptr, (void *)str, len * sizeof(uint16_t));
@@ -979,7 +979,7 @@ N::str(const char *s) {
 
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
 N::strArray(int32_t count, wchar_t **strs) {
-	p_JA_L out = new JA_L(count, L"[java/lang/String;");
+	p_JA_L out = __GC_ALLOC<JA_L>(count, L"[java/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	for (int32_t n = 0; n < count; n++) out->set(n, N::str(std::wstring(strs[n])));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
@@ -988,7 +988,7 @@ N::strArray(int32_t count, wchar_t **strs) {
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
 N::strArray(std::vector<std::wstring> strs) {
 	int32_t len = strs.size();
-	p_JA_L out = new JA_L(len, L"[java/lang/String;");
+	p_JA_L out = __GC_ALLOC<JA_L>(len, L"[java/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	for (int32_t n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
@@ -997,7 +997,7 @@ N::strArray(std::vector<std::wstring> strs) {
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
 N::strArray(std::vector<std::string> strs) {
 	int32_t len = strs.size();
-	p_JA_L out = new JA_L(len, L"[Ljava/lang/String;");
+	p_JA_L out = __GC_ALLOC<JA_L>(len, L"[Ljava/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	for (int32_t n = 0; n < len; n++) out->set(n, N::str(strs[n]));
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
@@ -1005,7 +1005,7 @@ N::strArray(std::vector<std::string> strs) {
 
 {% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
 N::strEmptyArray() {
-	p_JA_L out = new JA_L(0, L"Ljava/lang/String;");
+	p_JA_L out = __GC_ALLOC<JA_L>(0, L"Ljava/lang/String;");
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
@@ -1414,7 +1414,7 @@ jint JNICALL EnsureLocalCapacity(JNIEnv* env, jint capacity) {
 }
 
 static JA_L* jvalueToJavaArray(int32_t count, {% CLASS java.lang.reflect.MethodConstructor %}* ctor, const jvalue *args){
-	JA_L* array = new JA_L(count, L"[Ljava.lang.Object;");
+	JA_L* array = __GC_ALLOC<JA_L>(count, L"[Ljava.lang.Object;");
 	const char* s = N::istr3(ctor->{% FIELD java.lang.reflect.MethodConstructor:jniSignature%}).c_str();
 	for( int32_t i = 0; i < count; i++){
 		switch (s[i]) {
@@ -1444,7 +1444,7 @@ static JA_L* jvalueToJavaArray(int32_t count, {% CLASS java.lang.reflect.MethodC
 }
 
 static JA_L* va_listToJavaArray(int32_t count, {% CLASS java.lang.reflect.MethodConstructor %}* ctor, va_list args){
-	JA_L* array = new JA_L(count, L"[Ljava.lang.Object;");
+	JA_L* array = __GC_ALLOC<JA_L>(count, L"[Ljava.lang.Object;");
 	const char* s = N::istr3(ctor->{% FIELD java.lang.reflect.MethodConstructor:jniSignature%}).c_str();
 	for( int32_t i = 0; i < count; i++){
 		switch (s[i]) {
@@ -2448,7 +2448,7 @@ void JNICALL  SetStaticDoubleField(JNIEnv *env, jclass clazz, jfieldID fieldID, 
 
 
 JAVA_OBJECT jtvmNewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
-	JA_B* byteArray = new JA_B(address, (jint)capacity);
+	JA_B* byteArray = __GC_ALLOC<JA_B>(address, (jint)capacity);
 	return {% CONSTRUCTOR java.nio.ByteBuffer:([BZ)V %}(byteArray, (int8_t)true);
 }
 
@@ -2484,7 +2484,7 @@ jsize JNICALL GetArrayLength(JNIEnv* env, jarray array){
 }
 
 jobjectArray JNICALL NewObjectArray(JNIEnv *env, jsize length, jclass elementClass, jobject initialElement){
-	JA_L* array = new JA_L(length, L"[Ljava/lang/Object"); // TODO fix me!
+	JA_L* array = __GC_ALLOC<JA_L>(length, L"[Ljava/lang/Object"); // TODO fix me!
 	for(int32_t i = 0; i < length; i++){
 		array->fastSet(i, (JAVA_OBJECT)initialElement);
 	}
@@ -2672,7 +2672,7 @@ void JNICALL ReleasePrimitiveArrayCritical(JNIEnv *env, jarray array, void *carr
 }
 
 JA_Z* jtvmNewBooleanArray(JNIEnv* env, jsize length){
-	JA_Z* out = new JA_Z(length);
+	JA_Z* out = __GC_ALLOC<JA_Z>(length);
     return out;
 }
 
@@ -2682,7 +2682,7 @@ jbooleanArray JNICALL NewBooleanArray(JNIEnv* env, jsize length){
 
 
 JA_B* jtvmNewByteArray(JNIEnv* env, jsize length){
-	JA_B* out = new JA_B(length);
+	JA_B* out = __GC_ALLOC<JA_B>(length);
     return out;
 }
 
@@ -2692,7 +2692,7 @@ jbyteArray JNICALL NewByteArray(JNIEnv* env, jsize length){
 
 
 JA_C* jtvmNewCharArray(JNIEnv* env, jsize length){
-	JA_C* out = new JA_C(length);
+	JA_C* out = __GC_ALLOC<JA_C>(length);
     return out;
 }
 
@@ -2702,7 +2702,7 @@ jcharArray JNICALL NewCharArray(JNIEnv* env, jsize length){
 
 
 JA_S* jtvmNewShortArray(JNIEnv* env, jsize length){
-	JA_S* out = new JA_S(length);
+	JA_S* out = __GC_ALLOC<JA_S>(length);
     return out;
 }
 
@@ -2711,7 +2711,7 @@ jshortArray JNICALL NewShortArray(JNIEnv* env, jsize length){
 }
 
 JA_I* jtvmNewIntArray(JNIEnv* env, jsize length){
-	JA_I* out = new JA_I(length);
+	JA_I* out = __GC_ALLOC<JA_I>(length);
     return out;
 }
 
@@ -2720,7 +2720,7 @@ jintArray JNICALL NewIntArray(JNIEnv* env, jsize length){
 }
 
 JA_J* jtvmNewLongArray(JNIEnv* env, jsize length){
-	JA_J* out = new JA_J(length);
+	JA_J* out = __GC_ALLOC<JA_J>(length);
     return out;
 }
 
@@ -2729,7 +2729,7 @@ jlongArray JNICALL NewLongArray(JNIEnv* env, jsize length){
 }
 
 JA_F* jtvmNewFloatArray(JNIEnv* env, jsize length){
-	JA_F* out = new JA_F(length);
+	JA_F* out = __GC_ALLOC<JA_F>(length);
     return out;
 }
 
@@ -2738,7 +2738,7 @@ jfloatArray JNICALL NewFloatArray(JNIEnv* env, jsize length){
 }
 
 JA_D* jtvmNewDoubleArray(JNIEnv* env, jsize length){
-	JA_D* out = new JA_D(length);
+	JA_D* out = __GC_ALLOC<JA_D>(length);
     return out;
 }
 

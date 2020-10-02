@@ -200,7 +200,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 					println("$n:" + clazz)
 				}
 				if (clazz != null && clazz.mustGenerate && !clazz.isAbstract && !clazz.isInterface) {
-					line("[](){return (JAVA_OBJECT*)(new ${clazz.cppName}());},")
+					line("[](){return (JAVA_OBJECT*)(__GC_ALLOC<${clazz.cppName}>());},")
 				} else if (clazz != null && clazz.mustGenerate && (clazz.isAbstract || clazz.isInterface)) {
 					line("[](){ std::cerr << \"Class id \" << $n << \" refers to abstract class or interface!\"; abort(); return (JAVA_OBJECT*)(NULL);},")
 				} else if (n == 1) {
@@ -476,6 +476,21 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		line("struct ${clazz.cppName}${if (parts.isNotEmpty()) " : $parts " else " "} { public:")
 		indent {
+			if (!clazz.isInterface) {
+				line("int __GC_Size() { return sizeof(*this); }")
+				line("virtual void __GC_Trace(__GCVisitor* visitor)") {
+					val parentClass = clazz.parentClass
+					if (parentClass != null) {
+						line("${parentClass.cppName}::__GC_Trace(visitor);")
+					}
+					for (field in clazz.fieldsInstance) {
+						if (field.type.isNotPrimitive()) {
+							line("visitor->Trace(${field.targetName});")
+						}
+					}
+				}
+			}
+
 			for (memberCond in clazz.nativeMembers) {
 				condWrapper(memberCond.cond) {
 					for (member in memberCond.members) {
@@ -600,10 +615,12 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		indent {
 			line("""TRACE_REGISTER("${clazz.cppName}::SI");""")
 			for (field in clazz.fields.filter { it.isStatic }) {
-				if (field.isStatic) {
-					val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else field.type.nativeDefaultString
-					line("${clazz.cppName}::${field.targetName} = $cst;")
-				}
+				val cst = if (field.hasConstantValue) field.constantValue.escapedConstant else field.type.nativeDefaultString
+				line("${clazz.cppName}::${field.targetName} = $cst;")
+			}
+
+			for (field in clazz.fields.filter { it.isStatic }) {
+				line("__GC_ADD_ROOT(&${clazz.cppName}::${field.targetName});")
 			}
 
 			val sim = clazz.staticInitMethod
@@ -1028,9 +1045,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {
-			"new $ObjectArrayType(${e.counts[0].genExpr()}, L\"$desc\")"
+			"__GC_ALLOC<$ObjectArrayType>(${e.counts[0].genExpr()}, L\"$desc\")"
 		} else {
-			"new ${e.type.targetName}(${e.counts[0].genExpr()})"
+			"__GC_ALLOC<${e.type.targetName}>(${e.counts[0].genExpr()})"
 		}
 	}
 
