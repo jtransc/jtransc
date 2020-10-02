@@ -1,0 +1,5 @@
+<target lang="js">
+	<class fqname="java.lang.Math">
+		<method signature="sin(D)D"><body>return Math.sin(p0);</body></method>
+	</class>
+</target>

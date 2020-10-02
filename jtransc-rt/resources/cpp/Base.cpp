@@ -1276,11 +1276,16 @@ std::vector<JAVA_OBJECT> N::getVectorOrEmpty(JAVA_OBJECT obj) {
 };
 
 #include <chrono>
+#include <ctime>
 
 double N::getTime() {
 	using namespace std::chrono;
-    milliseconds ms = duration_cast<milliseconds>( system_clock::now().time_since_epoch() );
-	return (double)(int64_t)ms.count();
+	//auto now = system_clock::now();
+	//auto now_n = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
+	//return (double)now_n / (double)1000000.0;
+	//return ((double)::clock() / (double)CLOCKS_PER_SEC) * 1000;
+    nanoseconds ns = duration_cast<nanoseconds>( system_clock::now().time_since_epoch() );
+	return (double)(int64_t)ns.count() / (double)1000000;
 };
 
 int64_t N::nanoTime() {

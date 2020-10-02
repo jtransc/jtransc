@@ -126,6 +126,7 @@ const Int64 = function(high, low) {
 };
 
 const M2P32_DBL = Math.pow(2, 32);
+const supportsBigInt = typeof BigInt !== "undefined";
 
 //if (typeof BigInt !== "undefined") {
 if (false) {

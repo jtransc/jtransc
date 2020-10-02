@@ -26,7 +26,7 @@
 
 //#include "jni_md.h"
 
-#if WIN32
+#if defined(WIN32)
 	#define JNIEXPORT __declspec(dllexport)
 	#define JNIIMPORT __declspec(dllimport)
 	#define JNICALL __stdcall
@@ -34,7 +34,7 @@
 	typedef long jint;
 	typedef __int64 jlong;
 	typedef signed char jbyte;
-#elif MAC
+#elif defined(MAC)
 	#define JNIEXPORT __attribute__((visibility("default")))
     #define JNIIMPORT
     #define JNICALL
