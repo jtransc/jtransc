@@ -1,5 +1,6 @@
 package com.jtransc.gen.cs
 
+/*
 import com.jtransc.error.invalidOp
 import com.jtransc.vfs._MemoryVfs
 import org.junit.Assert
@@ -29,3 +30,4 @@ class CSharpCompilerTest {
 		Assert.assertEquals("csc2", csharpCompiler.getCompiler(mapOf("CSHARP_CMD" to "csc2")).path)
 	}
 }
+ */

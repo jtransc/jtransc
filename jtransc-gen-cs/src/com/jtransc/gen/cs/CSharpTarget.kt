@@ -109,9 +109,9 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun run(redirect: Boolean): ProcessResult2 {
 		val names = if (JTranscSystem.isWindows()) {
-			listOf("program.exe", "a.exe")
+			listOf("bin/program.exe", "bin/a.exe")
 		} else {
-			listOf("program.exe", "program", "program.out", "a", "a.out")
+			listOf("bin/program.exe", "bin/program", "bin/program.out", "bin/a", "bin/a.out")
 		}
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 

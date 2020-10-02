@@ -13,6 +13,7 @@ class CSharpCompiler(
 ) {
 	val processUtils = ProcessUtilsBase(rootVfs)
 
+	/*
 	val dotNetV4Folder: SyncVfsFile by lazy {
 		//println(System.getProperty("os.arch"))
 
@@ -54,27 +55,19 @@ class CSharpCompiler(
 			else -> Compiler(csharpCommandUnix ?: CSC, isMono = false)
 		}
 	}
+	//val MCS by lazy { "mcs" }
+	//val CSC by lazy { processUtils.locateCommand("csc") ?: dotNetV4Folder["csc"].path }
+
+	 */
 
 	fun genCommand(programFile: File, debug: Boolean = false, libs: List<String> = listOf(), extraParams: Map<String?, String?>): List<String> {
+		return listOf("dotnet", "build", "-o", "bin")
+		/*
 		val compiler = getCompiler(extraParams)
 		when {
 			compiler.isMono -> return listOf(compiler.path, "-debug", "-unsafe+", "-checked-", "-optimize+", "-define:UNSAFE", "-nowarn:169", programFile.absolutePath)
 			else -> return listOf(compiler.path, "/debug:full", "/unsafe+", "/checked-", "/optimize+", "/define:UNSAFE", "/nowarn:169", programFile.absolutePath)
 		}
+		 */
 	}
-
-	val MCS by lazy { "mcs" }
-	val CSC by lazy { processUtils.locateCommand("csc") ?: dotNetV4Folder["csc"].path }
 }
-// project.csproj
-/*
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Program</RootNamespace>
-  </PropertyGroup>
-
-</Project>
- */

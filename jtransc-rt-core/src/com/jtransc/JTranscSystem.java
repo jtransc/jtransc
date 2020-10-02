@@ -80,6 +80,7 @@ public class JTranscSystem {
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "__GC_SHOW_STATS();")
+	@JTranscMethodBody(target = "js", value = "console.info((typeof window !== 'undefined' ? window.performance.memory : undefined) || require('v8').getHeapStatistics());")
 	static public void gcStats() {
 		JTranscConsole.log("JTranscSystem.gcStats not available");
 	}
