@@ -373,7 +373,7 @@ class N {
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function boxWrapped(value:Dynamic):JtranscWrapped { return JtranscWrapped.wrap(value); }
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function boxByteArray(value:Bytes):JA_B { return JA_B.fromBytes(value); }
 
-	{{ HAXE_METHOD_ANNOTATIONS }} static public function unboxVoid(value:JavaObject):Void { return cast null; }
+	{{ HAXE_METHOD_ANNOTATIONS }} static public function unboxVoid(value:JavaObject):Void { return; }
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function unboxBool(value:JavaObject):Bool { return cast(value, JavaBoolean){% IFIELD java.lang.Boolean:value:Z %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function unboxByte(value:JavaObject):Int { return cast(value, JavaByte){% IFIELD java.lang.Byte:value:B %}; }
 	{{ HAXE_METHOD_ANNOTATIONS }} static public function unboxShort(value:JavaObject):Int { return cast(value, JavaShort){% IFIELD java.lang.Short:value:S %}; }

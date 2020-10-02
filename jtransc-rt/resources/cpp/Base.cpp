@@ -477,7 +477,6 @@ struct JA_0 : public java_lang_Object {
 	#endif
 
 	std::wstring __GC_Name() { return L"JA_0"; }
-	int __GC_Size() { return sizeof(*this); }
 
 	#ifdef INLINE_ARRAYS
 		inline void *getStartPtrRaw() { return ((char *)&__inline_data) + INLINE_ARRAYS_OFFSET; }
@@ -527,7 +526,7 @@ struct JA_Base : JA_0 {
 	};
 
 	std::wstring __GC_Name() { return L"JA_Base"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	inline T *getStartPtr() { return (T *)getStartPtrRaw(); }
 
@@ -610,7 +609,7 @@ struct JA_Base : JA_0 {
 
 struct JA_B : JA_Base<int8_t> {
 	std::wstring __GC_Name() { return L"JA_B"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	JA_B(int32_t size, std::wstring desc = L"[B") : JA_Base(false, size, desc) { };
 	JA_B(void* data, int32_t size, std::wstring desc = L"[B") : JA_Base(false, data, size, desc) { };
@@ -630,7 +629,7 @@ struct JA_B : JA_Base<int8_t> {
 };
 struct JA_Z : public JA_B {
 	std::wstring __GC_Name() { return L"JA_Z"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	JA_Z(int32_t size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
 	JA_Z(void* data, int32_t size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
@@ -644,7 +643,7 @@ struct JA_Z : public JA_B {
 };
 struct JA_S : JA_Base<int16_t> {
 	std::wstring __GC_Name() { return L"JA_S"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	JA_S(int32_t size, std::wstring desc = L"[S") : JA_Base(false, size, desc) { };
 	JA_S(void* data, int32_t size, std::wstring desc = L"[S") : JA_Base(false, data, size, desc) { };
@@ -658,7 +657,7 @@ struct JA_S : JA_Base<int16_t> {
 };
 struct JA_C : JA_Base<uint16_t> {
 	std::wstring __GC_Name() { return L"JA_C"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	JA_C(int32_t size, std::wstring desc = L"[C") : JA_Base(false, size, desc) { };
 	JA_C(void* data, int32_t size, std::wstring desc = L"[C") : JA_Base(false, data, size, desc) { };
@@ -672,7 +671,7 @@ struct JA_C : JA_Base<uint16_t> {
 };
 struct JA_I : JA_Base<int32_t> {
 	std::wstring __GC_Name() { return L"JA_I"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	JA_I(int32_t size, std::wstring desc = L"[I") : JA_Base(false, size, desc) { };
 	JA_I(void* data, int32_t size, std::wstring desc = L"[I") : JA_Base(false, data, size, desc) { };
@@ -697,7 +696,7 @@ struct JA_I : JA_Base<int32_t> {
 };
 struct JA_J : JA_Base<int64_t> {
 	std::wstring __GC_Name() { return L"JA_J"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	JA_J(int32_t size, std::wstring desc = L"[J") : JA_Base(false, size, desc) { };
 	JA_J(void* data, int32_t size, std::wstring desc = L"[J") : JA_Base(false, data, size, desc) { };
@@ -711,7 +710,7 @@ struct JA_J : JA_Base<int64_t> {
 };
 struct JA_F : JA_Base<float> {
 	std::wstring __GC_Name() { return L"JA_F"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	JA_F(int32_t size, std::wstring desc = L"[F") : JA_Base(false, size, desc) { };
 	JA_F(void* data, int32_t size, std::wstring desc = L"[F") : JA_Base(false, data, size, desc) { };
@@ -725,7 +724,7 @@ struct JA_F : JA_Base<float> {
 };
 struct JA_D : JA_Base<double> {
 	std::wstring __GC_Name() { return L"JA_D"; }
-	int __GC_Size() { return sizeof(*this); }
+	
 
 	JA_D(int32_t size, std::wstring desc = L"[D") : JA_Base(false, size, desc) { };
 	JA_D(void* data, int32_t size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
@@ -749,7 +748,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 	}
 
 	std::wstring __GC_Name() { return L"JA_L"; }
-	int __GC_Size() { return sizeof(*this); }
+	
     void __GC_Trace(__GCVisitor* visitor) {
     	JA_Base::__GC_Trace(visitor);
     	int length = this->length;

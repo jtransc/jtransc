@@ -482,7 +482,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		indent {
 			if (!clazz.isInterface) {
 				line("std::wstring __GC_Name() { return L${clazz.cppName.quote()}; }")
-				line("int __GC_Size() { return sizeof(*this); }")
 				line("virtual void __GC_Trace(__GCVisitor* visitor)") {
 					val parentClass = clazz.parentClass
 					if (parentClass != null) {

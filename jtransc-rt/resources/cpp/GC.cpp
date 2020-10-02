@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 #include <unordered_set>
 #include <unordered_map>
 #include <memory>
@@ -55,9 +56,11 @@ struct __GCHeap;
 struct __GC {
     __GC *next = nullptr;
     unsigned short markVersion = 0;
+    unsigned short liveCount = 0;
+    int __GC_objsize = 0;
+    int deleting = 0;
 
 	virtual std::wstring __GC_Name() { return L"__GC"; }
-    virtual int __GC_Size() { return sizeof(*this); }
     virtual void __GC_Trace(__GCVisitor* visitor) {}
 
     __GC() {
@@ -133,14 +136,22 @@ struct __GCRootInfo {
 	__GC** root;
 };
 
+struct __GCSweepResult {
+	int explored;
+	int deleted;
+};
+
 struct __GCHeap {
     int allocatedObjectSize = 0;
     int allocatedArraySize = 0;
     int allocatedCount = 0;
     std::unordered_set<__GC*> allocated;
+    //std::list<__GC*> allocated_gen1;
     std::unordered_set<__GCRootInfo*> roots;
     std::unordered_map<std::thread::id, __GCStack*> threads_to_stacks;
-    __GC* head = nullptr;
+    __GC* head_gen1 = nullptr;
+    __GC* head_gen2 = nullptr;
+    __GC* head_delete = nullptr;
     __GCVisitor visitor;
     std::atomic<bool> sweepingStop;
     //int gcCountThresold = 100000;
@@ -237,68 +248,116 @@ struct __GCHeap {
         }
     }
 
-    void Sweep() {
-        sweepingStop = true;
-        auto currentThreadId = std::this_thread::get_id();
-        for (auto tstack : threads_to_stacks) {
-            if (tstack.first != currentThreadId) {
-                std::unique_lock<std::mutex> lk(tstack.second->mutex);
-                if (tstack.second->cv.wait_for(lk, std::chrono::seconds(10)) == std::cv_status::timeout) {
-                    std::cout << "Thread was locked for too much time. Aborting.\n";
-                    abort();
-                }
-            }
-        }
-
-        int version = visitor.version;
-        bool reset = version >= 10000;
-        __GC* prev = nullptr;
-        __GC* current = head;
-        __GC* todelete = nullptr;
-        while (current != nullptr) {
-            if (current->markVersion != version) {
-                todelete = current;
-                allocated.erase(todelete);
-                //std::cout << "delete unreferenced object!\n";
-                if (prev != nullptr) {
-                    prev->next = current->next;
-                    current = prev;
-                } else {
-                    //std::cout << "head=" << head << ", current=" << current << "\n";
-                    assert(head == current);
-                    head = current->next;
-                }
-                current = current->next;
-                allocatedObjectSize -= todelete->__GC_Size();
-                allocatedCount--;
-                todelete->__GC_Dispose(this);
-                jtfree(todelete);
-                //delete todelete;
-            } else {
-                if (reset) {
-                   current->markVersion = 0;
-                }
-                prev = current;
-                current = current->next;
-            }
-        }
-        if (reset) {
-            version = 0;
-        }
-        prev = nullptr;
-        current = nullptr;
-        todelete = nullptr;
-
-        // Resume all threads
-        {
-            sweepingStop = false;
-            for (auto tstack : threads_to_stacks) {
-                if (tstack.first != currentThreadId) {
-                    tstack.second->cv2.notify_all();
-                }
-            }
-        }
+    void SweepStart() {
+		sweepingStop = true;
+		auto currentThreadId = std::this_thread::get_id();
+		for (auto tstack : threads_to_stacks) {
+			if (tstack.first != currentThreadId) {
+				std::unique_lock<std::mutex> lk(tstack.second->mutex);
+				if (tstack.second->cv.wait_for(lk, std::chrono::seconds(10)) == std::cv_status::timeout) {
+					std::cout << "Thread was locked for too much time. Aborting.\n";
+					abort();
+				}
+			}
+		}
     }
+
+    void SweepEnd() {
+		auto currentThreadId = std::this_thread::get_id();
+		sweepingStop = false;
+		for (auto tstack : threads_to_stacks) {
+			if (tstack.first != currentThreadId) {
+				tstack.second->cv2.notify_all();
+			}
+		}
+    }
+
+    __GCSweepResult SweepList(__GC* &head, __GC** next_head) {
+    	int exploreCount = 0;
+		int deleteCount = 0;
+		int version = visitor.version;
+		bool reset = version >= 10000;
+		__GC* prev = nullptr;
+		__GC* current = head;
+	    auto allocated = &this->allocated;
+	    auto allocatedObjectSize = this->allocatedObjectSize;
+	    auto allocatedCount = this->allocatedCount;
+		while (current != nullptr) {
+			exploreCount++;
+			if (current->markVersion != version) {
+				deleteCount++;
+				auto todelete = current;
+				todelete->deleting = 1;
+				//std::cout << "delete unreferenced object!\n";
+				if (prev != nullptr) {
+					prev->next = current->next;
+					current = prev;
+				} else {
+					//std::cout << "head=" << head << ", current=" << current << "\n";
+					assert(head == current);
+					head = current->next;
+				}
+				current = current->next;
+				allocatedObjectSize -= todelete->__GC_objsize;
+				allocatedCount--;
+
+				todelete->next = head_delete;
+				head_delete = todelete;
+
+				//delete todelete;
+			} else {
+				if (reset) {
+				   current->markVersion = 0;
+				}
+				if (current->liveCount < 10) {
+					current->liveCount++;
+					if (current->liveCount >= 10) {
+						if (next_head != nullptr) {
+							auto tomove = current;
+							if (prev != nullptr) {
+								prev->next = current->next;
+								current = prev;
+							} else {
+								assert(head == current);
+								head = current->next;
+							}
+							current = current->next;
+
+							tomove->next = *next_head;
+							*next_head = tomove;
+							continue;
+						}
+					}
+				}
+
+				prev = current;
+				current = current->next;
+			}
+		}
+	    this->allocatedObjectSize = allocatedObjectSize;
+	    this->allocatedCount = allocatedCount;
+
+		if (reset) {
+			version = 0;
+		}
+		prev = nullptr;
+		current = nullptr;
+		return { exploreCount, deleteCount };
+    }
+
+    __GCSweepResult SweepPartial() {
+		SweepStart();
+		auto results = SweepList(head_gen1, &head_gen2);
+        SweepEnd();
+        return results;
+    }
+
+    __GCSweepResult SweepFull() {
+		SweepStart();
+		auto results = SweepList(head_gen2, nullptr);
+		SweepEnd();
+		return results;
+	}
 
     void CheckStack(__GCStack *stack) {
         auto start = stack->start;
@@ -311,8 +370,11 @@ struct __GCHeap {
         for (void **ptr = end; ptr <= start; ptr++) {
             void *value = *ptr;
             if (value > (void *)0x10000) {
-                if (allocated.find((__GC*)value) != allocated.end()) {
-                    visitor.Trace((__GC*)value);
+            	auto v = (__GC*)value;
+                if (allocated.find(v) != allocated.end()) {
+                	if (!v->deleting) {
+                    	visitor.Trace(v);
+					}
                 }
                 #if __TRACE_GC
                 std::cout << ptr << ": " << value << "\n";
@@ -321,13 +383,47 @@ struct __GCHeap {
         }
     }
 
-    void GC() {
+    int DeleteOldObjects() {
+    	int count = 0;
+		while (head_delete != nullptr) {
+			auto todelete = head_delete;
+			head_delete = head_delete->next;
+			allocated.erase(todelete);
+			todelete->__GC_Dispose(this);
+			jtfree(todelete);
+			count++;
+		}
+		return count;
+    }
+
+    void GC(bool full = false) {
     	#ifdef ENABLE_GC
+    		int roots_size = roots.size();
+    		int threads_size = threads_to_stacks.size();
+    		int allocated_count = this->allocatedCount;
+    		int allocated_objsize = this->allocatedObjectSize;
+			auto t0 = std::chrono::steady_clock::now();
+			Mark();
+			auto t1 = std::chrono::steady_clock::now();
+			auto sweepResult = full ? SweepFull() : SweepPartial();
+			auto t2 = std::chrono::steady_clock::now();
+			//auto deleteResult = full ? DeleteOldObjects() : 0;
+			auto deleteResult = DeleteOldObjects();
+			auto t3 = std::chrono::steady_clock::now();
+
+			auto e1 = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+			auto e2 = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+			auto e3 = std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count();
     		#ifdef __TRACE_GC
-				std::cout << "GC: roots=" << roots.size() << ", threads=" << threads_to_stacks.size() << ", this->allocatedCount=" << this->allocatedCount << ", gcCountThresold=" << gcCountThresold << ", this->allocatedObjectSize=" << this->allocatedObjectSize << ", gcSizeThresold=" << gcSizeThresold << "\n";
+				std::cout << "GC: full=" << full << ", "
+					<< "mark=" << e1 << "ms, "
+					<< "sweep=" << e2 << "ms/" << sweepResult.deleted << "/" << sweepResult.explored << ", "
+					<< "delete=" << e3 << "ms/" << deleteResult << ", "
+					<< "roots=" << roots_size << ", threads=" << threads_size
+					<< ", totalObjects=" << allocated_count << "/" << gcCountThresold
+					<< ", heapSize=" << allocated_objsize << "/" << gcSizeThresold
+					<< "\n";
 			#endif
-        	Mark();
-        	Sweep();
         #endif
     }
 
@@ -343,13 +439,13 @@ struct __GCHeap {
 	T* AllocCustomSize(int size, Args&&... args) {
     	#ifdef ENABLE_GC
 		if (enabled) {
-			if (this->allocatedCount >= gcCountThresold) {
-				GC();
+			if (this->allocatedCount >= gcCountThresold * 0.75) {
+				GC(this->allocatedCount >= gcCountThresold);
 				if (this->allocatedCount >= gcCountThresold * 0.5) gcCountThresold *= 2;
 			}
 
-			if (this->allocatedObjectSize >= gcSizeThresold) {
-				GC();
+			if (this->allocatedObjectSize >= gcSizeThresold * 0.75) {
+				GC(this->allocatedObjectSize >= gcSizeThresold);
 				if (this->allocatedObjectSize >= gcSizeThresold * 0.5) gcSizeThresold *= 2;
 			}
 		}
@@ -360,11 +456,13 @@ struct __GCHeap {
 		//T *newobj = ::new T(std::forward<Args>(args)...);
     	#ifdef ENABLE_GC
 		newobj->__GC_Init(this);
+        newobj->__GC_objsize = size;
 		allocated.insert(newobj);
+        //allocated_gen1.push_back(newobj);
 		this->allocatedObjectSize += size;
 		this->allocatedCount++;
-		newobj->next = (__GC*)this->head;
-		this->head = newobj;
+		newobj->next = (__GC*)this->head_gen1;
+		this->head_gen1 = newobj;
 		#endif
 		return newobj;
 	};
