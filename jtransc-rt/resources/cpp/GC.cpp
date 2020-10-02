@@ -446,9 +446,10 @@ struct __GCHeap {
 
     __GCSweepResult SweepFull() {
 		SweepStart();
-		auto results = SweepList(head_gen2, nullptr);
+		auto results1 = SweepList(head_gen1, &head_gen2);
+		auto results2 = SweepList(head_gen2, nullptr);
 		SweepEnd();
-		return results;
+		return { results1.explored + results2.explored, results1.deleted + results2.deleted };
 	}
 
     void CheckStack(__GCStack *stack) {
@@ -490,7 +491,7 @@ struct __GCHeap {
 		return count;
     }
 
-    void GC(bool full = false) {
+    void GC(bool full = true) {
     	#ifdef ENABLE_GC
     		int roots_size = roots.size();
     		int threads_size = threads_to_stacks.size();
@@ -535,11 +536,13 @@ struct __GCHeap {
 		if (enabled) {
 			if (memory.allocCount >= gcCountThresold) {
 				GC(false);
+				if (memory.allocCount >= gcCountThresold * 0.5) GC(true);
 				if (memory.allocCount >= gcCountThresold * 0.5) gcCountThresold *= 2;
 			}
 
 			if (memory.allocMemory >= gcSizeThresold) {
 				GC(false);
+				if (memory.allocMemory >= gcSizeThresold * 0.5) GC(true);
 				if (memory.allocMemory >= gcSizeThresold * 0.5) gcSizeThresold *= 2;
 			}
 		}
