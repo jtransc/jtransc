@@ -196,10 +196,9 @@ if (false) {
 	Int64.and = function(a, b) { return BigInt.asIntN(64, a & b); }
 	Int64.or = function(a, b) { return BigInt.asIntN(64, a | b); }
 	Int64.xor = function(a, b) { return BigInt.asIntN(64, a ^ b); }
-	//Int64.shl = function(a, b) { return BigInt.asIntN(64, a << BigInt(b)); }
-	Int64.shl = function(a, b) { return a; }
-	Int64.shr = function(a, b) { return BigInt.asIntN(64, a >> BigInt(b)); }
-	Int64.ushr = function(a, b) { return BigInt.asUintN(64, a >> BigInt(b)); }
+	Int64.shl = function(a, b) { return BigInt.asIntN(64, a << BigInt(b & 63)); }
+	Int64.shr = function(a, b) { return BigInt.asIntN(64, a >> BigInt(b & 63)); }
+	Int64.ushr = function(a, b) { return BigInt.asUintN(64, a >> BigInt(b & 63)); }
 	Int64.sign = function(a) {
 		if (a < BigInt(0)) return -1;
 		if (a > BigInt(0)) return +1;
