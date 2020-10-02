@@ -541,7 +541,7 @@ public class Benchmark {
 				int out = 0;
 				for (int n = 0; n < 100000; n++) {
 					MyClass myClass = new MyClass("test" + n);
-					out += myClass.b;
+					out += myClass.b + myClass.d.hashCode();
 				}
 				return out;
 			}
