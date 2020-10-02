@@ -300,6 +300,7 @@ struct N {
 	{% if ENABLE_TYPING %}
 	static p_java_lang_String str(const char *str);
 	static p_java_lang_String str(const wchar_t *str, int32_t len);
+	static p_java_lang_String strLiteral(const wchar_t *str, int32_t len);
 	static p_java_lang_String str(std::wstring str);
 	static p_java_lang_String str(std::string str);
 	static p_JA_L strArray(int32_t count, wchar_t **strs);
@@ -309,6 +310,7 @@ struct N {
 	{% else %}
 	static JAVA_OBJECT str(const char *str);
 	static JAVA_OBJECT str(const wchar_t *str, int32_t len);
+	static JAVA_OBJECT strLiteral(const wchar_t *str, int32_t len);
 	static JAVA_OBJECT str(std::wstring str);
 	static JAVA_OBJECT str(std::string str);
 	static JAVA_OBJECT strArray(int32_t count, wchar_t **strs);
@@ -404,8 +406,9 @@ struct DYN {
     static void* jtvmResolveNativeMethodImpl(const char*, const char*, JAVA_OBJECT, void**);
 };
 
-
 // Strings
+//#define N_ADD_STRING(VAR, STR, LEN) { __GC_DISABLE(); VAR = N::str(STR, LEN); __GC_ADD_ROOT_CONSTANT(#VAR, &STR); __GC_ENABLE(); }
+#define N_ADD_STRING(VAR, STR, LEN) { VAR = N::str(STR, LEN); __GC_ADD_ROOT_CONSTANT(#VAR, &VAR); }
 {{ STRINGS }}
 
 
@@ -418,6 +421,20 @@ struct JA_0 : public java_lang_Object {
 	int32_t length;
 	int8_t elementSize;
 	std::wstring desc;
+
+	std::wstring __GC_Name() { return L"JA_0"; }
+	int __GC_Size() { return sizeof(*this); }
+
+    virtual void __GC_Init(__GCHeap *heap) {
+    	java_lang_Object::__GC_Init(heap);
+		heap->allocatedArraySize += length * elementSize;
+    }
+
+    virtual void __GC_Dispose(__GCHeap *heap) {
+    	java_lang_Object::__GC_Dispose(heap);
+		heap->allocatedArraySize -= length * elementSize;
+    }
+
 	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
 		this->__JT__CLASS_ID = 1;
 		this->_data = data;
@@ -457,6 +474,9 @@ struct JA_Base : JA_0 {
 	};
 	JA_Base(JT_BOOL pointers, void* data, int32_t size, std::wstring desc) : JA_0(pointers, data, size, sizeof(T), desc) {
 	};
+
+	std::wstring __GC_Name() { return L"JA_Base"; }
+	int __GC_Size() { return sizeof(*this); }
 
 	/*
 	* Checks that the offset is in the bounds.
@@ -535,6 +555,9 @@ struct JA_Base : JA_0 {
 };
 
 struct JA_B : JA_Base<int8_t> {
+	std::wstring __GC_Name() { return L"JA_B"; }
+	int __GC_Size() { return sizeof(*this); }
+
 	JA_B(int32_t size, std::wstring desc = L"[B") : JA_Base(false, size, desc) { };
 	JA_B(void* data, int32_t size, std::wstring desc = L"[B") : JA_Base(false, data, size, desc) { };
 
@@ -552,6 +575,9 @@ struct JA_B : JA_Base<int8_t> {
 	}
 };
 struct JA_Z : public JA_B {
+	std::wstring __GC_Name() { return L"JA_Z"; }
+	int __GC_Size() { return sizeof(*this); }
+
 	JA_Z(int32_t size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
 	JA_Z(void* data, int32_t size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
 
@@ -563,6 +589,9 @@ struct JA_Z : public JA_B {
 	}
 };
 struct JA_S : JA_Base<int16_t> {
+	std::wstring __GC_Name() { return L"JA_S"; }
+	int __GC_Size() { return sizeof(*this); }
+
 	JA_S(int32_t size, std::wstring desc = L"[S") : JA_Base(false, size, desc) { };
 	JA_S(void* data, int32_t size, std::wstring desc = L"[S") : JA_Base(false, data, size, desc) { };
 
@@ -574,6 +603,9 @@ struct JA_S : JA_Base<int16_t> {
 	}
 };
 struct JA_C : JA_Base<uint16_t> {
+	std::wstring __GC_Name() { return L"JA_C"; }
+	int __GC_Size() { return sizeof(*this); }
+
 	JA_C(int32_t size, std::wstring desc = L"[C") : JA_Base(false, size, desc) { };
 	JA_C(void* data, int32_t size, std::wstring desc = L"[C") : JA_Base(false, data, size, desc) { };
 
@@ -585,6 +617,9 @@ struct JA_C : JA_Base<uint16_t> {
 	}
 };
 struct JA_I : JA_Base<int32_t> {
+	std::wstring __GC_Name() { return L"JA_I"; }
+	int __GC_Size() { return sizeof(*this); }
+
 	JA_I(int32_t size, std::wstring desc = L"[I") : JA_Base(false, size, desc) { };
 	JA_I(void* data, int32_t size, std::wstring desc = L"[I") : JA_Base(false, data, size, desc) { };
 
@@ -607,6 +642,9 @@ struct JA_I : JA_Base<int32_t> {
 	}
 };
 struct JA_J : JA_Base<int64_t> {
+	std::wstring __GC_Name() { return L"JA_J"; }
+	int __GC_Size() { return sizeof(*this); }
+
 	JA_J(int32_t size, std::wstring desc = L"[J") : JA_Base(false, size, desc) { };
 	JA_J(void* data, int32_t size, std::wstring desc = L"[J") : JA_Base(false, data, size, desc) { };
 
@@ -618,6 +656,9 @@ struct JA_J : JA_Base<int64_t> {
 	}
 };
 struct JA_F : JA_Base<float> {
+	std::wstring __GC_Name() { return L"JA_F"; }
+	int __GC_Size() { return sizeof(*this); }
+
 	JA_F(int32_t size, std::wstring desc = L"[F") : JA_Base(false, size, desc) { };
 	JA_F(void* data, int32_t size, std::wstring desc = L"[F") : JA_Base(false, data, size, desc) { };
 
@@ -629,6 +670,9 @@ struct JA_F : JA_Base<float> {
 	}
 };
 struct JA_D : JA_Base<double> {
+	std::wstring __GC_Name() { return L"JA_D"; }
+	int __GC_Size() { return sizeof(*this); }
+
 	JA_D(int32_t size, std::wstring desc = L"[D") : JA_Base(false, size, desc) { };
 	JA_D(void* data, int32_t size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
 
@@ -650,6 +694,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 		return out;
 	}
 
+	std::wstring __GC_Name() { return L"JA_L"; }
 	int __GC_Size() { return sizeof(*this); }
     void __GC_Trace(__GCVisitor* visitor) {
     	JA_Base::__GC_Trace(visitor);
@@ -922,11 +967,6 @@ int32_t N::f2i(float v) {
 	}
 }
 
-//SOBJ N::strLiteral(wchar_t *ptr, int len) {
-//	SOBJ out(__GC_ALLOC<{% CLASS java.lang.String %}>());
-//	return out.get()->sptr();
-//}
-
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(const wchar_t *str, int32_t len) {
 	p_java_lang_String out = __GC_ALLOC<{% CLASS java.lang.String %}>();
@@ -943,6 +983,11 @@ N::str(const wchar_t *str, int32_t len) {
 	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 };
+
+{% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
+N::strLiteral(const wchar_t *ptr, int len) {
+	return N::str(ptr, len);
+}
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(std::wstring str) {
@@ -3092,7 +3137,9 @@ void N_startup2() {
 	std::signal(SIGSEGV, SIGSEGV_handler);
 	std::signal(SIGFPE, SIGFPE_handler);
 
+	__GC_DISABLE();
 	N::initStringPool();
+	__GC_ENABLE();
 }
 
 void N::startup() {
@@ -3102,7 +3149,6 @@ void N::startup() {
 	*/
 
 	//GC_set_all_interior_pointers(0);
-	__GC_REGISTER_THREAD();
 	N_startup2();
 };
 

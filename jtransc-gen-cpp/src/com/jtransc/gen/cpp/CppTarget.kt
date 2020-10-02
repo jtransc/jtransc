@@ -371,7 +371,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("static void* STRINGS_END = nullptr;")
 			line("void N::initStringPool()", after2 = ";") {
 				for (gs in globalStrings) {
-					line("""${gs.name} = N::str(L${gs.str.uquote()}, ${gs.str.length});""")
+					line("""N_ADD_STRING(${gs.name}, L${gs.str.uquote()}, ${gs.str.length});""")
 				}
 			}
 		}
@@ -422,6 +422,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	fun writeMain(): Indenter = Indenter {
 		line("int main(int argc, char *argv[])") {
 			line("""TRACE_REGISTER("::main");""")
+			line("__GC_REGISTER_THREAD();")
 			line("try") {
 				line("N::startup();")
 				line(genStaticConstructorsSorted())
@@ -430,10 +431,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				line("$callMain(N::strEmptyArray());")
 			}
 			line("catch (char const *s)") {
-				line("""std::cout << "ERROR char const* " << s << "\n";""")
+				line("""std::cout << "ERROR char const*: '" << s << "'\n";""")
+			}
+			line("catch (wchar_t const *s)") {
+				line("""std::wcout << L"ERROR wchar_t const*: '" << s << L"'\n";""")
 			}
 			line("catch (std::wstring s)") {
-				line("""std::wcout << L"ERROR std::wstring " << s << L"\n";""")
+				line("""std::wcout << L"ERROR std::wstring: '" << s << L"'\n";""")
 			}
 			//line("catch (java_lang_Throwable *s)") {
 			//	line("""std::wcout  << L"${"java.lang.Throwable".fqname.targetName}:" << L"\n";""")
@@ -477,6 +481,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		line("struct ${clazz.cppName}${if (parts.isNotEmpty()) " : $parts " else " "} { public:")
 		indent {
 			if (!clazz.isInterface) {
+				line("std::wstring __GC_Name() { return L${clazz.cppName.quote()}; }")
 				line("int __GC_Size() { return sizeof(*this); }")
 				line("virtual void __GC_Trace(__GCVisitor* visitor)") {
 					val parentClass = clazz.parentClass
@@ -620,7 +625,10 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 
 			for (field in clazz.fields.filter { it.isStatic }) {
-				line("__GC_ADD_ROOT(&${clazz.cppName}::${field.targetName});")
+				if (field.type.isNotPrimitive()) {
+					val fieldFullName = "${clazz.cppName}::${field.targetName}"
+					line("__GC_ADD_ROOT_NAMED(${fieldFullName.quote()}, &$fieldFullName);")
+				}
 			}
 
 			val sim = clazz.staticInitMethod

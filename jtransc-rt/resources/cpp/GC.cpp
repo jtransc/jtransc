@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <string>
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
@@ -15,24 +16,33 @@
 //#define __TRACE_GC 1
 
 struct __GCVisitor;
+struct __GCHeap;
 
 struct __GC {
-    int markVersion = 0;
     __GC *next = nullptr;
+    unsigned short markVersion = 0;
 
+	virtual std::wstring __GC_Name() { return L"__GC"; }
     virtual int __GC_Size() { return sizeof(*this); }
     virtual void __GC_Trace(__GCVisitor* visitor) {}
 
     __GC() {
-        #if __TRACE_GC
-        std::cout << "Created __GC - " << this << "\n";
-        #endif
     }
 
     virtual ~__GC() {
-        #if __TRACE_GC
-        std::cout << "Deleted __GC - " << this << "\n";
-        #endif
+       //__GC_Delete();
+    }
+
+    virtual void __GC_Init(__GCHeap *heap) {
+		#if __TRACE_GC
+		std::wcout << L"Created " << __GC_Name() << " - " << this << L"\n";
+		#endif
+    }
+
+    virtual void __GC_Dispose(__GCHeap *heap) {
+		#if __TRACE_GC
+		std::wcout << L"Deleted " << __GC_Name() << L" - " << this << L"\n";
+		#endif
     }
 };
 
@@ -84,30 +94,43 @@ struct __GCStack {
     __GCStack(void **start) : start(start) { }
 };
 
+struct __GCRootInfo {
+	std::string name;
+	__GC** root;
+};
+
 struct __GCHeap {
     int allocatedSize = 0;
+    int allocatedArraySize = 0;
     int allocatedCount = 0;
     std::unordered_set<__GC*> allocated;
-    std::unordered_set<__GC**> roots;
+    std::unordered_set<__GCRootInfo*> roots;
     std::unordered_map<std::thread::id, __GCStack*> threads_to_stacks;
     __GC* head = nullptr;
     __GCVisitor visitor;
     std::atomic<bool> sweepingStop;
-    //int gcCountThresold = 10000;
-    int gcCountThresold = 1000;
+    int gcCountThresold = 10000;
+    //int gcCountThresold = 1000;
+    //int gcCountThresold = 10;
     int gcSizeThresold = 4 * 1024 * 1024;
     bool enabled = true;
 
     void ShowStats() {
-        std::wcout << L"Heap Stats. Object Count: " << allocatedCount << L", TotalSize: " << allocatedSize << L"\n";
+        std::wcout << L"Heap Stats. Object Count: " << allocatedCount << L", TotalSize: " << allocatedSize << L", ArraySize: " << allocatedArraySize << L"\n";
 		fflush(stdout);
     }
 
-    void AddRoot(__GC** root) {
-        roots.insert(root);
+    __GCRootInfo * AddRoot(std::string name, __GC** root) {
+		__GCRootInfo *info = new __GCRootInfo { name, root };
+		roots.insert(info);
+		return info;
     }
 
-    void RemoveRoot(__GC** root) {
+    __GCRootInfo * AddRoot(__GC** root) {
+    	return AddRoot("unknown", root);
+    }
+
+    void RemoveRoot(__GCRootInfo * root) {
         roots.erase(root);
     }
 
@@ -149,9 +172,15 @@ struct __GCHeap {
     
 
     void Mark() {
+		#if __TRACE_GC
+		std::cout << "__GCHeap.Mark(): roots=" << roots.size() << ", stacks=" << threads_to_stacks.size() << "\n";
+		#endif
         visitor.version++;
-        for (auto root : roots)  {
-            visitor.Trace(*root);
+        for (auto rootInfo : roots)  {
+            auto rootPtr = rootInfo->root;
+        	auto root = *rootPtr;
+			std::cout << "rootName=" << rootInfo->name << ", rootPtr=" << rootPtr << ", root=" << root << "\n";
+            visitor.Trace(root);
         }
         #if __TRACE_GC
         std::cout << "threads_to_stacks.size(): " << threads_to_stacks.size() << "\n";
@@ -175,7 +204,7 @@ struct __GCHeap {
         }
 
         int version = visitor.version;
-        bool reset = version >= 1000;
+        bool reset = version >= 10000;
         __GC* prev = nullptr;
         __GC* current = head;
         __GC* todelete = nullptr;
@@ -195,6 +224,7 @@ struct __GCHeap {
                 current = current->next;
                 allocatedSize -= todelete->__GC_Size();
                 allocatedCount--;
+                todelete->__GC_Dispose(this);
                 delete todelete;
             } else {
                 if (reset) {
@@ -264,6 +294,7 @@ struct __GCHeap {
 
         void *memory = malloc(sizeof(T));
         T *newobj = ::new (memory) T(std::forward<Args>(args)...);
+        newobj->__GC_Init(this);
         allocated.insert(newobj);
         this->allocatedSize += newobj->__GC_Size();
         this->allocatedCount++;
@@ -295,5 +326,9 @@ struct __GCThread {
 #define __GC_SHOW_STATS __gcHeap.ShowStats
 #define __GC_ALLOC __gcHeap.Alloc
 #define __GC_ADD_ROOT(v) __gcHeap.AddRoot((__GC**)v);
+//#define __GC_ADD_ROOT_NAMED(name, v) __gcHeap.AddRoot(name, (__GC**)v);
+//#define __GC_ADD_ROOT_CONSTANT(name, v) __gcHeap.AddRoot(name, (__GC**)v);
+#define __GC_ADD_ROOT_NAMED(name, v) __gcHeap.AddRoot((__GC**)v);
+#define __GC_ADD_ROOT_CONSTANT(name, v) __gcHeap.AddRoot((__GC**)v);
 #define __GC_ENABLE __gcHeap.Enable
-#define __GC_Disable __gcHeap.Disable
+#define __GC_DISABLE __gcHeap.Disable
