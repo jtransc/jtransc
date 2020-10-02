@@ -22,17 +22,17 @@
 struct __GCVisitor;
 struct __GCHeap;
 
+template <typename T> T GC_roundUp(T numToRound, T multiple) {
+	if (multiple == 0) return numToRound;
+	int remainder = numToRound % multiple;
+	if (remainder == 0) return numToRound;
+	return numToRound + multiple - remainder;
+}
+
 #ifdef DUMMY_ALLOCATOR
 	int64_t BIG_HEAP_SIZE = (3LL * 1024LL * 1024LL * 1024LL) - 16;
 	char *BIG_HEAP = (char *)malloc(BIG_HEAP_SIZE + 1024);
 	char *BIG_HEAP_END = BIG_HEAP + BIG_HEAP_SIZE;
-
-	template <typename T> T GC_roundUp(T numToRound, T multiple) {
-		if (multiple == 0) return numToRound;
-		int remainder = numToRound % multiple;
-		if (remainder == 0) return numToRound;
-		return numToRound + multiple - remainder;
-	}
 
 	void *jtalloc(size_t size) {
 		//return malloc(size);
@@ -53,12 +53,14 @@ struct __GCHeap;
 	void jtfree(void *ptr) { free(ptr); }
 #endif
 
+#define GC_OBJECT_CONSTANT 0x139912F0
+
 struct __GC {
+    int _gcallocated = GC_OBJECT_CONSTANT;
     __GC *next = nullptr;
     unsigned short markVersion = 0;
     unsigned short liveCount = 0;
-    int __GC_objsize = 0;
-    int deleting = 0;
+    int __GC_objsize;
 
 	virtual std::wstring __GC_Name() { return L"__GC"; }
     virtual void __GC_Trace(__GCVisitor* visitor) {}
@@ -141,11 +143,99 @@ struct __GCSweepResult {
 	int deleted;
 };
 
+struct __GCMemoryChunk {
+	void *start;
+	int size;
+};
+
+struct __GCMemoryBlock {
+	void *start;
+	void *end;
+	int sizeTotal;
+	int sizeUsed;
+	__GCMemoryBlock(int size) {
+		this->start = jtalloc(size);
+		this->sizeTotal = size;
+		this->end = ((char *)this->start) + size;
+		this->sizeUsed = 0;
+	}
+	~__GCMemoryBlock() {
+		jtfree(this->start);
+		this->start = nullptr;
+		this->end = nullptr;
+		this->sizeTotal = 0;
+		this->sizeUsed = 0;
+	}
+	void *Alloc(int size) {
+		if (sizeUsed + size >= sizeTotal) return nullptr;
+		auto output = (((char *)start) + sizeUsed);
+		sizeUsed += size;
+		return output;
+	}
+	int sizeFree() {
+		return sizeTotal - sizeUsed;
+	}
+	bool ContainsPointer(void *ptr) {
+		return ptr >= start && ptr < end;
+	}
+};
+
+struct __GCAllocResult {
+	void *ptr;
+	int size;
+};
+
+struct __GCMemoryBlocks {
+	void *minptr = nullptr;
+	void *maxptr = nullptr;
+	std::list<__GCMemoryBlock*> blocks;
+	std::unordered_map<int, std::list<__GC*>> freeBlocksBySize;
+	int allocCount = 0;
+	int allocMemory = 0;
+	int totalMemory = 0;
+
+	__GCAllocResult Alloc(int size) {
+		int allocSize = GC_roundUp(size, 64);
+		allocMemory += allocSize;
+		allocCount++;
+		for (auto ptr : freeBlocksBySize[allocSize]) {
+			freeBlocksBySize[allocSize].pop_front();
+			return { ptr, allocSize };
+		}
+		for (auto block : blocks) {
+			auto ptr = block->Alloc(allocSize);
+			if (ptr != nullptr) return { ptr, allocSize };
+		}
+		int blockSize = 16 * 1024 * 1024;
+		auto block = new __GCMemoryBlock(blockSize);
+		minptr = (minptr != nullptr) ? std::min(minptr, block->start) : block->start;
+		maxptr = (maxptr != nullptr) ? std::max(maxptr, block->end) : block->end;
+		totalMemory += blockSize;
+		blocks.push_back(block);
+		return { block->Alloc(allocSize), allocSize };
+	}
+
+	void Free(__GC *ptr) {
+		int allocSize = ptr->__GC_objsize;
+		allocCount--;
+		allocMemory -= allocSize;
+		freeBlocksBySize[allocSize].push_back(ptr);
+	}
+
+	bool ContainsPointer(void *ptr) {
+		if (ptr < minptr || ptr > maxptr) return false;
+
+		for (auto block : blocks) {
+			if (block->ContainsPointer(ptr)) return true;
+		}
+		//std::cout << "Can't find " << ptr << " in blocks " << blocks.size() << ", range=" << minptr << "," << maxptr << "\n";
+		return false;
+	}
+};
+
 struct __GCHeap {
-    int allocatedObjectSize = 0;
     int allocatedArraySize = 0;
-    int allocatedCount = 0;
-    std::unordered_set<__GC*> allocated;
+    __GCMemoryBlocks memory;
     //std::list<__GC*> allocated_gen1;
     std::unordered_set<__GCRootInfo*> roots;
     std::unordered_map<std::thread::id, __GCStack*> threads_to_stacks;
@@ -162,7 +252,7 @@ struct __GCHeap {
     bool enabled = true;
 
     int GetTotalBytes() {
-    	return allocatedObjectSize + allocatedArraySize;
+    	return memory.allocMemory + allocatedArraySize;
     }
 
     // @TODO
@@ -172,7 +262,12 @@ struct __GCHeap {
 
     void ShowStats() {
         int totalSize = GetTotalBytes();
-        std::wcout << L"Heap Stats. Object Count: " << allocatedCount << L", TotalSize: " << totalSize << L", ObjectSize: " << allocatedObjectSize << L", ArraySize: " << allocatedArraySize << L"\n";
+        std::wcout << L"Heap Stats. "
+        	<< L"Object Count: " << memory.allocCount
+        	<< L", TotalMemory: " << memory.totalMemory
+        	<< L", TotalSize: " << totalSize
+        	<< L", ObjectSize: " << memory.allocMemory
+        	<< L", ArraySize: " << allocatedArraySize << L"\n";
 		fflush(stdout);
     }
 
@@ -279,15 +374,12 @@ struct __GCHeap {
 		bool reset = version >= 10000;
 		__GC* prev = nullptr;
 		__GC* current = head;
-	    auto allocated = &this->allocated;
-	    auto allocatedObjectSize = this->allocatedObjectSize;
-	    auto allocatedCount = this->allocatedCount;
 		while (current != nullptr) {
 			exploreCount++;
 			if (current->markVersion != version) {
 				deleteCount++;
 				auto todelete = current;
-				todelete->deleting = 1;
+
 				//std::cout << "delete unreferenced object!\n";
 				if (prev != nullptr) {
 					prev->next = current->next;
@@ -298,11 +390,13 @@ struct __GCHeap {
 					head = current->next;
 				}
 				current = current->next;
-				allocatedObjectSize -= todelete->__GC_objsize;
-				allocatedCount--;
 
-				todelete->next = head_delete;
-				head_delete = todelete;
+				todelete->_gcallocated = 0;
+				todelete->__GC_Dispose(this);
+				memory.Free(todelete);
+
+				//todelete->next = head_delete;
+				//head_delete = todelete;
 
 				//delete todelete;
 			} else {
@@ -334,8 +428,6 @@ struct __GCHeap {
 				current = current->next;
 			}
 		}
-	    this->allocatedObjectSize = allocatedObjectSize;
-	    this->allocatedCount = allocatedCount;
 
 		if (reset) {
 			version = 0;
@@ -365,19 +457,20 @@ struct __GCHeap {
         void **end = &value;
         #if __TRACE_GC
         std::cout << "Checking stack: " << (start - end) << "\n";
+        std::cout << "  - Memory: minptr=" << memory.minptr << ", maxptr=" << memory.maxptr << "\n";
         #endif
 
         for (void **ptr = end; ptr <= start; ptr++) {
             void *value = *ptr;
             if (value > (void *)0x10000) {
             	auto v = (__GC*)value;
-                if (allocated.find(v) != allocated.end()) {
-                	if (!v->deleting) {
-                    	visitor.Trace(v);
-					}
+            	bool isptr = memory.ContainsPointer(v);
+            	bool isobj = isptr && v->_gcallocated == GC_OBJECT_CONSTANT;
+                if (isobj) {
+					visitor.Trace(v);
                 }
                 #if __TRACE_GC
-                std::cout << ptr << ": " << value << "\n";
+                std::cout << "  - " << ptr << ": " << value << ": isptr=" << isptr << ", isobj=" << isobj << "\n";
                 #endif
             }
         }
@@ -385,14 +478,15 @@ struct __GCHeap {
 
     int DeleteOldObjects() {
     	int count = 0;
+    	/*
 		while (head_delete != nullptr) {
 			auto todelete = head_delete;
 			head_delete = head_delete->next;
-			allocated.erase(todelete);
 			todelete->__GC_Dispose(this);
-			jtfree(todelete);
+			memory.Free(todelete);
 			count++;
 		}
+		*/
 		return count;
     }
 
@@ -400,8 +494,8 @@ struct __GCHeap {
     	#ifdef ENABLE_GC
     		int roots_size = roots.size();
     		int threads_size = threads_to_stacks.size();
-    		int allocated_count = this->allocatedCount;
-    		int allocated_objsize = this->allocatedObjectSize;
+    		int allocatedCount = memory.allocCount;
+    		int allocatedObjectSize = memory.allocMemory;
 			auto t0 = std::chrono::steady_clock::now();
 			Mark();
 			auto t1 = std::chrono::steady_clock::now();
@@ -420,8 +514,8 @@ struct __GCHeap {
 					<< "sweep=" << e2 << "ms/" << sweepResult.deleted << "/" << sweepResult.explored << ", "
 					<< "delete=" << e3 << "ms/" << deleteResult << ", "
 					<< "roots=" << roots_size << ", threads=" << threads_size
-					<< ", totalObjects=" << allocated_count << "/" << gcCountThresold
-					<< ", heapSize=" << allocated_objsize << "/" << gcSizeThresold
+					<< ", totalObjects=" << allocatedCount << "/" << gcCountThresold
+					<< ", heapSize=" << allocatedObjectSize << "/" << gcSizeThresold
 					<< "\n";
 			#endif
         #endif
@@ -439,28 +533,27 @@ struct __GCHeap {
 	T* AllocCustomSize(int size, Args&&... args) {
     	#ifdef ENABLE_GC
 		if (enabled) {
-			if (this->allocatedCount >= gcCountThresold * 0.75) {
-				GC(this->allocatedCount >= gcCountThresold);
-				if (this->allocatedCount >= gcCountThresold * 0.5) gcCountThresold *= 2;
+			if (memory.allocCount >= gcCountThresold) {
+				GC(false);
+				if (memory.allocCount >= gcCountThresold * 0.5) gcCountThresold *= 2;
 			}
 
-			if (this->allocatedObjectSize >= gcSizeThresold * 0.75) {
-				GC(this->allocatedObjectSize >= gcSizeThresold);
-				if (this->allocatedObjectSize >= gcSizeThresold * 0.5) gcSizeThresold *= 2;
+			if (memory.allocMemory >= gcSizeThresold) {
+				GC(false);
+				if (memory.allocMemory >= gcSizeThresold * 0.5) gcSizeThresold *= 2;
 			}
 		}
 		#endif
 
-		void *memory = jtalloc(size);
-		T *newobj = ::new (memory) T(std::forward<Args>(args)...);
+		auto res = memory.Alloc(size);
+		int objsize = res.size;
+		T *newobj = ::new (res.ptr) T(std::forward<Args>(args)...);
 		//T *newobj = ::new T(std::forward<Args>(args)...);
     	#ifdef ENABLE_GC
 		newobj->__GC_Init(this);
-        newobj->__GC_objsize = size;
-		allocated.insert(newobj);
+    	newobj->__GC_objsize = objsize;
+    	newobj->_gcallocated = GC_OBJECT_CONSTANT;
         //allocated_gen1.push_back(newobj);
-		this->allocatedObjectSize += size;
-		this->allocatedCount++;
 		newobj->next = (__GC*)this->head_gen1;
 		this->head_gen1 = newobj;
 		#endif

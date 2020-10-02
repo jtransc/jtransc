@@ -685,6 +685,7 @@ public class Benchmark {
 		});
 
 		System.out.println("TOTAL time: " + totalTime);
+		JTranscSystem.gcStats();
 
 		//try {
 		//    throw new Throwable();
