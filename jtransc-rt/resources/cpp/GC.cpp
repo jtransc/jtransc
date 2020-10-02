@@ -100,7 +100,7 @@ struct __GCRootInfo {
 };
 
 struct __GCHeap {
-    int allocatedSize = 0;
+    int allocatedObjectSize = 0;
     int allocatedArraySize = 0;
     int allocatedCount = 0;
     std::unordered_set<__GC*> allocated;
@@ -116,7 +116,8 @@ struct __GCHeap {
     bool enabled = true;
 
     void ShowStats() {
-        std::wcout << L"Heap Stats. Object Count: " << allocatedCount << L", TotalSize: " << allocatedSize << L", ArraySize: " << allocatedArraySize << L"\n";
+        int totalSize = allocatedObjectSize + allocatedArraySize;
+        std::wcout << L"Heap Stats. Object Count: " << allocatedCount << L", TotalSize: " << totalSize << L", ObjectSize: " << allocatedObjectSize << L", ArraySize: " << allocatedArraySize << L"\n";
 		fflush(stdout);
     }
 
@@ -222,7 +223,7 @@ struct __GCHeap {
                     head = current->next;
                 }
                 current = current->next;
-                allocatedSize -= todelete->__GC_Size();
+                allocatedObjectSize -= todelete->__GC_Size();
                 allocatedCount--;
                 todelete->__GC_Dispose(this);
                 delete todelete;
@@ -288,15 +289,15 @@ struct __GCHeap {
 			if (this->allocatedCount >= gcCountThresold) GC();
 			if (this->allocatedCount >= gcCountThresold) gcCountThresold *= 2;
 
-			if (this->allocatedSize >= gcSizeThresold) GC();
-			if (this->allocatedSize >= gcSizeThresold) gcSizeThresold *= 2;
+			if (this->allocatedObjectSize >= gcSizeThresold) GC();
+			if (this->allocatedObjectSize >= gcSizeThresold) gcSizeThresold *= 2;
 		}
 
         void *memory = malloc(sizeof(T));
         T *newobj = ::new (memory) T(std::forward<Args>(args)...);
         newobj->__GC_Init(this);
         allocated.insert(newobj);
-        this->allocatedSize += newobj->__GC_Size();
+        this->allocatedObjectSize += newobj->__GC_Size();
         this->allocatedCount++;
         newobj->next = (__GC*)this->head;
         this->head = newobj;
