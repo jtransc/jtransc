@@ -124,7 +124,7 @@ final public class FastMemory {
 		dataDouble = data.asDoubleBuffer();
 	}
 
-	@JTranscMethodBody(target = "cpp", value = "this->vptr = GET_OBJECT(JA_0, p0)->_data;")
+	@JTranscMethodBody(target = "cpp", value = "this->vptr = GET_OBJECT(JA_0, p0)->getStartPtrRaw();")
 	@JTranscSync
 	private void _createViewsExtra(@SuppressWarnings("unused") byte[] data) {
 	}

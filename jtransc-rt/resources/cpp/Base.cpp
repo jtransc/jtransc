@@ -416,14 +416,72 @@ struct DYN {
 
 {{ ARRAY_HEADERS_PRE }}
 
+//#define INLINE_ARRAYS 1
+
+#ifdef INLINE_ARRAYS
+	#define __GC_ALLOC_JA_Z(size) __gcHeap.AllocCustomSize<JA_Z>(16 + 64 + sizeof(JA_Z) + size * sizeof(int8_t), size)
+	#define __GC_ALLOC_JA_B(size) __gcHeap.AllocCustomSize<JA_B>(16 + 64 + sizeof(JA_B) + size * sizeof(int8_t), size)
+	#define __GC_ALLOC_JA_C(size) __gcHeap.AllocCustomSize<JA_C>(16 + 64 + sizeof(JA_C) + size * sizeof(int16_t), size)
+	#define __GC_ALLOC_JA_S(size) __gcHeap.AllocCustomSize<JA_S>(16 + 64 + sizeof(JA_S) + size * sizeof(int16_t), size)
+	#define __GC_ALLOC_JA_I(size) __gcHeap.AllocCustomSize<JA_I>(16 + 64 + sizeof(JA_I) + size * sizeof(int32_t), size)
+	#define __GC_ALLOC_JA_J(size) __gcHeap.AllocCustomSize<JA_J>(16 + 64 + sizeof(JA_J) + size * sizeof(int64_t), size)
+	#define __GC_ALLOC_JA_F(size) __gcHeap.AllocCustomSize<JA_F>(16 + 64 + sizeof(JA_F) + size * sizeof(float32_t), size)
+	#define __GC_ALLOC_JA_D(size) __gcHeap.AllocCustomSize<JA_D>(16 + 64 + sizeof(JA_D) + size * sizeof(float64_t), size)
+	#define __GC_ALLOC_JA_L(size, desc) __gcHeap.AllocCustomSize<JA_L>(16 + 64 + sizeof(JA_L) + size * sizeof(void *), size, desc)
+#else
+	#define __GC_ALLOC_JA_Z(size) __gcHeap.Alloc<JA_Z>(size)
+	#define __GC_ALLOC_JA_B(size) __gcHeap.Alloc<JA_B>(size)
+	#define __GC_ALLOC_JA_C(size) __gcHeap.Alloc<JA_C>(size)
+	#define __GC_ALLOC_JA_S(size) __gcHeap.Alloc<JA_S>(size)
+	#define __GC_ALLOC_JA_I(size) __gcHeap.Alloc<JA_I>(size)
+	#define __GC_ALLOC_JA_J(size) __gcHeap.Alloc<JA_J>(size)
+	#define __GC_ALLOC_JA_F(size) __gcHeap.Alloc<JA_F>(size)
+	#define __GC_ALLOC_JA_D(size) __gcHeap.Alloc<JA_D>(size)
+	#define __GC_ALLOC_JA_L(size, desc) __gcHeap.Alloc<JA_L>(size, desc)
+#endif
+
 struct JA_0 : public java_lang_Object {
+	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::wstring d) {
+		this->__JT__CLASS_ID = 1;
+		this->length = len;
+		this->elementSize = esize;
+		this->desc = d;
+		#ifdef INLINE_ARRAYS
+			this->_data = getStartPtrRaw(); this->allocated = false;
+			::memset(this->_data, 0, bytesLength());
+		#else
+			this->_data = alloc(pointers, len, esize); this->allocated = true;
+		#endif
+	}
+
+	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
+		this->__JT__CLASS_ID = 1;
+		this->_data = data;
+		this->allocated = false;
+		#ifdef INLINE_ARRAYS
+			std::cout << "ERROR: With INLINE_ARRAYS. Array from data won't work\n";
+		#endif
+	}
+
+	~JA_0() {
+		if (allocated) ::free(_data);
+	}
+
 	void *_data;
 	int32_t length;
 	int8_t elementSize;
 	std::wstring desc;
+	bool allocated;
+	int __data;
 
 	std::wstring __GC_Name() { return L"JA_0"; }
 	int __GC_Size() { return sizeof(*this); }
+
+	#ifdef INLINE_ARRAYS
+		inline void *getStartPtrRaw() { return ((char *)&__data) + 64; }
+	#else
+		inline void *getStartPtrRaw() { return _data; }
+	#endif
 
     virtual void __GC_Init(__GCHeap *heap) {
     	java_lang_Object::__GC_Init(heap);
@@ -435,13 +493,6 @@ struct JA_0 : public java_lang_Object {
 		heap->allocatedArraySize -= length * elementSize;
     }
 
-	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
-		this->__JT__CLASS_ID = 1;
-		this->_data = data;
-	}
-
-	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::wstring d) : JA_0(pointers, alloc(pointers, len, esize), len, esize, d) {
-	}
 
 	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
 		void * result = nullptr;
@@ -451,9 +502,8 @@ struct JA_0 : public java_lang_Object {
 		return result;
 	}
 
-	~JA_0() { /*::free(_data);*/ }
-	void *getOffsetPtr(int32_t offset) { return (void*)&(((int8_t *)_data)[offset * elementSize]); }
-	void *getStartPtr() { return getOffsetPtr(0); }
+	void *getOffsetPtr(int32_t offset) { return (void*)&(((char *)getStartPtrRaw())[offset * elementSize]); }
+	//void *getStartPtr() { return getOffsetPtr(0); }
 	int64_t bytesLength() { return length * elementSize; }
 	static void copy(JA_0* src, int32_t srcpos, JA_0* dst, int32_t dstpos, int32_t len) {
 		::memmove(dst->getOffsetPtr(dstpos), src->getOffsetPtr(srcpos), len * src->elementSize);
@@ -478,6 +528,8 @@ struct JA_Base : JA_0 {
 	std::wstring __GC_Name() { return L"JA_Base"; }
 	int __GC_Size() { return sizeof(*this); }
 
+	inline T *getStartPtr() { return (T *)getStartPtrRaw(); }
+
 	/*
 	* Checks that the offset is in the bounds.
 	* Returns true when offset is in bounds, false otherwise.
@@ -491,7 +543,7 @@ struct JA_Base : JA_0 {
 	* Throws exception on failure.
 	*/
 	static void checkBoundsThrowing(int32_t offset, int32_t length) {
-    	if(((uint32_t)offset <= (uint32_t)length)){
+    	if (((uint32_t)offset <= (uint32_t)length)){
     		// In bounds
     	} else {
     		__throwArrayOutOfBounds(offset, length);
@@ -504,24 +556,22 @@ struct JA_Base : JA_0 {
         throw os.str();
 	}
 
-	T *getStartPtr() { return (T *)_data; }
-
 	#ifdef CHECK_ARRAYS
 		void fastSet(int32_t offset, T v) {
-			if(isInBounds(offset, length)) ((T*)(this->_data))[offset] = v;
+			if (isInBounds(offset, length)) (getStartPtr())[offset] = v;
 			else __throwArrayOutOfBounds(offset, length);
 		};
 
 		T fastGet(int32_t offset) {
-			if(isInBounds(offset, length)) return ((T*)(this->_data))[offset];
+			if (isInBounds(offset, length)) return (getStartPtr())[offset];
 			else __throwArrayOutOfBounds(offset, length);
 		}
 	#else
-		void fastSet(int32_t offset, T v) { ((T*)(this->_data))[offset] = v; };
-		T fastGet(int32_t offset) { return ((T*)(this->_data))[offset]; }
+		void fastSet(int32_t offset, T v) { (getStartPtr())[offset] = v; };
+		T fastGet(int32_t offset) { return (getStartPtr())[offset]; }
 	#endif
 
-	JA_Base<T> *init(int32_t offset, T v) { ((T*)(this->_data))[offset] = v; return this; };
+	JA_Base<T> *init(int32_t offset, T v) { (getStartPtr())[offset] = v; return this; };
 
 	void set(int32_t offset, T v) { checkBoundsThrowing(offset, length); fastSet(offset, v); };
 	T get(int32_t offset) { checkBoundsThrowing(offset, length); return fastGet(offset); };
@@ -531,7 +581,7 @@ struct JA_Base : JA_0 {
 		checkBoundsThrowing(from, length);
 		checkBoundsThrowing(to - 1, length);
 		if ((typesize == 8) && (sizeof(void*) == 4)) { // constexpr (we are on 32-bits but this is a 64-bit size). Let's optimize this since some compilers don't do this for us.
-			int32_t* data = (int32_t*)this->_data;
+			int32_t* data = (int32_t*)getStartPtr();
 			int32_t from32 = from * 2;
 			int32_t to32 = to * 2;
 			int32_t* src = (int32_t *)&v;
@@ -543,7 +593,7 @@ struct JA_Base : JA_0 {
 				data[n++] = v2;
 			}
 		} else {
-			T* data = (T*)this->_data;
+			T* data = getStartPtr();
 			for (int32_t n = from; n < to; n++) data[n] = v;
 		}
 	};
@@ -564,7 +614,7 @@ struct JA_B : JA_Base<int8_t> {
 	void fill(int32_t from, int32_t to, int8_t v) {
 		checkBoundsThrowing(from, length);
         checkBoundsThrowing(to - 1, length);
-		::memset((void *)(&((int8_t *)this->_data)[from]), v, (to - from));
+		::memset((void *)(&((int8_t *)getStartPtr())[from]), v, (to - from));
 	}
 
 	static JA_B* fromArray(std::wstring desc, std::vector<int8_t> array) {
@@ -748,7 +798,6 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 //JAVA_OBJECT JA_0::toLongArray  () { return __GC_ALLOC<JA_J>((void *)getStartPtr(), bytesLength() / 8); };
 //JAVA_OBJECT JA_0::toFloatArray () { return __GC_ALLOC<JA_F>((void *)getStartPtr(), bytesLength() / 4); };
 //JAVA_OBJECT JA_0::toDoubleArray() { return __GC_ALLOC<JA_D>((void *)getStartPtr(), bytesLength() / 8); };
-
 
 {{ ARRAY_HEADERS_POST }}
 
@@ -2513,7 +2562,7 @@ jobject JNICALL NewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity){
 void* jtvmGetDirectBufferAddress(JNIEnv* env, JAVA_OBJECT buf){
 	auto buffer = GET_OBJECT({% CLASS java.nio.ByteBuffer %}, buf);
 	//TODO check that this is a direct buffer
-	return GET_OBJECT(JA_B, buffer->{% FIELD java.nio.ByteBuffer:backingArray %})->_data;
+	return GET_OBJECT(JA_B, buffer->{% FIELD java.nio.ByteBuffer:backingArray %})->getStartPtr();
 }
 
 void* JNICALL GetDirectBufferAddress(JNIEnv* env, jobject buf){
@@ -2557,7 +2606,7 @@ void JNICALL  SetObjectArrayElement(JNIEnv *env, jobjectArray array, jsize index
 
 void* jtvmGetUniversalArrayElements(JNIEnv *env, JA_0* array, jboolean *isCopy){
 	if(isCopy) *isCopy = false;
-	return array->_data;
+	return array->getStartPtrRaw();
 }
 
 jboolean* JNICALL GetBooleanArrayElements(JNIEnv *env, jbooleanArray array, jboolean *isCopy){
@@ -2637,88 +2686,88 @@ static jboolean checkBounds(JNIEnv* env, JA_0* array, jint start, jint len){
 
 void JNICALL  GetBooleanArrayRegion(JNIEnv *env, jbooleanArray array, jsize start, jsize len, jboolean *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(buf, ((jboolean* )((JA_Z*) array)->_data) + start, sizeof(jboolean) * len);
+	memcpy(buf, ((jboolean* )((JA_Z*) array)->getStartPtr()) + start, sizeof(jboolean) * len);
 }
 
 void JNICALL  GetByteArrayRegion(JNIEnv *env, jbyteArray array, jsize start, jsize len, jbyte *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(buf, ((jbyte* )((JA_B*) array)->_data) + start, sizeof(jbyte) * len);
+	memcpy(buf, ((jbyte* )((JA_B*) array)->getStartPtr()) + start, sizeof(jbyte) * len);
 }
 
 void JNICALL  GetCharArrayRegion(JNIEnv *env, jcharArray array, jsize start, jsize len, jchar *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(buf, ((jchar* )((JA_C*) array)->_data) + start, sizeof(jchar) * len);
+	memcpy(buf, ((jchar* )((JA_C*) array)->getStartPtr()) + start, sizeof(jchar) * len);
 }
 
 void JNICALL  GetShortArrayRegion(JNIEnv *env, jshortArray array, jsize start, jsize len, jshort *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(buf, ((jshort* )((JA_S*) array)->_data) + start, sizeof(jshort) * len);
+	memcpy(buf, ((jshort* )((JA_S*) array)->getStartPtr()) + start, sizeof(jshort) * len);
 }
 
 void JNICALL  GetIntArrayRegion(JNIEnv *env, jintArray array, jsize start, jsize len, jint *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(buf, ((jint* )((JA_I*) array)->_data) + start, sizeof(jint) * len);
+	memcpy(buf, ((jint* )((JA_I*) array)->getStartPtr()) + start, sizeof(jint) * len);
 }
 
 void JNICALL  GetLongArrayRegion(JNIEnv *env, jlongArray array, jsize start, jsize len, jlong *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(buf, ((jlong* )((JA_J*) array)->_data) + start, sizeof(jlong) * len);
+	memcpy(buf, ((jlong* )((JA_J*) array)->getStartPtr()) + start, sizeof(jlong) * len);
 }
 
 void JNICALL  GetFloatArrayRegion(JNIEnv *env, jfloatArray array, jsize start, jsize len, jfloat *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(buf, ((jfloat* )((JA_F*) array)->_data) + start, sizeof(jfloat) * len);
+	memcpy(buf, ((jfloat* )((JA_F*) array)->getStartPtr()) + start, sizeof(jfloat) * len);
 }
 
 void JNICALL  GetDoubleArrayRegion(JNIEnv *env, jdoubleArray array, jsize start, jsize len, jdouble *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(buf, ((jdouble* )((JA_D*) array)->_data) + start, sizeof(jdouble) * len);
+	memcpy(buf, ((jdouble* )((JA_D*) array)->getStartPtr()) + start, sizeof(jdouble) * len);
 }
 
 void JNICALL  SetBooleanArrayRegion(JNIEnv *env, jbooleanArray array, jsize start, jsize len, const jboolean *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(((jboolean* )((JA_Z*) array)->_data) + start, buf, sizeof(jboolean) * len);
+	memcpy(((jboolean* )((JA_Z*) array)->getStartPtr()) + start, buf, sizeof(jboolean) * len);
 }
 
 void JNICALL  SetByteArrayRegion(JNIEnv *env, jbyteArray array, jsize start, jsize len, const jbyte *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(((jbyte* )((JA_B*) array)->_data) + start, buf, sizeof(jbyte) * len);
+	memcpy(((jbyte* )((JA_B*) array)->getStartPtr()) + start, buf, sizeof(jbyte) * len);
 }
 
 void JNICALL  SetCharArrayRegion(JNIEnv *env, jcharArray array, jsize start, jsize len, const jchar *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(((jchar* )((JA_C*) array)->_data) + start, buf, sizeof(jchar) * len);
+	memcpy(((jchar* )((JA_C*) array)->getStartPtr()) + start, buf, sizeof(jchar) * len);
 }
 
 void JNICALL  SetShortArrayRegion(JNIEnv *env, jshortArray array, jsize start, jsize len, const jshort *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(((jshort* )((JA_S*) array)->_data) + start, buf, sizeof(jshort) * len);
+	memcpy(((jshort* )((JA_S*) array)->getStartPtr()) + start, buf, sizeof(jshort) * len);
 }
 
 void JNICALL  SetIntArrayRegion(JNIEnv *env, jintArray array, jsize start, jsize len, const jint *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(((jint* )((JA_I*) array)->_data) + start, buf, sizeof(jint) * len);
+	memcpy(((jint* )((JA_I*) array)->getStartPtr()) + start, buf, sizeof(jint) * len);
 }
 
 void JNICALL  SetLongArrayRegion(JNIEnv *env, jlongArray array, jsize start, jsize len, const jlong *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(((jlong* )((JA_J*) array)->_data) + start, buf, sizeof(jlong) * len);
+	memcpy(((jlong* )((JA_J*) array)->getStartPtr()) + start, buf, sizeof(jlong) * len);
 }
 
 void JNICALL  SetFloatArrayRegion(JNIEnv *env, jfloatArray array, jsize start, jsize len, const jfloat *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(((jfloat* )((JA_F*) array)->_data) + start, buf, sizeof(jfloat) * len);
+	memcpy(((jfloat* )((JA_F*) array)->getStartPtr()) + start, buf, sizeof(jfloat) * len);
 }
 
 void JNICALL  SetDoubleArrayRegion(JNIEnv *env, jdoubleArray array, jsize start, jsize len, const jdouble *buf){
 	if(!checkBounds(env, (JA_0*) array, start, len)) return;
-	memcpy(((jdouble* )((JA_D*) array)->_data) + start, buf, sizeof(jdouble) * len);
+	memcpy(((jdouble* )((JA_D*) array)->getStartPtr()) + start, buf, sizeof(jdouble) * len);
 }
 
 
 void* JNICALL GetPrimitiveArrayCritical(JNIEnv *env, jarray array, jboolean *isCopy){
 	if(isCopy) *isCopy = false;
-	return ((JA_0*) array)->_data;
+	return ((JA_0*) array)->getStartPtrRaw();
 }
 
 void JNICALL ReleasePrimitiveArrayCritical(JNIEnv *env, jarray array, void *carray, jint mode){

@@ -13,27 +13,27 @@ public class Memory {
 		return peekCharLE(src, offset * 2);
 	}
 
-	//@JTranscMethodBody(target = "cpp", value = "return ((int16_t*)GET_OBJECT(JA_B, p0)->_data)[p1];")
+	//@JTranscMethodBody(target = "cpp", value = "return ((int16_t*)GET_OBJECT(JA_B, p0)->getStartPtrRaw())[p1];")
 	public static short peekAlignedShortLE(byte[] src, int offset) {
 		return peekShortLE(src, offset * 2);
 	}
 
-	//@JTranscMethodBody(target = "cpp", value = "return ((int32_t*)GET_OBJECT(JA_B, p0)->_data)[p1];")
+	//@JTranscMethodBody(target = "cpp", value = "return ((int32_t*)GET_OBJECT(JA_B, p0)->getStartPtrRaw())[p1];")
 	public static int peekAlignedIntLE(byte[] src, int offset) {
 		return peekIntLE(src, offset * 4);
 	}
 
-	//@JTranscMethodBody(target = "cpp", value = "return ((int64_t*)GET_OBJECT(JA_B, p0)->_data)[p1];")
+	//@JTranscMethodBody(target = "cpp", value = "return ((int64_t*)GET_OBJECT(JA_B, p0)->getStartPtrRaw())[p1];")
 	public static long peekAlignedLongLE(byte[] src, int offset) {
 		return peekLongLE(src, offset * 8);
 	}
 
-	//@JTranscMethodBody(target = "cpp", value = "return ((float32_t*)GET_OBJECT(JA_B, p0)->_data)[p1];")
+	//@JTranscMethodBody(target = "cpp", value = "return ((float32_t*)GET_OBJECT(JA_B, p0)->getStartPtrRaw())[p1];")
 	public static float peekAlignedFloatLE(byte[] src, int offset) {
 		return peekFloatLE(src, offset * 4);
 	}
 
-	//@JTranscMethodBody(target = "cpp", value = "return ((float64_t*)GET_OBJECT(JA_B, p0)->_data)[p1];")
+	//@JTranscMethodBody(target = "cpp", value = "return ((float64_t*)GET_OBJECT(JA_B, p0)->getStartPtrRaw())[p1];")
 	public static double peekAlignedDoubleLE(byte[] src, int offset) {
 		return peekDoubleLE(src, offset * 8);
 	}

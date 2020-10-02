@@ -295,9 +295,9 @@ struct __GCHeap {
     	enabled = false;
     }
 
-    template <typename T, typename... Args>
-    T* Alloc(Args&&... args) {
-    	if (enabled) {
+	template <typename T, typename... Args>
+	T* AllocCustomSize(int size, Args&&... args) {
+		if (enabled) {
 			if (this->allocatedCount >= gcCountThresold) GC();
 			if (this->allocatedCount >= gcCountThresold) gcCountThresold *= 2;
 
@@ -305,16 +305,20 @@ struct __GCHeap {
 			if (this->allocatedObjectSize >= gcSizeThresold) gcSizeThresold *= 2;
 		}
 
-		const int size = sizeof(T);
-        void *memory = malloc(size);
-        T *newobj = ::new (memory) T(std::forward<Args>(args)...);
-        newobj->__GC_Init(this);
-        allocated.insert(newobj);
-        newobj->next = (__GC*)this->head;
-        this->allocatedObjectSize += size;
-        this->allocatedCount++;
-        this->head = newobj;
-        return newobj;
+		void *memory = malloc(size);
+		T *newobj = ::new (memory) T(std::forward<Args>(args)...);
+		newobj->__GC_Init(this);
+		allocated.insert(newobj);
+		newobj->next = (__GC*)this->head;
+		this->allocatedObjectSize += size;
+		this->allocatedCount++;
+		this->head = newobj;
+		return newobj;
+	};
+
+    template <typename T, typename... Args>
+    T* Alloc(Args&&... args) {
+    	return AllocCustomSize<T>(sizeof(T), std::forward<Args>(args)...);
     };
 };
 

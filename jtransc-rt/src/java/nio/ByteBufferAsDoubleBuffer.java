@@ -59,7 +59,7 @@ abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBuff
 	@HaxeMethodBody("this.tarray = haxe.io.Float64Array.fromBytes(p0.data);")
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Float64Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.tarray = new Float64List.view(p0.data.buffer);")
-	@JTranscMethodBody(target = "cpp", value = "this->tarray = (float64_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray = (float64_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw());")
 	@JTranscMethodBody(target = "cs", value = "unchecked { this.tarray = (byte[])(Array)p0.data; }")
 	private void init(byte[] data) {
 	}

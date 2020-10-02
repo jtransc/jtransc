@@ -60,7 +60,7 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 	@HaxeMethodBody("this.iarray = haxe.io.Int32Array.fromBytes(p0.data); this.farray = haxe.io.Float32Array.fromBytes(p0.data);")
 	@JTranscMethodBody(target = "js", value = "this.iarray = new Int32Array(p0.data.buffer); this.farray = new Float32Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.iarray = new Int32List.view(p0.data.buffer); this.farray = new Float32List.view(p0.data.buffer);")
-	@JTranscMethodBody(target = "cpp", value = "this->iarray = (int32_t *)(GET_OBJECT(JA_B, p0)->_data); this->farray = (float32_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cpp", value = "this->iarray = (int32_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw()); this->farray = (float32_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw());")
 	@JTranscMethodBody(target = "cs", value = "unchecked { this.tarray = (byte[])(Array)p0.data; }")
 	private void init(byte[] data) {
 	}

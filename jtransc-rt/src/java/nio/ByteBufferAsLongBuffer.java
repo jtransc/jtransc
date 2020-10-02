@@ -60,7 +60,7 @@ abstract class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs
 	@HaxeMethodBody("this.tarray = haxe.io.Int32Array.fromBytes(p0.data);")
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Int32Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.tarray = new Int64List.view(p0.data.buffer);")
-	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int64_t *)(GET_OBJECT(JA_B, p0)->_data);")
+	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int64_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw());")
 	@JTranscMethodBody(target = "cs", value = "unchecked { this.tarray = p0.u(); }")
 	private void init(byte[] data) {
 	}

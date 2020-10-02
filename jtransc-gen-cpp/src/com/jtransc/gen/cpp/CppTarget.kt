@@ -1059,9 +1059,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun createArraySingle(e: AstExpr.NEW_ARRAY, desc: String): String {
 		return if (e.type.elementType !is AstType.Primitive) {
-			"__GC_ALLOC<$ObjectArrayType>(${e.counts[0].genExpr()}, L\"$desc\")"
+			"__GC_ALLOC_$ObjectArrayType(${e.counts[0].genExpr()}, L\"$desc\")"
 		} else {
-			"__GC_ALLOC<${e.type.targetName}>(${e.counts[0].genExpr()})"
+			"__GC_ALLOC_${e.type.targetName}(${e.counts[0].genExpr()})"
 		}
 	}
 
