@@ -2,6 +2,7 @@ package com.jtransc.gradle.tasks
 
 import com.jtransc.*
 import com.jtransc.ast.*
+import com.jtransc.ds.split
 import com.jtransc.error.invalidOp
 import com.jtransc.gradle.JTranscGradleExtension
 import com.jtransc.gradle.get
@@ -57,14 +58,19 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 	fun appendVar(key: String, value: List<String>) = extraVars.getOrPut(key) { arrayListOf() }.addAll(value)
 	fun appendVar(key: String, value: String) = extraVars.getOrPut(key) { arrayListOf() }.add(value)
 
-	protected open fun prepare(): JTranscBuild {
+	protected open fun prepare(isTest: Boolean, forcedMain: String? = null, args: List<String> = listOf()): JTranscBuild {
 		val extension = project.getIfExists<JTranscGradleExtension>(JTranscGradleExtension.NAME)!!
-		val mainClassName = mainClassName ?: extension.mainClassName ?: project.getIfExists<String>("mainClassName") ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!")
+		val mainClassName: String = when {
+			forcedMain != null -> forcedMain
+			isTest -> "org.junit.runner.JUnitCore"
+			else -> mainClassName ?: extension.mainClassName ?: project.getIfExists<String>("mainClassName") ?: invalidOp("JTransc: Not defined mainClassName in build.gradle!")
+		}
 		val buildDir = project.buildDir
 		val dependencies = project.dependencies!!
 		val configurations = project.configurations!! // https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
 		//val apiConfiguration = configurations["apiElements"]
-		val runtimeClasspathConfig = configurations["runtimeClasspath"]
+		val configurationName = if (isTest) "testRuntimeClasspath" else "runtimeClasspath"
+		val runtimeClasspathConfig = configurations[configurationName]
 		//val compileConfiguration = configurations["compile"]
 		val jtranscConfiguration = configurations["jtransc"]
 		val nojtranscConfiguration = configurations["nojtransc"]
@@ -82,7 +88,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		logger.info("jtransc.configurations: ${project.configurations.names}")
 		for (file in runtimeConfiguration.files) logger.info("jtranscRuntime: $file")
 		for (file in jtranscConfiguration.files) logger.info("jtransc: $file")
-		for (file in runtimeClasspathConfig.files) logger.info("runtimeClasspath: $file")
+		for (file in runtimeClasspathConfig.files) logger.info("$configurationName: $file")
 		//for (file in apiConfiguration.files) logger.info("api: $file")
 		for (file in nojtranscConfiguration.files) logger.info("nojtransc: $file")
 
@@ -91,10 +97,14 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		logger.info("JTranscTask.jtransc() extension: $extension");
 		//println(project.property("output.classesDir"))
 		val sourceSet = project.property("sourceSets") as SourceSetContainer
+
 		val mainSourceSet = sourceSet["main"]
+		val testSourceSet = sourceSet["test"]
 		val classesDirs = mainSourceSet.output.classesDirs
+		val testClassesDirs = testSourceSet.output.classesDirs
 		//val classesDirs = listOf(mainSourceSet.output.classesDir)
 		logger.info("output classesDir: ${classesDirs.joinToString(", ")}")
+		logger.info("output testClassesDirs: ${testClassesDirs.joinToString(", ")}")
 		logger.info("sourceSet: $sourceSet")
 		logger.info("mainClassName: $mainClassName")
 
@@ -137,19 +147,20 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		injector.mapInstance(ConfigCompile(compile ?: true))
 		injector.mapInstance(ConfigTreeShaking(
 			treeshaking ?: extension.treeshaking ?: false,
-			treeshakingTrace ?: extension.treeshakingTrace ?: false
+			if (isTest) false else treeshakingTrace ?: extension.treeshakingTrace ?: false
 		))
 
 		injector.mapInstance(ConfigServiceLoader(
 			skipServiceLoaderClasses + extension.skipServiceLoaderClasses
 		))
 
-
-		val files = classesDirs.map { File(it.absolutePath) } +
-			jtranscConfiguration.files +
-			runtimeClasspathConfig.files +
-			//apiConfiguration.files +
-			mainSourceSet.resources.srcDirs.toList()
+		val files = arrayListOf<File>()
+		files += classesDirs.map { File(it.absolutePath) }
+		if (isTest) files += testClassesDirs.map { File(it.absolutePath) }
+		files += jtranscConfiguration.files
+		files += runtimeClasspathConfig.files
+		files += mainSourceSet.resources.srcDirs.toList()
+		if (isTest) files += testSourceSet.resources.srcDirs.toList()
 		val actualFiles = files - blacklist
 
 		injector.mapInstances(ConfigClassPaths(actualFiles.map { it.absolutePath }))
@@ -158,6 +169,19 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		//log.info("ConfigClassPaths:")
 		//for (clazzPath in classPaths) log.info("\"clazzPath\"")
 
+		val initialClasses =  when {
+			isTest -> args
+			else -> listOf()
+		}
+
+		val keepClasses =  when {
+			isTest -> args
+			else -> listOf()
+		}
+
+		logger.info("initialClasses: $initialClasses")
+		logger.info("keepClasses: $keepClasses")
+
 		val result = AllBuildSimple(
 			injector,
 			entryPoint = mainClassName,
@@ -165,7 +189,9 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			target = rtarget,
 			output = outputFile ?: extension.output,
 			settings = settings,
-			targetDirectory = buildDir.absolutePath
+			targetDirectory = buildDir.absolutePath,
+			initialClasses = initialClasses,
+			keepClasses = keepClasses
 		)
 
 		return result

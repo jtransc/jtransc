@@ -3,6 +3,7 @@ package com.jtransc.gradle
 import com.jtransc.gradle.tasks.AbstractJTranscGradleTask
 import com.jtransc.gradle.tasks.JTranscGradleDistTask
 import com.jtransc.gradle.tasks.JTranscGradleRunTask
+import com.jtransc.gradle.tasks.JTranscGradleTestTask
 import org.gradle.api.Project
 import java.io.File
 
@@ -21,17 +22,31 @@ open class JTranscGradleExtension(val project: Project) {
 		}
 
 		fun addBuildTargetExtra(project: Project, name: String, target: String?, outputFile: String?, minimizeNames: Boolean) {
-			JTranscGradleExtension.addBuildTargetInternal(project, "gensrc" + name.capitalize(), target, outputFile, run = false, debug = false, compile = false, minimizeNames = minimizeNames)
-			JTranscGradleExtension.addBuildTargetInternal(project, "dist" + name.capitalize(), target, outputFile, run = false, debug = false, compile = true, minimizeNames = minimizeNames)
-			JTranscGradleExtension.addBuildTargetInternal(project, "run" + name.capitalize(), target, outputFile, run = true, debug = false, compile = true, minimizeNames = minimizeNames)
-			JTranscGradleExtension.addBuildTargetInternal(project, "debug" + name.capitalize(), target, outputFile, run = true, debug = true, compile = true, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "gensrc" + name.capitalize(), target, outputFile, run = false, test = false, debug = false, compile = false, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "dist" + name.capitalize(), target, outputFile, run = false, test = false, debug = false, compile = true, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "run" + name.capitalize(), target, outputFile, run = true, test = false, debug = false, compile = true, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "test" + name.capitalize(), target, outputFile, run = true, test = true, debug = true, compile = true, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "debug" + name.capitalize(), target, outputFile, run = true, test = false, debug = true, compile = true, minimizeNames = minimizeNames)
 		}
 
-		fun addBuildTargetInternal(project: Project, name: String, target: String?, outputFile: String?, run: Boolean, debug: Boolean, compile: Boolean, minimizeNames: Boolean) {
+		fun addBuildTargetInternal(project: Project, name: String, target: String?, outputFile: String?, run: Boolean, test: Boolean, debug: Boolean, compile: Boolean, minimizeNames: Boolean) {
 			val justBuild = !run
-			val clazz = if (run) JTranscGradleRunTask::class.java else JTranscGradleDistTask::class.java
-			val group = if (run) "application" else "distribution"
-			val verb = if (compile) (if (run) "Runs" else "Packages") else "Generate source"
+			val clazz = when {
+				test -> JTranscGradleTestTask::class.java
+				run -> JTranscGradleRunTask::class.java
+				else -> JTranscGradleDistTask::class.java
+			}
+			val group = when {
+				test -> "verification"
+				run -> "application"
+				else -> "distribution"
+			}
+			val verb = when {
+				test -> "Tests"
+				compile && run -> "Runs"
+				compile -> "Packages"
+				else -> "Generate source"
+			}
 			// https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:task(java.util.Map, java.lang.String)
 			project.task(mapOf(
 				"type" to clazz,
@@ -45,7 +60,9 @@ open class JTranscGradleExtension(val project: Project) {
 				it.debug = debug
 				it.compile = compile
 			//})).dependsOn("assemble")
-			})).dependsOn("classes")
+			})).also {
+				it.dependsOn(if (test) "testClasses" else "classes")
+			}
 		}
 	}
 

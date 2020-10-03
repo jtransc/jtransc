@@ -12,7 +12,9 @@ fun AllBuildSimple(
 	settings: AstBuildSettings,
 	target: String = "haxe:js",
 	output: String? = null,
-	targetDirectory:String = System.getProperty("java.io.tmpdir")
+	targetDirectory: String = System.getProperty("java.io.tmpdir"),
+	initialClasses: List<String> = listOf(),
+	keepClasses: List<String> = listOf()
 ): JTranscBuild {
 	val targetParts = target.split(":")
 	val targetName = targetParts.getOrElse(0) { "haxe" }
@@ -35,6 +37,8 @@ fun AllBuildSimple(
 		output = if (File(actualOutput).isAbsolute) actualOutput else File(targetDirectory, actualOutput).absolutePath,
 		subtarget = subtargetName,
 		settings = settings,
-		targetDirectory = targetDirectory
+		targetDirectory = targetDirectory,
+		initialClasses = initialClasses,
+		keepClasses = keepClasses
 	)
 }

@@ -13,7 +13,7 @@ open class JTranscGradleDistTask() : AbstractJTranscGradleTask() {
 	@TaskAction open fun task() {
 		logger.info("buildWithoutRunning $name : $target")
 		//println("buildWithoutRunning $name : $target")
-		val build = prepare()
+		val build = prepare(false)
 		val result = build.buildWithoutRunning()
 		afterBuild(build)
 		val process = result.process

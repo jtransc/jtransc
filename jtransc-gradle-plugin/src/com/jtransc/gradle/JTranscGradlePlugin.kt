@@ -42,10 +42,11 @@ open class JTranscGradlePlugin : Plugin<Project> {
 			JTranscGradleExtension.addBuildTargetExtra(project, name, target, outputFile, minimizeNames = minimizeNames)
 		}
 
-		JTranscGradleExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, debug = false, compile = true, minimizeNames = false)
-		JTranscGradleExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, debug = false, compile = true, minimizeNames = false)
-		JTranscGradleExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, debug = true, compile = true, minimizeNames = false)
-		JTranscGradleExtension.addBuildTargetInternal(project, "gensrcJtransc", null, null, run = false, debug = true, compile = false, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "distJtransc", null, null, run = false, test = false, debug = false, compile = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "runJtransc", null, null, run = true, test = false, debug = false, compile = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "testJtransc", null, null, run = true, test = true, debug = true, compile = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "debugJtransc", null, null, run = true, test = false, debug = true, compile = true, minimizeNames = false)
+		JTranscGradleExtension.addBuildTargetInternal(project, "gensrcJtransc", null, null, run = false, test = false, debug = true, compile = false, minimizeNames = false)
 
 		val targets = ServiceLoader.load(GenTargetDescriptor::class.java).toList()
 

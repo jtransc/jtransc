@@ -468,6 +468,9 @@ struct JA_0 : public java_lang_Object {
 	}
 
 	~JA_0() {
+	}
+
+	void __GC_Dispose() {
 		if (allocated) ::jtfree(_data);
 	}
 

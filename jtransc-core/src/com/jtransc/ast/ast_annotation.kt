@@ -110,6 +110,7 @@ fun AstAnnotation.getRefTypesFqName(): List<FqName> {
 class AstAnnotationList(val containerRef: AstRef, val list: List<AstAnnotation>) {
 	val byClassName by lazy { list.groupBy { it.type.fqname } }
 	val listRuntime by lazy { list.filter { it.runtimeVisible } }
+	fun contains(className: FqName): Boolean = byClassName.contains(className.fqname)
 }
 
 inline fun <reified TItem : Any, reified TList : Any> AstAnnotationList?.getTypedList(field: KProperty1<TList, Array<TItem>>): List<TItem> {

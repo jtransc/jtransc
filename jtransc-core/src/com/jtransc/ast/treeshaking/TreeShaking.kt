@@ -11,10 +11,11 @@ import com.jtransc.gen.TargetName
 import com.jtransc.plugin.JTranscPluginGroup
 import java.util.*
 
-fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: JTranscPluginGroup): AstProgram {
+fun TreeShaking(program: AstProgram, target: String, trace: Boolean, plugins: JTranscPluginGroup, initialClasses: List<String>, keepClasses: List<String>): AstProgram {
 	// The unshaked program should be cached, in a per class basis, since it doesn't have information about other classes.
 
 	val shaking = TreeShakingApi(program, target, trace, plugins)
+	for (clazz in keepClasses)  shaking.addBasicClass(clazz.fqname, "<KEEP_CLASS>")
 	shaking.addMethod(shaking.main.ref, "<ENTRY>")
 //shaking.addMethod(program[FqName("java.lang.reflect.InvocationHandler")].getMethods("invoke").first().ref, "<ENTRY>")
 

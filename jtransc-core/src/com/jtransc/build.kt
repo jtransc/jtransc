@@ -60,7 +60,7 @@ data class ConfigLibraries(val libs: List<String>)
 data class ConfigClassPaths(val classPaths: List<String>)
 data class ConfigEntryPoint(val entrypoint: FqName)
 data class ConfigMainClass(val mainClass: String)
-data class ConfigInitialClasses(val initialClasses: List<String>)
+data class ConfigInitialClasses(val initialClasses: List<String>, val keepClasses: List<String>)
 data class ConfigResourcesVfs(val resourcesVfs: SyncVfsFile)
 
 data class ConfigOutputFile(val output: String) {
@@ -76,7 +76,9 @@ class JTranscBuild(
 	val output: String,
 	val subtarget: String,
 	val settings: AstBuildSettings,
-	val targetDirectory: String = System.getProperty("java.io.tmpdir")
+	val targetDirectory: String = System.getProperty("java.io.tmpdir"),
+	val initialClasses: List<String> = listOf(),
+	val keepClasses: List<String> = listOf()
 ) {
 	val types = injector.get<AstTypes>()
 	val configClassPaths = injector.get<ConfigClassPaths>()
@@ -95,11 +97,12 @@ class JTranscBuild(
 
 		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + configClassPaths.classPaths).distinct()
 
-		val initialClasses = listOf(entryPoint.fqname.fqname)
+		val initialClasses = listOf(entryPoint.fqname.fqname) + this.initialClasses
 
 		injector.mapInstances(
 			ConfigClassPaths(classPaths2),
-			ConfigInitialClasses(initialClasses), settings,
+			ConfigInitialClasses(initialClasses, keepClasses),
+			settings,
 			ConfigSubtarget(subtarget),
 			ConfigTargetDirectory(targetDirectory),
 			ConfigOutputFile(output),
@@ -135,7 +138,7 @@ class JTranscBuild(
 
 		val configTreeShaking = injector.get<ConfigTreeShaking>()
 		val program = if (configTreeShaking.treeShaking) {
-			TreeShaking(programBase, target.name, configTreeShaking.trace, plugins)
+			TreeShaking(programBase, target.name, configTreeShaking.trace, plugins, initialClasses, keepClasses)
 		} else {
 			programBase
 		}
@@ -170,6 +173,7 @@ class JTranscBuild(
 		val configMainClass: ConfigMainClass = injector.get()
 		val generator: AstClassGenerator = injector.get()
 		val classNames = configClassNames.initialClasses
+		val keepClasses = configClassNames.keepClasses
 		val mainClass = configMainClass.mainClass
 
 		val classPaths: List<String> = injector.get<ConfigClassPaths>().classPaths
@@ -204,6 +208,7 @@ class JTranscBuild(
 					}
 				}
 				val className = program.readClassToGenerate()
+				log("Processing class... $className")
 
 				plugins.onAfterClassDiscovered(className, program)
 
