@@ -168,18 +168,22 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		//val classPaths = injector.get<ConfigClassPaths>().classPaths
 		//log.info("ConfigClassPaths:")
 		//for (clazzPath in classPaths) log.info("\"clazzPath\"")
+		val keepClasses = arrayListOf<String>()
 
-		val initialClasses =  when {
-			isTest -> args
-			else -> listOf()
+		if (isTest) {
+			for (files in testClassesDirs.map { File(it.absolutePath) }) {
+				for (file in files.walk()) {
+					if (file.name.endsWith(".class")) {
+						val rfile = file.relativeTo(files)
+						val clazzName = rfile.path.replace("/", ".").replace("\\", ".").removeSuffix(".class")
+						//println("jsTest: ${rfile.path} :: $clazzName")
+						keepClasses.add(clazzName)
+					}
+				}
+			}
 		}
 
-		val keepClasses =  when {
-			isTest -> args
-			else -> listOf()
-		}
 
-		logger.info("initialClasses: $initialClasses")
 		logger.info("keepClasses: $keepClasses")
 
 		val result = AllBuildSimple(
@@ -190,7 +194,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 			output = outputFile ?: extension.output,
 			settings = settings,
 			targetDirectory = buildDir.absolutePath,
-			initialClasses = initialClasses,
+			initialClasses = keepClasses,
 			keepClasses = keepClasses
 		)
 

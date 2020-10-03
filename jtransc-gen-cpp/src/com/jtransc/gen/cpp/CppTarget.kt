@@ -428,7 +428,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				line(genStaticConstructorsSorted())
 				val callMain = buildMethod(program[AstMethodRef(program.entrypoint, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]!!, static = true)
 
-				line("$callMain(N::strEmptyArray());")
+				line("$callMain(N::strArray(argc, argv));")
 			}
 			line("catch (char const *s)") {
 				line("""std::cout << "ERROR char const*: '" << s << "'\n";""")

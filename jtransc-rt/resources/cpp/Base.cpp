@@ -310,6 +310,7 @@ struct N {
 	static p_java_lang_String str(std::wstring str);
 	static p_java_lang_String str(std::string str);
 	static p_JA_L strArray(int32_t count, wchar_t **strs);
+	static p_JA_L strArray(int32_t count, char **strs);
 	static p_JA_L strArray(std::vector<std::wstring> strs);
 	static p_JA_L strArray(std::vector<std::string> strs);
 	static p_JA_L strEmptyArray();
@@ -320,6 +321,7 @@ struct N {
 	static JAVA_OBJECT str(std::wstring str);
 	static JAVA_OBJECT str(std::string str);
 	static JAVA_OBJECT strArray(int32_t count, wchar_t **strs);
+	static JAVA_OBJECT strArray(int32_t count, char **strs);
 	static JAVA_OBJECT strArray(std::vector<std::wstring> strs);
 	static JAVA_OBJECT strArray(std::vector<std::string> strs);
 	static JAVA_OBJECT strEmptyArray();
@@ -1141,6 +1143,14 @@ N::strEmptyArray() {
 	JAVA_OBJECT _out = (JAVA_OBJECT)out;
 	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
 }
+
+{% if ENABLE_TYPING %}p_JA_L{% else %}JAVA_OBJECT{% end %}
+N::strArray(int argc, char **argv) {
+	std::vector<std::string> arguments(argv + 1, argv + argc);
+	return strArray(arguments);
+}
+
+
 
 std::wstring N::istr2(JAVA_OBJECT obj) {
 	int32_t len = N::strLen(obj);
