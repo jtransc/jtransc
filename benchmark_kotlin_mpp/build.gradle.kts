@@ -39,7 +39,6 @@ kotlin {
 			}
 		}
 	}
-
     
     sourceSets {
         val commonMain by getting
@@ -47,4 +46,17 @@ kotlin {
         val jsMain by getting
         val nativeMain by getting
     }
+}
+
+tasks {
+	val runJs by creating {
+		dependsOn("jsRun")
+	}
+	val runJvm by creating(JavaExec::class.java) {
+		classpath = (kotlin.targets["jvm"].compilations["test"] as org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJvmCompilation).runtimeDependencyFiles
+		main = "JvmBenchmark"
+	}
+	val runNative by creating {
+		dependsOn("runReleaseExecutableNative")
+	}
 }

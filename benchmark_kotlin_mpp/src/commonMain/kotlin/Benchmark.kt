@@ -1,9 +1,8 @@
+@file:Suppress("unused", "DuplicatedCode")
+
 import simd.*
 import kotlin.jvm.JvmStatic
-import kotlin.native.concurrent.ThreadLocal
 import kotlin.random.Random
-import kotlin.time.TimeSource
-import kotlin.time.measureTime
 
 fun main() = Benchmark.main(arrayOf())
 
@@ -711,7 +710,7 @@ class Benchmark {
 				for (n in 0..9999) {
 					crc32.reset()
 					crc32.update(hexData, 0, hexData.size)
-					out += crc32.value.toInt()
+					out += crc32.value
 				}
 				return out
 			}
@@ -723,7 +722,7 @@ class Benchmark {
 				for (n in 0..9999) {
 					crc32.reset()
 					crc32.update(hexData, 0, hexData.size)
-					out += crc32.value.toInt()
+					out += crc32.value
 				}
 				return out
 			}
@@ -781,13 +780,13 @@ class Benchmark {
 		*/
 		benchmark("random", object : Task {
 			override fun run(): Int {
-				val random = Random(0L)
+				val rand = Random(0L)
 				val len = 64 * 1024
-				val bytes = ByteArray(len)
+				val bytes2 = ByteArray(len)
 				var sum = 0
-				for (n in bytes.indices) {
-					bytes[n] = random.nextInt().toByte()
-					sum += bytes[n]
+				for (n in bytes2.indices) {
+					bytes2[n] = rand.nextInt().toByte()
+					sum += bytes2[n]
 				}
 				return sum
 			}
@@ -820,12 +819,12 @@ class Benchmark {
 	private fun benchmark(name: String, run: Task) {
 		print("$name...")
 		try {
-			val t1: Double = currentTimeMillis()
+			//val t1: Double = currentTimeMillis()
 			for (n in 0..9) run.run() // warming up
 			gc()
-			val t2: Double = currentTimeMillis().toDouble()
+			val t2: Double = currentTimeMillis()
 			for (n in 0..9) run.run()
-			val t3: Double = currentTimeMillis().toDouble()
+			val t3: Double = currentTimeMillis()
 			//System.out.println("( " + (t2 - t1) + " ) :: ( " + (t3 - t2) + " )");
 
 			//System.out.println((double)(t3 - t2) / 1000000.0);
