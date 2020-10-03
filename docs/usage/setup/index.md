@@ -8,7 +8,7 @@ title: Setup
 In order to be able to use JTransc you first need install Haxe and make sure that `haxe` and `haxelib` binaries are available in path. You can grab the right version from here:
 
 JTransc is meant to be used with Haxe >= 3.3, though it could work on 3.2 too.
-[http://haxe.org/download/version/3.3.0-rc.1/](http://haxe.org/download/version/3.3.0-rc.1/)
+[https://haxe.org/download/version/3.3.0-rc.1/](https://haxe.org/download/version/3.3.0-rc.1/)
 
 Usually installers, put `haxe` and `haxelib` binaries on path. But in the case you are using non-installer versions, you have to put folder containing those programs in your path. Also You will have to execute `haxelib setup` to setup haxelib path.
 

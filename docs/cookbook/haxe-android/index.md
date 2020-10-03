@@ -4,7 +4,7 @@ title: "JTransc Haxe Android"
 ---
 
 You can include and call haxe libraries that do stuff on android.
-You can find all the public android libraries here: [http://lib.haxe.org/t/android/](http://lib.haxe.org/t/android/) (equivalent to ANEs)
+You can find all the public android libraries here: [https://lib.haxe.org/t/android/](http://lib.haxe.org/t/android/) (equivalent to ANEs)
 When targeting Adobe AIR, it should be possible to call ANEs directly.
 
 ## Lime

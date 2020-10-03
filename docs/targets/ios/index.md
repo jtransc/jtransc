@@ -23,7 +23,7 @@ Using CSR, generate a Certificate and then a Provisioning Profile:
 * [https://developer.apple.com/account/ios/certificate/](https://developer.apple.com/account/ios/certificate/) (.cer file)
 * [https://developer.apple.com/account/ios/profile/](https://developer.apple.com/account/ios/profile/) (.mobileprovision file)
 
-[Generate p12 from cer + key](http://help.adobe.com/en_US/as3/iphone/WS144092a96ffef7cc-371badff126abc17b1f-7fff.html):
+[Generate p12 from cer + key](https://help.adobe.com/en_US/as3/iphone/WS144092a96ffef7cc-371badff126abc17b1f-7fff.html):
 {% highlight bash %}
 openssl x509 -in ios_development.cer -inform DER -out developer_identity.pem -outform PEM
 openssl pkcs12 -export -inkey myprivkey.key -in developer_identity.pem -out iphone_dev.p12

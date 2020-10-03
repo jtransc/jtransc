@@ -5,7 +5,7 @@ title: Minitemplates
 
 JTransc uses Minitemplates in several places.
 
-Minitemplates is an embedded simple template engine created for JTransc based on [twig](http://twig.sensiolabs.org/documentation), my project [atpl.js](https://github.com/soywiz/atpl.js), [liquid](https://shopify.github.io/liquid/) among others.
+Minitemplates is an embedded simple template engine created for JTransc based on [twig](https://twig.sensiolabs.org/documentation), my project [atpl.js](https://github.com/soywiz/atpl.js), [liquid](https://shopify.github.io/liquid/) among others.
 
 ## Use cases:
 * When embedding external code in anotations
