@@ -1,5 +1,12 @@
 package simd
 
+import kotlin.native.concurrent.ThreadLocal
+
+@ThreadLocal
+private val vtemp1: MutableFloat32x4 = MutableFloat32x4.create()
+@ThreadLocal
+private val vtemp2: MutableFloat32x4 = MutableFloat32x4.create()
+
 object MutableMatrixFloat32x4x4Utils {
 
 	fun _getCell(src: MutableMatrixFloat32x4x4, row: Int, column: Int): Float {
@@ -10,10 +17,6 @@ object MutableMatrixFloat32x4x4Utils {
 	fun _getSumAll(a: MutableMatrixFloat32x4x4): Float {
 		return a.getX().sumAll + a.getY().sumAll + a.getZ().sumAll + a.getW().sumAll
 	}
-
-	private val vtemp1: MutableFloat32x4 = MutableFloat32x4.create()
-
-	private val vtemp2: MutableFloat32x4 = MutableFloat32x4.create()
 
 	fun _setToMul44(
 		dst: MutableMatrixFloat32x4x4,

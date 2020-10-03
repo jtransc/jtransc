@@ -1,7 +1,11 @@
 package simd
 
+import kotlin.native.concurrent.ThreadLocal
+
+@ThreadLocal
+private val temp: MutableFloat32x4 = MutableFloat32x4.create()
+
 object MutableFloat32x4Utils {
-	private val temp: MutableFloat32x4 = MutableFloat32x4.create()
 
 	fun getAddMul(l: MutableFloat32x4, r: MutableFloat32x4): Float {
 		temp.setToMul(l, r)

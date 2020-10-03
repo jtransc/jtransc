@@ -30,6 +30,15 @@ kotlin {
         isMingwX64 -> mingwX64("native")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
+	nativeTarget.apply {
+		binaries {
+			executable {
+				this.debuggable = false
+				this.optimized = true
+				//this.outputKind = org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind.EXECUTABLE
+			}
+		}
+	}
 
     
     sourceSets {

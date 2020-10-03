@@ -85,8 +85,8 @@ public class Random implements Serializable {
      *
      * <p>Most applications will want to use one of this class' convenience methods instead.
      */
-    protected synchronized int next(int bits) {
-	//protected int next(int bits) {
+    //protected synchronized int next(int bits) {
+	protected int next(int bits) {
         seed = (seed * multiplier + 0xbL) & ((1L << 48) - 1);
         return (int) (seed >>> (48 - bits));
     }
@@ -139,8 +139,8 @@ public class Random implements Serializable {
      * Art of Computer Programming, Volume 2: Seminumerical Algorithms</i>,
      * section 3.4.1, subsection C, algorithm P.
      */
-    public synchronized double nextGaussian() {
-	//public double nextGaussian() {
+    //public synchronized double nextGaussian() {
+	public double nextGaussian() {
         if (haveNextNextGaussian) {
             haveNextNextGaussian = false;
             return nextNextGaussian;
@@ -197,8 +197,8 @@ public class Random implements Serializable {
      * Modifies the seed using a linear congruential formula presented in <i>The
      * Art of Computer Programming, Volume 2</i>, Section 3.2.1.
      */
-    public synchronized void setSeed(long seed) {
-	//public void setSeed(long seed) {
+    //public synchronized void setSeed(long seed) {
+	public void setSeed(long seed) {
         this.seed = (seed ^ multiplier) & ((1L << 48) - 1);
         haveNextNextGaussian = false;
     }

@@ -1,14 +1,20 @@
 import simd.*
 import kotlin.jvm.JvmStatic
+import kotlin.native.concurrent.ThreadLocal
 import kotlin.random.Random
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
 
 fun main() = Benchmark.main(arrayOf())
 
-object Benchmark {
-	@JvmStatic
-	fun main(args: Array<String>) {
+class Benchmark {
+	companion object {
+		@JvmStatic
+		fun main(args: Array<String>) {
+			Benchmark().main()
+		}
+	}
+	fun main() {
 		println(
 			"""Kotlin ${KotlinVersion.CURRENT} - $kotlinTarget"""
 		)
@@ -280,7 +286,7 @@ object Benchmark {
 				for (n in 0..999999) {
 					a = Float32x4.add(a, b)
 				}
-				return Float32x4.getX(a) as Int + Float32x4.getY(a) as Int + Float32x4.getZ(a) as Int + Float32x4.getW(a) as Int
+				return Float32x4.getX(a).toInt() + Float32x4.getY(a).toInt() + Float32x4.getZ(a).toInt() + Float32x4.getW(a).toInt()
 			}
 		})
 		benchmark("simd mutable matrix mult", object : Task {
@@ -810,6 +816,7 @@ object Benchmark {
 	}
 
 	private var totalTime = 0.0
+
 	private fun benchmark(name: String, run: Task) {
 		print("$name...")
 		try {
