@@ -11,7 +11,7 @@ JTRANSC
 
 # Documentation
 
-You can find documentation at the [wiki](http://docs.jtransc.com/).
+You can find documentation at the [wiki](https://jtransc.soywiz.com/).
 
 # What is this?
 
@@ -124,12 +124,12 @@ There is a gradle block called jtransc, that allows you to specify stuff for the
 
 For example `gradle runJs` would generate a JS file at `build/jtransc-js/program.js` and run it using node.js.
 
-[You can see how to use it in the documentation](http://docs.jtransc.com/usage/gradle).
+[You can see how to use it in the documentation](https://jtransc.soywiz.com/usage/gradle).
 
 ## Maven:
 
 You can also use Maven, though due to the nature of JTransc gradle fits better.
-[You can see how to use it in the documentation](http://docs.jtransc.com/usage/maven).
+[You can see how to use it in the documentation](https://jtransc.soywiz.com/usage/maven).
 
 ## intelliJ:
 
