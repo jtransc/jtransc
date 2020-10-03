@@ -43,6 +43,9 @@ data class AstFieldRef(override val containingClass: FqName, override val name: 
 	fun resolve(program: AstProgram): AstField = program[this]
 }
 
+fun FqName.methodRef(name: String, type: AstType.METHOD) = AstMethodRef(this, name, type)
+fun FqName.methodRef(name: String, type: AstTypeBuilder.() -> AstType.METHOD) = AstMethodRef(this, name, AstTypeBuilder.type())
+
 data class AstMethodRef(override val containingClass: FqName, override val name: String, val type: AstType.METHOD) : AstMemberRef, MethodRef {
 	override val ref = this
 	override val classRef: AstType.REF by lazy { AstType.REF(containingClass) }

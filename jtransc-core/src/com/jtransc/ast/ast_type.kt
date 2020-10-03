@@ -12,6 +12,7 @@ import com.jtransc.text.StrReader
 import com.jtransc.text.readUntil
 import java.io.Serializable
 import java.util.*
+import kotlin.reflect.KClass
 
 open class AstType {
 	abstract class Primitive(
@@ -348,6 +349,12 @@ fun _castLiteral(value: Int, to: AstType): Any = when (to) {
 }
 
 fun <T> Class<T>.ref() = AstType.REF(this.name)
+fun <T : Any> KClass<T>.ref() = this.java.ref()
+
+@get:JvmName("fqname2")
+val <T> Class<T>.fqname: FqName get() = this.canonicalName.fqname
+@get:JvmName("fqname2")
+val <T : Any> KClass<T>.fqname: FqName get() = this.java.fqname
 
 fun _castLiteral(value: Long, to: AstType): Any = when (to) {
 	AstType.BOOL -> value.toBool()
@@ -512,6 +519,9 @@ object AstTypeBuilder {
 }
 
 fun <T : AstType> AstTypeBuild(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
+fun <T : AstType> AstType(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
+fun <T> AstTypeBuilder(init: AstTypeBuilder.() -> T): T = AstTypeBuilder.init()
+
 
 
 val REF_DELIMITER = setOf(';', '<')

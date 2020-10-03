@@ -39,6 +39,7 @@ object CppCompiler {
 		//if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
 		cmdAndArgs += "-fexceptions"
 		cmdAndArgs += "-frtti"
+		//cmdAndArgs += "-Wa,-mbig-obj"
 		cmdAndArgs += "-std=c++11"
 		cmdAndArgs += if (config.debug) "-O0" else "-O3"
 		if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"

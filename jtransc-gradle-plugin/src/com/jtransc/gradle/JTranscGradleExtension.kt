@@ -25,7 +25,7 @@ open class JTranscGradleExtension(val project: Project) {
 			JTranscGradleExtension.addBuildTargetInternal(project, "gensrc" + name.capitalize(), target, outputFile, run = false, test = false, debug = false, compile = false, minimizeNames = minimizeNames)
 			JTranscGradleExtension.addBuildTargetInternal(project, "dist" + name.capitalize(), target, outputFile, run = false, test = false, debug = false, compile = true, minimizeNames = minimizeNames)
 			JTranscGradleExtension.addBuildTargetInternal(project, "run" + name.capitalize(), target, outputFile, run = true, test = false, debug = false, compile = true, minimizeNames = minimizeNames)
-			JTranscGradleExtension.addBuildTargetInternal(project, "test" + name.capitalize(), target, outputFile, run = true, test = true, debug = true, compile = true, minimizeNames = minimizeNames)
+			JTranscGradleExtension.addBuildTargetInternal(project, "test" + name.capitalize(), target, outputFile, run = true, test = true, debug = false, compile = true, minimizeNames = minimizeNames)
 			JTranscGradleExtension.addBuildTargetInternal(project, "debug" + name.capitalize(), target, outputFile, run = true, test = false, debug = true, compile = true, minimizeNames = minimizeNames)
 		}
 

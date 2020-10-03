@@ -514,6 +514,7 @@ abstract class AstExpr : AstElement, Cloneable<AstExpr> {
 	}
 
 	class NEW_WITH_CONSTRUCTOR(val constructor: AstMethodRef, args: List<AstExpr>) : AstExpr() {
+		constructor(constructor: AstMethodRef, vararg args: AstExpr) : this(constructor, args.toList())
 		val target: AstType.REF = constructor.containingClassType
 		val args = args.map { it.box }
 		override val type = target
@@ -776,6 +777,7 @@ fun AstMethodRef.newInstance(vararg args: AstExpr) = AstExpr.NEW_WITH_CONSTRUCTO
 
 fun AstType.REF.constructor(methodType: AstType.METHOD): AstMethodRef = AstMethodRef(this.name, "<init>", methodType)
 fun AstType.REF.constructor(vararg args: AstType): AstMethodRef = AstMethodRef(this.name, "<init>", AstType.METHOD(AstType.VOID, args.toList()))
+
 fun AstType.REF.method(methodName: String, methodType: AstType.METHOD): AstMethodRef = AstMethodRef(this.name, methodName, methodType)
 
 operator fun AstExpr.invoke(method: AstMethodRef, vararg args: AstExpr): AstExpr = AstExpr.CALL_INSTANCE(this, method, args.toList(), isSpecial = false)
@@ -842,12 +844,17 @@ class AstBuilder2(types: AstTypes, val ctx: AstBuilderBodyCtx) : BuilderBase(typ
 		}
 	}
 
+	fun NEW(constructor: AstMethodRef, args: List<AstExpr>) = AstExpr.NEW_WITH_CONSTRUCTOR(constructor, args)
+	fun NEW(constructor: AstMethodRef, vararg args: AstExpr) = AstExpr.NEW_WITH_CONSTRUCTOR(constructor, *args)
+
 	fun SET(local: AstLocal, expr: AstExpr) = run { stms += local.setTo(expr) }
 	fun SET(local: AstExpr.LOCAL, expr: AstExpr) = run { stms += local.local.setTo(expr) }
 	fun SET_ARRAY(local: AstLocal, index: AstExpr, value: AstExpr) = run { stms += AstStm.SET_ARRAY(local.local, index, value) }
 	fun STM() = run { stms += listOf<AstStm>().stm() }
 	fun STM(stm: AstStm) = run { stms += stm }
 	fun STM(expr: AstExpr) = run { stms += AstStm.STM_EXPR(expr) }
+
+	fun AstExpr.TERNARY(TRUE: AstExpr, FALSE: AstExpr) = AstExpr.TERNARY(this, TRUE, FALSE, types)
 
 	class IfElseBuilder(val IF: AstStm.IF, val IF_INDEX: Int, val stms: ArrayList<AstStm>, val types: AstTypes, val ctx: AstBuilderBodyCtx) {
 		infix fun ELSE(callback: AstBuilder2.() -> Unit) {

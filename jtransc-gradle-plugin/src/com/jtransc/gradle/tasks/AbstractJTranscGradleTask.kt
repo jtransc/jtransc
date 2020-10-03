@@ -145,6 +145,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		injector.mapInstance(BuildBackend.ASM)
 		injector.mapInstance(ConfigMinimizeNames(extension.minimizeNames ?: minimizedNames ?: false))
 		injector.mapInstance(ConfigCompile(compile ?: true))
+		injector.mapInstance(ConfigRunningTests(isTest))
 		injector.mapInstance(ConfigTreeShaking(
 			treeshaking ?: extension.treeshaking ?: false,
 			if (isTest) false else treeshakingTrace ?: extension.treeshakingTrace ?: false
@@ -171,6 +172,8 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 		val keepClasses = arrayListOf<String>()
 
 		if (isTest) {
+			keepClasses += "junit.textui.TestRunner"
+			keepClasses += "junit.framework.JUnit4TestAdapter"
 			for (files in testClassesDirs.map { File(it.absolutePath) }) {
 				for (file in files.walk()) {
 					if (file.name.endsWith(".class")) {

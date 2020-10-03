@@ -48,6 +48,7 @@ import kotlin.reflect.KMutableProperty1
 data class ConfigCompile(val compile: Boolean = true)
 data class ConfigMinimizeNames(val minimizeNames: Boolean = false)
 data class ConfigTreeShaking(val treeShaking: Boolean = false, val trace: Boolean = false)
+data class ConfigRunningTests(val tests: Boolean)
 //data class ConfigInitialSize(val width: Int = 1280, val height: Int = 720)
 
 data class AstBuildSettings(
@@ -178,7 +179,7 @@ class AstProgram(
 	val injector: Injector
 ) : IUserData by UserData(), AstResolver, LocateRightClass, Extra by Extra.Mixin() {
 	val resourcesVfs = configResourcesVfs.resourcesVfs
-	val entrypoint = configEntrypoint.entrypoint
+	var entrypoint = configEntrypoint.entrypoint
 	var lastClassId = 0
 	var lastMethodId = 0
 	var lastFieldId = 0

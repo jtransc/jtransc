@@ -49,6 +49,9 @@ abstract class JTranscPlugin {
 
 	open fun onAfterAppliedMethodBodyFeature(method: AstMethod, transformedBody: AstBody) {
 	}
+
+	fun TreeShakingApi.addMethod(methodRef: AstMethodRef) = addMethod(methodRef, this.javaClass.name)
+	fun TreeShakingApi.addClassFull(fqname: FqName) = addFullClass(fqname, this.javaClass.name)
 }
 
 class JTranscPluginGroup(val plugins: Iterable<JTranscPlugin>) : JTranscPlugin() {
