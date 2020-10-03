@@ -99,12 +99,12 @@ class PhpGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val languageRequiresDefaultInSwitch = true
 	override val defaultGenStmSwitchHasBreaks = true
 
-	override fun run(redirect: Boolean): ProcessResult2 {
+	override fun run(redirect: Boolean, args: List<String>): ProcessResult2 {
 		val names = listOf(outputFile)
 
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 
-		val cmdAndArgs = listOf("php", outFile.realpathOS)
+		val cmdAndArgs = listOf("php", outFile.realpathOS) + args
 
 		return ProcessResult2(RootLocalVfs().exec(cmdAndArgs, ExecOptions(passthru = redirect, sysexec = true)))
 	}

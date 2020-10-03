@@ -161,16 +161,16 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		return listOf()
 	}
 
-	open fun run(redirect: Boolean = true): ProcessResult2 {
+	open fun run(redirect: Boolean = true, args: List<String>): ProcessResult2 {
 		return ProcessResult2(0)
 	}
 
-	open fun compileAndRun(redirect: Boolean = true): ProcessResult2 {
+	open fun compileAndRun(redirect: Boolean = true, args: List<String> = listOf()): ProcessResult2 {
 		val compileResult = compile()
 		return if (!compileResult.success) {
 			ProcessResult2(compileResult.exitValue)
 		} else {
-			this.run(redirect)
+			this.run(redirect, args)
 		}
 	}
 

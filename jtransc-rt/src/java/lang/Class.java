@@ -191,10 +191,14 @@ public final class Class<T> implements java.io.Serializable, Type, GenericDeclar
 	}
 
 	@JTranscSync
-	native public Class<?> getDeclaringClass() throws SecurityException;
+	public Class<?> getDeclaringClass() throws SecurityException {
+		return null;
+	}
 
 	@JTranscSync
-	native public Class<?> getEnclosingClass() throws SecurityException;
+	public Class<?> getEnclosingClass() throws SecurityException {
+		return null;
+	}
 
 	@JTranscSync
 	native public Class<?>[] getClasses();

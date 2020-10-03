@@ -268,15 +268,15 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 //val BUILD_COMMAND = listOf("haxelib", "run", "lime", "@@SWITCHES", "build", "@@SUBTARGET")
 
-	override fun compileAndRun(redirect: Boolean): ProcessResult2 {
-		return _compileRun(run = true, redirect = redirect)
+	override fun compileAndRun(redirect: Boolean, args: List<String>): ProcessResult2 {
+		return _compileRun(run = true, redirect = redirect, args = args)
 	}
 
 	override fun compile(): ProcessResult2 {
 		return _compileRun(run = false, redirect = false)
 	}
 
-	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
+	fun _compileRun(run: Boolean, redirect: Boolean, args: List<String> = listOf()): ProcessResult2 {
 		outputFile2.delete()
 		log("haxe.build (" + JTranscVersion.getVersion() + ") source path: " + srcFolder.realpathOS)
 
@@ -332,10 +332,10 @@ class HaxeGenerator(injector: Injector) : CommonGenerator(injector) {
 
 			if (!processResult.success) return ProcessResult2(processResult.exitValue)
 		}
-		return if (run && !buildAndRunAsASingleCommand) this.run(redirect) else ProcessResult2(0)
+		return if (run && !buildAndRunAsASingleCommand) this.run(redirect, args) else ProcessResult2(0)
 	}
 
-	override fun run(redirect: Boolean): ProcessResult2 {
+	override fun run(redirect: Boolean, args: List<String>): ProcessResult2 {
 		if (!outputFile2.exists()) return ProcessResult2(-1, "file $outputFile2 doesn't exist")
 
 		val fileSize = outputFile2.length()

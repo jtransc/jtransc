@@ -107,7 +107,7 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		return csharpCompiler.genCommand(programFile, debug, libs, extraParams)
 	}
 
-	override fun run(redirect: Boolean): ProcessResult2 {
+	override fun run(redirect: Boolean, args: List<String>): ProcessResult2 {
 		val names = if (JTranscSystem.isWindows()) {
 			listOf("bin/program.exe", "bin/a.exe")
 		} else {
@@ -116,9 +116,9 @@ class CSharpGenerator(injector: Injector) : CommonGenerator(injector) {
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 
 		val cmdAndArgs = if (JTranscSystem.isWindows()) {
-			listOf(outFile.realpathOS)
+			listOf(outFile.realpathOS) + args
 		} else {
-			listOf("mono", outFile.realpathOS)
+			listOf("mono", outFile.realpathOS) + args
 		}
 
 		return ProcessResult2(RootLocalVfs().exec(cmdAndArgs, ExecOptions(passthru = redirect, sysexec = true)))

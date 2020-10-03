@@ -24,7 +24,9 @@
     #define _JTRANSC_UNIX_LIKE_ 1
     #define _JTRANSC_WINDOWS_ 0
 #else
-#   error "Unknown compiler"
+	#warning "Unknown compiler"
+    #define _JTRANSC_UNIX_LIKE_ 1
+    #define _JTRANSC_WINDOWS_ 0
 #endif
 
 #define jlong_to_ptr(a) ((void *)(uintptr_t)(a))
@@ -48,7 +50,9 @@
 
 
 #if _JTRANSC_UNIX_LIKE_
+#ifdef _JTRANSC_USE_DYNAMIC_LIB
 	#include <dlfcn.h>
+#endif
 #endif
 
 {% for include in CPP_INCLUDES %}

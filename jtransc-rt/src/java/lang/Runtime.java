@@ -52,6 +52,7 @@ public class Runtime {
 	@JTranscMethodBody(target = "d", value = "core.stdc.stdlib.exit(p0);")
 	@JTranscMethodBody(target = "dart", value = "exit(p0);")
 	@JTranscMethodBody(target = "php", value = "exit($p0);")
+	@JTranscMethodBody(target = "cs", value = "Environment.Exit(p0);")
 	native public void exit(int status);
 
 	private Set<Thread> shutdownThreads = null;

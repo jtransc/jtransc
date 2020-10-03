@@ -142,7 +142,7 @@ open class ProcessUtilsBase(val rootVfs: SyncVfsFile) {
 	fun which(name: String): String? = locateCommand(name)
 
 	fun locateCommand(name: String): String? {
-		for (ext in if (JTranscSystem.isWindows()) listOf(".exe", ".cmd", ".bat", "") else listOf("")) {
+		for (ext in if (JTranscSystem.isWindows()) listOf(".exe", ".cmd", ".bat") else listOf("")) {
 			for (path in getPaths()) {
 				val fullPath = "$path$fileSeparator$name$ext"
 				if (rootVfs[fullPath].exists) return fullPath

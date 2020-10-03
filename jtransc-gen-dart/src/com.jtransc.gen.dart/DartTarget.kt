@@ -101,8 +101,8 @@ class DartGenerator(injector: Injector) : CommonGenerator(injector) {
 		return listOf()
 	}
 
-	override fun run(redirect: Boolean): ProcessResult2 {
-		return ProcessResult2(RootLocalVfs().exec(listOf(DartCommand.dart, configTargetFolder.targetFolder["program.dart"].realpathOS), ExecOptions(passthru = redirect, sysexec = true)))
+	override fun run(redirect: Boolean, args: List<String>): ProcessResult2 {
+		return ProcessResult2(RootLocalVfs().exec(listOf(DartCommand.dart, configTargetFolder.targetFolder["program.dart"].realpathOS) + args, ExecOptions(passthru = redirect, sysexec = true)))
 	}
 
 	override fun writeClasses(output: SyncVfsFile) {

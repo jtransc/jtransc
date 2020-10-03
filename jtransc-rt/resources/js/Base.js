@@ -1395,7 +1395,7 @@ function WrappedError(javaThrowable) {
 	//try {
 	//	this.message = (javaThrowable != null) ? (('' + javaThrowable) || 'JavaError') : 'JavaError';
 	//} catch (e) {
-	this.message = 'JavaErrorWithoutValidMessage';
+	this.message = 'JavaErrorWithoutValidMessage:' + javaThrowable;
 	//}
 }
 

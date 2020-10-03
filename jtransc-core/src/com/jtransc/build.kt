@@ -55,7 +55,7 @@ enum class BuildBackend { ASM, ASM2 }
 data class ConfigSubtarget(val subtarget: String)
 data class ConfigTargetDirectory(val targetDirectory: String)
 data class ConfigCaptureRunOutput(val captureRunOutput: Boolean)
-data class ConfigRun(val run: Boolean)
+data class ConfigRun(val run: Boolean, val args: List<String>)
 data class ConfigLibraries(val libs: List<String>)
 data class ConfigClassPaths(val classPaths: List<String>)
 data class ConfigEntryPoint(val entrypoint: FqName)
@@ -83,14 +83,14 @@ class JTranscBuild(
 	val backend = injector.get<BuildBackend>()
 	val tempdir = System.getProperty("java.io.tmpdir")
 
-	fun buildAndRunCapturingOutput() = _buildAndRun(captureRunOutput = true, run = true)
-	fun buildAndRunRedirecting() = _buildAndRun(captureRunOutput = false, run = true)
+	fun buildAndRunCapturingOutput(args: List<String> = listOf()) = _buildAndRun(captureRunOutput = true, run = true, args = args)
+	fun buildAndRunRedirecting(args: List<String> = listOf()) = _buildAndRun(captureRunOutput = false, run = true, args = args)
 	fun buildWithoutRunning() = _buildAndRun(captureRunOutput = false, run = false)
-	fun buildAndRun(captureRunOutput: Boolean, run: Boolean = true) = _buildAndRun(captureRunOutput = captureRunOutput, run = run)
+	fun buildAndRun(captureRunOutput: Boolean, run: Boolean = true, args: List<String> = listOf()) = _buildAndRun(captureRunOutput = captureRunOutput, run = run, args = args)
 
 	class Result(val process: ProcessResult2, val generator: CommonGenerator)
 
-	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false): Result {
+	private fun _buildAndRun(captureRunOutput: Boolean = true, run: Boolean = false, args: List<String> = listOf()): Result {
 		val targetName = target.targetName
 
 		val classPaths2 = (settings.rtAndRtCore + target.extraLibraries.flatMap { MavenLocalRepository.locateJars(it) } + configClassPaths.classPaths).distinct()
@@ -104,7 +104,7 @@ class JTranscBuild(
 			ConfigTargetDirectory(targetDirectory),
 			ConfigOutputFile(output),
 			ConfigCaptureRunOutput(captureRunOutput),
-			ConfigRun(run),
+			ConfigRun(run, args),
 			ConfigOutputPath(LocalVfs(File("$tempdir/out_ast"))),
 			ConfigMainClass(entryPoint),
 			targetName

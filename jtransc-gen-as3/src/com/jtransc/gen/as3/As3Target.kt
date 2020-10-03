@@ -119,7 +119,7 @@ class As3Generator(injector: Injector) : CommonGenerator(injector) {
 	override val FqName.targetName: String get() = this.fqname.replace('.', '_').replace('$', '_')
 	//override val FqName.targetName: String get() = this.actualFqName.fqname.replace('$', '_')
 
-	override fun run(redirect: Boolean): ProcessResult2 {
+	override fun run(redirect: Boolean, args: List<String>): ProcessResult2 {
 		val names = listOf("Main.xml")
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
 

@@ -99,7 +99,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		"ASYNC" to ASYNC
 	)
 
-	override fun compileAndRun(redirect: Boolean): ProcessResult2 = _compileRun(run = true, redirect = redirect)
+	override fun compileAndRun(redirect: Boolean, args: List<String>): ProcessResult2 = _compileRun(run = true, redirect = redirect, args = args)
 	override fun compile(): ProcessResult2 = _compileRun(run = false, redirect = false)
 
 	private fun commonAccessBase(name: String, field: Boolean): String = if (hasSpecialChars(name)) name.quote() else name
@@ -109,7 +109,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	val jsOutputFile by lazy { injector.get<ConfigJavascriptOutput>().javascriptOutput }
 
-	fun _compileRun(run: Boolean, redirect: Boolean): ProcessResult2 {
+	fun _compileRun(run: Boolean, redirect: Boolean, args: List<String> = listOf()): ProcessResult2 {
 
 		log.info("Generated javascript at..." + jsOutputFile.realpathOS)
 
@@ -117,7 +117,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			val result = CommonGenCliCommands.runProgramCmd(
 				program,
 				target = "js",
-				default = listOf("node", "{{ outputFile }}"),
+				default = listOf("node", "{{ outputFile }}") + args,
 				template = this,
 				options = ExecOptions(passthru = redirect)
 			)
@@ -127,7 +127,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun run(redirect: Boolean): ProcessResult2 = ProcessResult2(0)
+	override fun run(redirect: Boolean, args: List<String>): ProcessResult2 = ProcessResult2(0)
 
 	@Suppress("UNCHECKED_CAST")
 	override fun writeClasses(output: SyncVfsFile) {

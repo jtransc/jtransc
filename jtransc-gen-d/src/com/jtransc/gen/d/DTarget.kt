@@ -97,14 +97,14 @@ class DGenerator(injector: Injector) : CommonGenerator(injector) {
 		return DCompiler.genCommand(programFile, debug, libs, extraVars)
 	}
 
-	override fun run(redirect: Boolean): ProcessResult2 {
+	override fun run(redirect: Boolean, args: List<String>): ProcessResult2 {
 		val names = if (JTranscSystem.isWindows()) {
 			listOf("program.exe", "a.exe")
 		} else {
 			listOf("program", "program.out", "a", "a.out")
 		}
 		val outFile = names.map { configTargetFolder.targetFolder[it] }.firstOrNull { it.exists } ?: invalidOp("Not generated output file $names")
-		return ProcessResult2(RootLocalVfs().exec(outFile.realpathOS, listOf(), ExecOptions(passthru = redirect, sysexec = true)))
+		return ProcessResult2(RootLocalVfs().exec(outFile.realpathOS, args, ExecOptions(passthru = redirect, sysexec = true)))
 	}
 
 	override fun writeClasses(output: SyncVfsFile) {

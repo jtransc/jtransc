@@ -6,6 +6,7 @@ import com.jtransc.gradle.tasks.JTranscGradleRunTask
 import org.gradle.api.Project
 import java.io.File
 
+// https://docs.gradle.org/current/userguide/img/javaPluginTasks.png
 @Suppress("unused")
 open class JTranscGradleExtension(val project: Project) {
 	companion object {
@@ -43,7 +44,8 @@ open class JTranscGradleExtension(val project: Project) {
 				it.minimizedNames = justBuild && minimizeNames
 				it.debug = debug
 				it.compile = compile
-			})).dependsOn("build")
+			//})).dependsOn("assemble")
+			})).dependsOn("classes")
 		}
 	}
 

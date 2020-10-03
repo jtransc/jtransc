@@ -78,7 +78,9 @@ abstract class GenTargetDescriptor {
 
 	fun build(injector: Injector): JTranscBuild.Result {
 		val captureRunOutput = injector.get<ConfigCaptureRunOutput>().captureRunOutput
-		val run = injector.get<ConfigRun>().run
+		val configRun = injector.get<ConfigRun>()
+		val run = configRun.run
+		val runArgs = configRun.args
 		val compile = injector.get<ConfigCompile>(default = { ConfigCompile(compile = true) }).compile
 		val generator = log.logAndTime("Preparing generator") {
 			injector.mapInstance(ConfigOutputFile(outputFile))
@@ -101,7 +103,7 @@ abstract class GenTargetDescriptor {
 		if (compile) {
 			if (run) {
 				log("Compiling and running...")
-				val (compileTime, result) = measureTime { generator.compileAndRun(!captureRunOutput) }
+				val (compileTime, result) = measureTime { generator.compileAndRun(!captureRunOutput, runArgs) }
 				if (result.success) {
 					log("Ok ($compileTime)")
 				} else {

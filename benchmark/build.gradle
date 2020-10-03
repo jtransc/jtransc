@@ -13,11 +13,15 @@ apply plugin: 'application'
 apply plugin: "jtransc"
 
 mainClassName = "Benchmark"
+//mainClassName = "org.junit.runner.JUnitCore"
 
 sourceSets.main {
-	java {
-		srcDirs = ['src']
-	}
+	java { srcDirs = ['src'] }
+	resources { srcDirs = ['resources'] }
+}
+sourceSets.test {
+	java { srcDirs = ['test'] }
+	resources { srcDirs = ['testresources'] }
 }
 
 repositories {
@@ -26,7 +30,10 @@ repositories {
 }
 
 dependencies {
+	compile "com.jtransc:jtransc-annotations:$jtranscVersion"
 	compile "com.jtransc:jtransc-rt-core:$jtranscVersion"
+	//implementation "junit:junit:4.12"
+	testImplementation "junit:junit:4.12"
 }
 
 jtransc {

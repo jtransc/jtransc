@@ -23,6 +23,10 @@ public class Benchmark {
 	}
 
 	static public void main(String[] args) {
+		main2(args);
+	}
+
+	static public void main2(String[] args) {
 		final Runtime runtime = Runtime.getRuntime();
 		System.out.println("JTransc " + com.jtransc.JTranscVersion.getVersion() + " - " + com.jtransc.JTranscSystem.getRuntimeKind());
 		System.out.println("Java " + System.getProperty("java.version") + " - " + System.getProperty("java.vm.version") + " - " + System.getProperty("java.runtime.version"));

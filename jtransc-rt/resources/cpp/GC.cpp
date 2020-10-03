@@ -600,3 +600,6 @@ struct __GCThread {
 #define GC_gcollect __GC_GC
 #define GC_get_free_bytes __gcHeap.GetFreeBytes
 #define GC_get_total_bytes __gcHeap.GetTotalBytes
+#define GC_init_pre_thread __GC_REGISTER_THREAD
+#define GC_init_thread() { }
+#define GC_finish_thread() { }
