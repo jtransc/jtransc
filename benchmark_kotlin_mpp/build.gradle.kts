@@ -15,7 +15,8 @@ kotlin {
         }
     }
     //js(org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.BOTH) {
-	js(org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.IR) {
+	//js(org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.IR) {
+	js(org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.LEGACY) {
 	//js("nodeJs") {
         nodejs {
             binaries.executable()

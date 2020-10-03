@@ -1,3 +1,4 @@
+import simd.*
 import kotlin.jvm.JvmStatic
 import kotlin.random.Random
 import kotlin.time.TimeSource
@@ -9,7 +10,7 @@ object Benchmark {
 	@JvmStatic
 	fun main(args: Array<String>) {
 		println(
-			"Kotlin " + KotlinVersion.CURRENT
+			"""Kotlin ${KotlinVersion.CURRENT} - $kotlinTarget"""
 		)
 		//println("Java " + System.getProperty("java.version") + " - " + System.getProperty("java.vm.version") + " - " + System.getProperty("java.runtime.version"))
 		//println("freeMemory: " + runtime.freeMemory() + ", maxMemory: " + runtime.maxMemory() + ", totalMemory: " + runtime.totalMemory())
@@ -262,7 +263,6 @@ object Benchmark {
 				return a.toInt()
 			}
 		})
-		/*
 		benchmark("simd mutable", object : Task {
 			override fun run(): Int {
 				val a: MutableFloat32x4 = MutableFloat32x4.create()
@@ -270,7 +270,7 @@ object Benchmark {
 				for (n in 0..999999) {
 					a.setToAdd(a, b)
 				}
-				return a.getX() as Int + a.getY() as Int + a.getZ() as Int + a.getW() as Int
+				return a.x.toInt() + a.y.toInt() + a.z.toInt() + a.w.toInt()
 			}
 		})
 		benchmark("simd immutable", object : Task {
@@ -302,10 +302,9 @@ object Benchmark {
 				for (n in 0..99999) {
 					a.setToMul44(a, b)
 				}
-				return a.getSumAll()
+				return a.sumAll.toInt()
 			}
 		})
-		*/
 		benchmark("StringBuilder1", object : Task {
 			override fun run(): Int {
 				val sb = StringBuilder()

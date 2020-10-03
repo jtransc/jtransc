@@ -1,4 +1,5 @@
 
+expect val kotlinTarget: String
 expect fun currentTimeMillis(): Double
 fun gc() {
 
