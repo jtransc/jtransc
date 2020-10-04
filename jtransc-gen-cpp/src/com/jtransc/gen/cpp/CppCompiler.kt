@@ -41,10 +41,17 @@ object CppCompiler {
 		cmdAndArgs += "-fexceptions"
 		cmdAndArgs += "-frtti"
 		cmdAndArgs += "-D_FORTIFY_SOURCE=0" // Without this: *** buffer overflow detected ***: terminated
-		//cmdAndArgs += "-fno-stack-protector"
+		cmdAndArgs += "-static"
+		cmdAndArgs += "-static-libgcc"
+		cmdAndArgs += "-static-libstdc++"
+		if (!config.debug) {
+			cmdAndArgs += "-fomit-frame-pointer"
+			cmdAndArgs += "-fno-stack-protector"
+		}
 		//cmdAndArgs += "-Wa,-mbig-obj"
 		cmdAndArgs += "-std=c++11"
-		cmdAndArgs += if (config.debug) "-O0" else "-O4"
+		//cmdAndArgs += if (config.debug) "-O0" else "-O4"
+		cmdAndArgs += if (config.debug) "-O0" else "-Ofast"
 		if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 		if (config.debug) cmdAndArgs += "-g"
 	}
