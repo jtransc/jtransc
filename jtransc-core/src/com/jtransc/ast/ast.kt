@@ -488,6 +488,8 @@ class AstClass(
 	val isAbstract: Boolean get() = classType == AstClassType.ABSTRACT
 	val fqname: String = name.fqname
 
+	val isJavaLangObject get() = fqname == "java.lang.Object"
+
 	val classAndFieldAndMethodAnnotations by lazy {
 		annotations + methods.flatMap { it.annotations } + fields.flatMap { it.annotations }
 	}
@@ -603,7 +605,7 @@ class AstClass(
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
 	val thisAncestorsAndInterfaces: Set<AstClass> by lazy { (thisAndAncestors + allDirectInterfaces).toSet() }
 
-	val isJavaLangObject: Boolean = this.fqname == "java.lang.Object"
+	//val isJavaLangObject: Boolean = this.fqname == "java.lang.Object"
 }
 
 fun AstClass?.isNativeForTarget(targetName: TargetName): Boolean = (this?.nativeNameForTarget(targetName) != null)

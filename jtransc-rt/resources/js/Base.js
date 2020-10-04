@@ -1215,12 +1215,18 @@ class N {
 	static clone(obj) {
 		if (obj == null) return null;
 		var temp = Object.create(obj);
-		temp{% IFIELD java.lang.Object:$$id %} = 0;
+		temp.$$id = 0;
 		return temp;
 	};
 
 	static methodWithoutBody(name) {
 		throw 'Method not implemented: native or abstract: ' + name;
+	};
+
+	static $$lastId = 0;
+
+	static nextIdentityHashCodeId() {
+		return N.$$lastId++;
 	};
 
 	static EMPTY_FUNCTION() { }

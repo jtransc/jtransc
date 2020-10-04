@@ -22,8 +22,8 @@
 #define ENABLE_GC 1
 //#define DUMMY_ALLOCATOR 1
 
-#define __GC_ALIGNMENT_SIZE 64
-#define __GC_ALIGNMENT_MASK (__GC_ALIGNMENT_SIZE - 1)
+#define __GC_ALIGNMENT_SIZE 32
+//#define __GC_ALIGNMENT_SIZE 64
 
 struct __GCVisitor;
 struct __GCHeap;
@@ -35,38 +35,16 @@ template <typename T> T GC_roundUp(T numToRound, T multiple) {
 	return numToRound + multiple - remainder;
 }
 
-#ifdef DUMMY_ALLOCATOR
-	int64_t BIG_HEAP_SIZE = (3LL * 1024LL * 1024LL * 1024LL) - 16;
-	char *BIG_HEAP = (char *)malloc(BIG_HEAP_SIZE + 1024);
-	char *BIG_HEAP_END = BIG_HEAP + BIG_HEAP_SIZE;
+void *jtalloc(size_t size) { return malloc(size); }
+void jtfree(void *ptr) { free(ptr); }
 
-	void *jtalloc(size_t size) {
-		//return malloc(size);
-		auto out = BIG_HEAP;
-		if (out + size >= BIG_HEAP_END) {
-			std::cout << "ERROR ALLOCATING" << out << " > " << BIG_HEAP_END << "\n";
-			abort();
-		}
-		BIG_HEAP += GC_roundUp(size, (size_t)128);
-		memset(out, 0, size);
-		return out;
-	}
-	void jtfree(void *ptr) {
-		//free(ptr);
-	}
-#else
-	void *jtalloc(size_t size) { return malloc(size); }
-	void jtfree(void *ptr) { free(ptr); }
-#endif
-
-#define GC_OBJECT_CONSTANT 0x139912F0
+#define GC_OBJECT_CONSTANT 0xE2F1
 
 struct __GC {
-    int _gcallocated = GC_OBJECT_CONSTANT;
     __GC *next = nullptr;
-    unsigned short markVersion = 0;
-    unsigned short liveCount = 0;
-    int __GC_objsize;
+    uint16_t __GC_objsize;
+    uint8_t markVersion = 0;
+    uint8_t liveCount = 0;
 
 	virtual std::wstring __GC_Name() { return L"__GC"; }
     virtual void __GC_Trace(__GCVisitor* visitor) {}
@@ -155,7 +133,7 @@ struct __GCMemoryBlock {
 	int sizeUsed;
 	__GCMemoryBlock(int size) {
 		this->__ptr = jtalloc(size);
-		this->start = (void *)GC_roundUp((uintptr_t)this->__ptr, (uintptr_t)64);
+		this->start = (void *)GC_roundUp((uintptr_t)this->__ptr, (uintptr_t)__GC_ALIGNMENT_SIZE);
 		this->sizeTotal = size;
 		this->end = ((char *)this->start) + size;
 		this->sizeUsed = 0;
@@ -187,26 +165,25 @@ struct __GCAllocResult {
 	int size;
 };
 
+#define MAX_FAST_BLOCK_SIZE 16
+
 struct __GCMemoryBlocks {
 	void *minptr = nullptr;
 	void *maxptr = nullptr;
 	__GCMemoryBlock* lastBlock = nullptr;
 	std::vector<__GCMemoryBlock*> blocks;
-	std::vector<__GC*> freeBlocksBySize128;
-	std::vector<__GC*> freeBlocksBySize64;
+	std::vector<__GC*> freeBlocksBySizes[MAX_FAST_BLOCK_SIZE];
 	std::unordered_map<int, std::vector<__GC*>> freeBlocksBySize;
 	int allocCount = 0;
 	int allocMemory = 0;
 	int totalMemory = 0;
 
 	__GCMemoryBlocks() {
-		freeBlocksBySize128.reserve(1024);
-		freeBlocksBySize64.reserve(1024);
 	}
 
 	std::vector<__GC*> *getFreeBlocksBySizeArray(int allocSize) {
-		if (allocSize == 128) return &freeBlocksBySize128;
-		if (allocSize == 64) return &freeBlocksBySize64;
+		int index = allocSize / __GC_ALIGNMENT_SIZE;
+		if (index < MAX_FAST_BLOCK_SIZE) return &freeBlocksBySizes[index];
 		//std::cout << allocSize << "\n";
 		return &freeBlocksBySize[allocSize];
 	}
@@ -240,14 +217,15 @@ struct __GCMemoryBlocks {
 	}
 
 	void Free(__GC *ptr) {
-		int allocSize = ptr->__GC_objsize;
+		int allocSize = ptr->__GC_objsize * __GC_ALIGNMENT_SIZE;
 		allocCount--;
 		allocMemory -= allocSize;
+		ptr->__GC_objsize = 0;
 		getFreeBlocksBySizeArray(allocSize)->push_back(ptr);
 	}
 
 	inline bool PreContainsPointerFast(void *ptr) {
-		return (ptr > (void *)0x10000) && (((uintptr_t)ptr & __GC_ALIGNMENT_MASK) == 0);
+		return (ptr > (void *)0x10000) && (((uintptr_t)ptr % __GC_ALIGNMENT_SIZE) == 0);
 	}
 
 	bool ContainsPointer(void *ptr) {
@@ -400,7 +378,7 @@ struct __GCHeap {
     	int exploreCount = 0;
 		int deleteCount = 0;
 		int version = visitor.version;
-		bool reset = version >= 10000;
+		bool reset = version >= 250;
 		__GC* prev = nullptr;
 		__GC* current = head;
 		while (current != nullptr) {
@@ -420,8 +398,8 @@ struct __GCHeap {
 				}
 				current = current->next;
 
-				todelete->_gcallocated = 0;
 				todelete->__GC_Dispose(this);
+				//todelete->__GC_objsize = 0;
 				memory.Free(todelete);
 
 				//todelete->next = head_delete;
@@ -481,6 +459,10 @@ struct __GCHeap {
 		return { results1.explored + results2.explored, results1.deleted + results2.deleted };
 	}
 
+	__GCSweepResult SweepNone() {
+		return { 0, 0 };
+	}
+
     void CheckStack(__GCStack *stack) {
         auto start = stack->start;
         void *value = nullptr;
@@ -496,7 +478,7 @@ struct __GCHeap {
 
 			auto v = (__GC*)value;
 			bool isptr = memory.ContainsPointer(v);
-			bool isobj = isptr && v->_gcallocated == GC_OBJECT_CONSTANT;
+			bool isobj = isptr && v->__GC_objsize != 0;
 			if (isobj) {
 				visitor.Trace(v);
 			}
@@ -530,6 +512,8 @@ struct __GCHeap {
 			Mark();
 			auto t1 = std::chrono::steady_clock::now();
 			auto sweepResult = full ? SweepFull() : SweepPartial();
+			//auto sweepResult = SweepPartial();
+			//auto sweepResult = SweepNone();
 			auto t2 = std::chrono::steady_clock::now();
 			//auto deleteResult = full ? DeleteOldObjects() : 0;
 			auto deleteResult = DeleteOldObjects();
@@ -582,12 +566,12 @@ struct __GCHeap {
 
 		auto res = memory.Alloc(size);
 		int objsize = res.size;
+		//memset(res.ptr, 0, objsize);
 		T *newobj = ::new (res.ptr) T(std::forward<Args>(args)...);
 		//T *newobj = ::new T(std::forward<Args>(args)...);
     	#ifdef ENABLE_GC
+    	newobj->__GC_objsize = objsize / __GC_ALIGNMENT_SIZE;
 		newobj->__GC_Init(this);
-    	newobj->__GC_objsize = objsize;
-    	newobj->_gcallocated = GC_OBJECT_CONSTANT;
         //allocated_gen1.push_back(newobj);
 		newobj->next = (__GC*)this->head_gen1;
 		this->head_gen1 = newobj;

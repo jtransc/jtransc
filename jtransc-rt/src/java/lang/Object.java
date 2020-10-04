@@ -69,15 +69,13 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/WrappedThrowable.as", dst = "WrappedThrowable.as")
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.xml", dst = "Main.xml")
 @JTranscAddMembers(target = "d", value = "core.sync.mutex.Mutex __d_mutex = null;")
-@JTranscAddMembers(target = "cpp", value = "std::recursive_mutex mtx;")
+//@JTranscAddMembers(target = "cpp", value = "std::recursive_mutex mtx;")
 @HaxeAddMembers({
 	"#if cpp public var _hx_mutex: cpp.vm.Mutex = null; #end",
 })
 public class Object {
-	@JTranscInvisible
-	public int $$id;
-
 	@JTranscSync
+	@JTranscMethodBody(target = "js", value = "this.$$id = 0;")
 	public Object() {
 	}
 
@@ -136,9 +134,6 @@ public class Object {
 		return getClass().getName() + "@" + Integer.toHexString(this.hashCode());
 	}
 
-	private static final long SAMPLING_STEP = 50;
-	private long waitTimeout;
-
 	@JTranscAsync
 	public final void wait(long timeout) throws InterruptedException {
 		wait(timeout, 0);
@@ -149,28 +144,29 @@ public class Object {
 		wait(0L, 0);
 	}
 
+	//private static final long SAMPLING_STEP = 50;
+
 	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadWait({{ JC_COMMA }}this, N.j2d(p0), p1);", async = true)
 	@JTranscAsync
 	public final void wait(long timeout, int nanos) throws InterruptedException {
-		if (timeout < 0)
-			throw new IllegalArgumentException("timeout is negative");
-		waitTimeout = timeout == 0 ? Long.MAX_VALUE : timeout;
-		while (waitTimeout > 0) {
-			waitTimeout -= SAMPLING_STEP;
-			Thread.sleep(SAMPLING_STEP);
-		}
+		//if (timeout < 0) throw new IllegalArgumentException("timeout is negative");
+		//long waitTimeout = timeout == 0 ? Long.MAX_VALUE : timeout;
+		//while (waitTimeout > 0) {
+		//	waitTimeout -= SAMPLING_STEP;
+		//	Thread.sleep(SAMPLING_STEP);
+		//}
 	}
 
 	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadNotify({{ JC_COMMA }}this);", async = true)
 	@JTranscAsync
 	public final void notify() {
-		waitTimeout = 0;
+		//waitTimeout = 0;
 	}
 
 	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadNotifyAll({{ JC_COMMA }}this);", async = true)
 	@JTranscAsync
 	public final void notifyAll() {
-		waitTimeout = 0;
+		//waitTimeout = 0;
 	}
 
 

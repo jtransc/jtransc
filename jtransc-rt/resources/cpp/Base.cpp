@@ -6,7 +6,7 @@
 
 //#define _JTRANSC_USE_DYNAMIC_LIB 1
 //#define INLINE_ARRAYS 1
-#define ENABLE_SYNCHRONIZED 1
+//#define ENABLE_SYNCHRONIZED 1
 //#define TRACING 1
 
 #ifdef _WIN32
@@ -200,11 +200,6 @@ struct Env {
  	//
 };
 
-//template<typename T> p_java_lang_Object CC_GET_OBJECT(T t) {
-// 	if (t == nullptr) return nullptr;
-// 	return t->__toObj();
-//}
-
 //template<typename T> void* CC_GET_VOID(T t) {
 // 	if (t == nullptr) return nullptr;
 // 	return t->__toVoid();
@@ -349,7 +344,6 @@ struct N {
 	template<typename T> static T ensureNpe(T obj);
 	static std::vector<JAVA_OBJECT> getVectorOrEmpty(JAVA_OBJECT array);
 
-	template<typename T> static p_java_lang_Object CC_GET_OBJ(T t);
 	template<typename TTo, typename TFrom> TTo static CC_CHECK_CLASS(TFrom i, int32_t typeId);
 	template<typename T> T static CC_CHECK_UNTYPED(T i, int32_t typeId);
 	template<typename TTo, typename TFrom> TTo static CC_CHECK_INTERFACE(TFrom i, int32_t typeId);
@@ -387,6 +381,7 @@ struct N {
 	static double getTime();
 	static int64_t nanoTime();
 	static void startup();
+	static void afterInit();
 
 	static void initStringPool();
 
@@ -461,10 +456,10 @@ struct DYN {
 #define INLINE_ARRAYS_OFFSET 64
 
 struct JA_0 : public java_lang_Object {
+	std::wstring desc;
 	void *_data;
 	int32_t length;
 	int8_t elementSize;
-	std::wstring desc;
 	bool allocated;
 	#ifdef INLINE_ARRAYS
 		int __inline_data;
@@ -500,7 +495,11 @@ struct JA_0 : public java_lang_Object {
     virtual void __GC_Dispose(__GCHeap *heap) {
     	java_lang_Object::__GC_Dispose(heap);
 		heap->allocatedArraySize -= bytesLength();
-		if (allocated) ::jtfree(_data);
+		if (allocated) {
+			::jtfree(_data);
+		}
+		allocated = false;
+		_data = nullptr;
 	}
 
 	std::wstring __GC_Name() { return L"JA_0"; }
@@ -1351,11 +1350,6 @@ void N::writeChars(JAVA_OBJECT str, char *out, int32_t maxlen) {
 
 void __throwCLASSCAST() {
 	throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str(L"Class cast error"));
-}
-
-template<typename T> p_java_lang_Object N::CC_GET_OBJ(T t) {
- 	if (t == nullptr) return nullptr;
- 	return t->__getObj();
 }
 
 template<typename TTo, typename TFrom> TTo N::CC_CHECK_CLASS(TFrom i, int32_t typeId) {
@@ -3368,3 +3362,11 @@ void N::startup() {
 
 // Main
 {{ MAIN }}
+
+
+void N::afterInit() {
+	std::cout << "__GC size: " << sizeof(__GC) << "\n";
+	std::cout << "java.lang.ObjectBase size: " << sizeof(java_lang_ObjectBase) << "\n";
+	std::cout << "java.lang.Object size: " << sizeof(java_lang_Object) << "\n";
+	std::cout << "java.lang.String size: " << sizeof(java_lang_String) << "\n";
+};

@@ -525,19 +525,19 @@ public class Benchmark {
 			}
 		});
 
-		benchmark("Create Instances2 global", new Task() {
-			@Override
-			public int run() {
-				int out = 0;
-				String s = "test";
-				for (int n = 0; n < 100000; n++) {
-					MyClass2 v = new MyClass2(s, n * out);
-					objects[n] = v;
-					out += v.b;
-				}
-				return out;
-			}
-		});
+		//benchmark("Create Instances2 global", new Task() {
+		//	@Override
+		//	public int run() {
+		//		int out = 0;
+		//		String s = "test";
+		//		for (int n = 0; n < 100000; n++) {
+		//			MyClass2 v = new MyClass2(s, n * out);
+		//			objects[n] = v;
+		//			out += v.b;
+		//		}
+		//		return out;
+		//	}
+		//});
 
 		benchmark("Create Instances with builder", new Task() {
 			@Override

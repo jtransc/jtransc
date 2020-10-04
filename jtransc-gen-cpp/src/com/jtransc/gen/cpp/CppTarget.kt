@@ -429,6 +429,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				line(genStaticConstructorsSorted())
 				val callMain = buildMethod(program[AstMethodRef(program.entrypoint, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]!!, static = true)
 
+				line("N::afterInit();")
 				line("$callMain(N::strArray(argc, argv));")
 			}
 			line("catch (char const *s)") {
@@ -504,8 +505,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 			}
 
-			if (clazz.fqname == "java.lang.Object") {
-				line("int32_t __JT__CLASS_ID;")
+			val isJavaLangObject = clazz.isJavaLangObject
+			if (clazz.isJavaLangObject) {
+				line("uint16_t __JT__CLASS_ID;")
 				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
@@ -534,11 +536,15 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 			}
 
+			//if (clazz.isJavaLangObject) {
+			//	line("virtual void* __getInterface(int classId) { return nullptr; }")
+			//}
+
 			if (clazz.isInterface) {
-				line("virtual p_java_lang_Object __getObj() = 0;")
-				line("virtual void* __getInterface(int classId) = 0;")
+				//line("virtual p_java_lang_Object __getObj() = 0;")
+				//line("virtual void* __getInterface(int classId) = 0;")
 			} else {
-				line("virtual ${JAVA_LANG_OBJECT_REF.targetNameRef} __getObj() { return (${JAVA_LANG_OBJECT_REF.targetNameRef})this; }")
+				//line("virtual ${JAVA_LANG_OBJECT_REF.targetNameRef} __getObj() { return (${JAVA_LANG_OBJECT_REF.targetNameRef})this; }")
 				line("virtual void* __getInterface(int classId)") {
 					if (clazz.allInterfacesInAncestors.isNotEmpty()) {
 						line("switch (classId)") {
