@@ -44,16 +44,19 @@ object CppCompiler {
 		cmdAndArgs += "-static"
 		cmdAndArgs += "-static-libgcc"
 		cmdAndArgs += "-static-libstdc++"
-		if (!config.debug) {
-			cmdAndArgs += "-fomit-frame-pointer"
-			cmdAndArgs += "-fno-stack-protector"
-		}
 		//cmdAndArgs += "-Wa,-mbig-obj"
 		cmdAndArgs += "-std=c++11"
-		//cmdAndArgs += if (config.debug) "-O0" else "-O4"
-		cmdAndArgs += if (config.debug) "-O0" else "-Ofast"
-		if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
-		if (config.debug) cmdAndArgs += "-g"
+		if (config.debug) {
+			cmdAndArgs += "-g"
+			cmdAndArgs += "-O0"
+		} else {
+			cmdAndArgs += "-fomit-frame-pointer"
+			cmdAndArgs += "-fno-stack-protector"
+			cmdAndArgs += "-Ofast"
+		}
+		if (!JTranscSystem.isMac()) {
+			cmdAndArgs += "-pthread"
+		}
 	}
 
 	object CMAKE : BaseCompiler("cmake") {
