@@ -27,10 +27,11 @@ object CppCompiler {
 	): List<String> {
 		// -O0 = 23s && 7.2MB
 		// -O4 = 103s && 4.3MB
-		val compiler = listOf(CMAKE, GPP, CLANG).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (cmake, g++ or clang), please install one of them and put in the path.")
+		val compiler = listOf(GPP, CLANG, CMAKE).firstOrNull { it.available } ?: invalidOp("Can't find CPP compiler (cmake, g++ or clang), please install one of them and put in the path.")
 		return compiler.genCommand(programFile, BaseCompiler.Config(debug, libs, includeFolders, libsFolders, defines, extraVars))
 	}
 
+	// g++ -O4 -fno-stack-protector -fexceptions -frtti -std=c++11 -pthread -g program.cpp
 	fun addCommonCmdArgs(cmdAndArgs: MutableList<String>, config: BaseCompiler.Config) {
 		for (define in config.defines) cmdAndArgs += "-D$define"
 		for (includeFolder in config.includeFolders) cmdAndArgs += "-I$includeFolder"
@@ -39,6 +40,7 @@ object CppCompiler {
 		//if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
 		cmdAndArgs += "-fexceptions"
 		cmdAndArgs += "-frtti"
+		//cmdAndArgs += "-fno-stack-protector"
 		//cmdAndArgs += "-Wa,-mbig-obj"
 		cmdAndArgs += "-std=c++11"
 		cmdAndArgs += if (config.debug) "-O0" else "-O3"
