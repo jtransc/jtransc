@@ -28,6 +28,7 @@ import java.lang.jtransc.JTranscStrings;
 import java.util.Arrays;
 
 // @TODO: Optimize using arrays
+@SuppressWarnings("UnnecessaryCallToStringValueOf")
 @HaxeAddMembers({
 	"public var buffer2:MyStringBuf = new MyStringBuf();",
 	"public var str2:String = null;",
@@ -38,18 +39,22 @@ import java.util.Arrays;
 })
 @JTranscAddMembers(target = "as3", value = "public var _str: String = '';")
 @JTranscAddMembers(target = "dart", value = "StringBuffer __buffer = new StringBuffer();")
+//@JTranscAddMembers(target = "cpp", value = "std::u16string __buffer;")
 public class StringBuilder implements java.io.Serializable, Appendable, CharSequence {
 	protected char[] buffer;
 	protected int length;
 
+	static private final int EXTRA_CAPACITY = 16;
+
 	@JTranscSync
 	public StringBuilder() {
-		this(32);
+		this(EXTRA_CAPACITY);
 	}
 
 	@JTranscMethodBody(target = "js", value = "this._str = ''; return this;")
 	@JTranscMethodBody(target = "as3", value = "this._str = ''; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.__buffer = new StringBuffer(); return this;")
+	//@JTranscMethodBody(target = "cpp", value = "__buffer.reserve(p0); return this;")
 	@JTranscSync
 	public StringBuilder(int capacity) {
 		buffer = new char[capacity];
@@ -57,13 +62,13 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 	@JTranscSync
 	public StringBuilder(String str) {
-		this(str.length() + 16);
+		this(str.length() + EXTRA_CAPACITY);
 		append(str);
 	}
 
 	@JTranscAsync
 	public StringBuilder(CharSequence seq) {
-		this(seq.length() + 16);
+		this(seq.length() + EXTRA_CAPACITY);
 		append(seq);
 	}
 
@@ -71,6 +76,7 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 	@JTranscMethodBody(target = "js", value = "return this._str.length;")
 	@JTranscMethodBody(target = "as3", value = "return this._str.length;")
 	@JTranscMethodBody(target = "dart", value = "return this.__buffer.length;")
+	//@JTranscMethodBody(target = "cpp", value = "return __buffer.length();")
 	@JTranscSync
 	public int length() {
 		return length;
@@ -81,77 +87,17 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 	@JTranscMethodBody(target = "js", value = "")
 	@JTranscMethodBody(target = "as3", value = "")
 	@JTranscMethodBody(target = "dart", value = "")
+	//@JTranscMethodBody(target = "cpp", value = "__buffer.shrink_to_fit();")
 	@JTranscSync
 	public void trimToSize() {
 		this.buffer = Arrays.copyOf(buffer, length);
-	}
-
-	//@Override
-	@HaxeMethodBody("return this.getStr().charCodeAt(p0);")
-	@JTranscMethodBody(target = "js", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
-	@JTranscMethodBody(target = "as3", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
-	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().codeUnitAt(p0) & 0xFFFF;")
-	@JTranscSync
-	public char charAt(int index) {
-		return buffer[index];
-	}
-
-	@HaxeMethodBody("return this.getStr().indexOf(p0._str);")
-	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(N.istr(p0));")
-	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.istr(p0));")
-	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().indexOf(N.istr(p0));")
-	@JTranscSync
-	public int indexOf(String str) {
-		return indexOf(str, 0);
-	}
-
-	@HaxeMethodBody("return this.getStr().indexOf(p0._str, p1);")
-	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(p0._str, p1);")
-	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.istr(p0), p1);")
-	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().indexOf(N.istr(p0), p1);")
-	@JTranscSync
-	public int indexOf(String str, int fromIndex) {
-		return JTranscStrings.indexOf(buffer, fromIndex, JTranscStrings.getData(str));
-	}
-
-	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str);")
-	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0));")
-	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(N.istr(p0));")
-	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().lastIndexOf(N.istr(p0));")
-	@JTranscSync
-	public int lastIndexOf(String str) {
-		return lastIndexOf(str, length);
-	}
-
-	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str, p1);")
-	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
-	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
-	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().lastIndexOf(N.istr(p0), p1);")
-	@JTranscSync
-	public int lastIndexOf(String str, int fromIndex) {
-		return JTranscStrings.lastIndexOf(buffer, fromIndex, JTranscStrings.getData(str));
-	}
-
-	@HaxeMethodBody("var reversed = ''; var str = getStr(); for (n in 0 ... str.length) reversed += str.charAt(str.length - n - 1); return this.setStr(reversed);")
-	@JTranscMethodBody(target = "js", value = "this._str = this._str.reverse(); return this;")
-	@JTranscMethodBody(target = "as3", value = "var len: int = this._str.length; var reversed: String = ''; for (var n:int = 0; n < len; n++) reversed += this._str.substr(len - n - 1, 1); this._str = reversed; return this;")
-	@JTranscMethodBody(target = "dart", value = "var str = this.__buffer.toString(); int len = str.length; this.__buffer = new StringBuffer(); for (int n = 0; n < len; n++) this.__buffer.write(str[len - n - 1]); return this;")
-	@JTranscSync
-	public StringBuilder reverse() {
-		int len = length / 2;
-		for (int n = 0; n < len; n++) {
-			int m = length - n - 1;
-			char temp = this.buffer[n];
-			this.buffer[n] = this.buffer[m];
-			this.buffer[m] = temp;
-		}
-		return this;
 	}
 
 	@HaxeMethodBody("return this.add(N.toNativeString(p0));")
 	@JTranscMethodBody(target = "js", value = "this._str += N.istr(p0); return this;")
 	@JTranscMethodBody(target = "as3", value = "this._str += N.istr(p0); return this;")
 	@JTranscMethodBody(target = "dart", value = "this.__buffer.write((p0 != null) ? N.istr(p0) : 'null'); return this;")
+	//@JTranscMethodBody(target = "cpp", value = "if (p0 == nullptr) __buffer.append(u\"null\"); else __buffer.append((const char16_t *)N::getStrDataPtr(p0), (int)N::strLen(p0)); return this;")
 	@JTranscSync
 	public StringBuilder append(String _str) {
 		//JTranscConsole.log("append.String:");
@@ -164,10 +110,16 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 		return this;
 	}
 
+	@JTranscSync
+	public StringBuilder append(char str[], int offset, int len) {
+		return this.append(new String(str, offset, len));
+	}
+
 	@HaxeMethodBody("return this.addChar(p0);")
 	@JTranscMethodBody(target = "js", value = "this._str += N.ichar(p0); return this;")
 	@JTranscMethodBody(target = "as3", value = "this._str += N.ichar(p0); return this;")
 	@JTranscMethodBody(target = "dart", value = "this.__buffer.write(N.ichar(p0)); return this;")
+	//@JTranscMethodBody(target = "cpp", value = "__buffer.push_back(p0); return this;")
 	@JTranscSync
 	public StringBuilder append(char v) {
 		//JTranscConsole.log("append.char:");
@@ -177,10 +129,72 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 		return this;
 	}
 
+	@HaxeMethodBody("return this.add('' + p0);")
+	@JTranscMethodBody(target = "js", value = "this._str += p0; return this;")
+	@JTranscMethodBody(target = "as3", value = "this._str += p0; return this;")
+	@JTranscMethodBody(target = "dart", value = "this.__buffer.write(p0); return this;")
+	//@JTranscMethodBody(target = "cpp", value = "char16_t buffer16[12]; char buffer[12]; itoa(p0, buffer, 10); int len = strlen(buffer); for (int n = 0; n < len; n++) buffer16[n] = buffer[n]; __buffer.append(buffer16, len); return this;")
+	@JTranscSync
+	public StringBuilder append(int v) {
+		//return append(Integer.toString(v));
+		ensureCapacity(this.length + 11);
+		this.length += IntegerTools.writeInt(this.buffer, this.length, v, 10);
+		return this;
+	}
+
+	//@Override
+	@HaxeMethodBody("return this.getStr().charCodeAt(p0);")
+	@JTranscMethodBody(target = "js", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
+	@JTranscMethodBody(target = "as3", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
+	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().codeUnitAt(p0) & 0xFFFF;")
+	//@JTranscMethodBody(target = "cpp", value = "return __buffer[p0];")
+	@JTranscSync
+	public char charAt(int index) {
+		return buffer[index];
+	}
+
+	@HaxeMethodBody("return this.getStr().indexOf(p0._str, p1);")
+	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(p0._str, p1);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.istr(p0), p1);")
+	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().indexOf(N.istr(p0), p1);")
+	//@JTranscMethodBody(target = "cpp", value = "exit(7777);")
+	@JTranscSync
+	public int indexOf(String str, int fromIndex) {
+		return JTranscStrings.indexOf(buffer, fromIndex, JTranscStrings.getData(str));
+	}
+
+	@HaxeMethodBody("return this.getStr().lastIndexOf(p0._str, p1);")
+	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
+	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
+	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().lastIndexOf(N.istr(p0), p1);")
+	//@JTranscMethodBody(target = "cpp", value = "exit(7778);")
+	@JTranscSync
+	public int lastIndexOf(String str, int fromIndex) {
+		return JTranscStrings.lastIndexOf(buffer, fromIndex, JTranscStrings.getData(str));
+	}
+
+	@HaxeMethodBody("var reversed = ''; var str = getStr(); for (n in 0 ... str.length) reversed += str.charAt(str.length - n - 1); return this.setStr(reversed);")
+	@JTranscMethodBody(target = "js", value = "this._str = this._str.reverse(); return this;")
+	@JTranscMethodBody(target = "as3", value = "var len: int = this._str.length; var reversed: String = ''; for (var n:int = 0; n < len; n++) reversed += this._str.substr(len - n - 1, 1); this._str = reversed; return this;")
+	@JTranscMethodBody(target = "dart", value = "var str = this.__buffer.toString(); int len = str.length; this.__buffer = new StringBuffer(); for (int n = 0; n < len; n++) this.__buffer.write(str[len - n - 1]); return this;")
+	//@JTranscMethodBody(target = "cpp", value = "auto len = __buffer.length(); for (int n = 0; n < len; n++) std::swap(__buffer[n], __buffer[len - n - 1]); return this;")
+	@JTranscSync
+	public StringBuilder reverse() {
+		int len = length / 2;
+		for (int n = 0; n < len; n++) {
+			int m = length - n - 1;
+			char temp = this.buffer[n];
+			this.buffer[n] = this.buffer[m];
+			this.buffer[m] = temp;
+		}
+		return this;
+	}
+
 	@HaxeMethodBody("return this.setStr(this.getStr().substr(0, p0) + this.getStr().substr(p1));")
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
 	@JTranscMethodBody(target = "as3", value = "this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
 	@JTranscMethodBody(target = "dart", value = "var str = this.__buffer.toString(); this.__buffer = new StringBuffer()..write(str.substring(0, p0))..write(str.substring(p1)); return this;")
+	//@JTranscMethodBody(target = "cpp", value = "__buffer.erase(p0, p1 - p0); return this;")
 	@JTranscSync
 	public StringBuilder delete(int start, int end) {
 		return replace(start, end, "");
@@ -190,6 +204,7 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + N.istr(p2) + this._str.substr(p1); return this;")
 	@JTranscMethodBody(target = "as3", value = "this._str = this._str.substr(0, p0) + N.istr(p2) + this._str.substr(p1); return this;")
 	@JTranscMethodBody(target = "dart", value = "var str = this.__buffer.toString(); this.__buffer = new StringBuffer()..write(str.substring(0, p0))..write(N.istr(p2))..write(str.substring(p1)); return this;")
+	//@JTranscMethodBody(target = "cpp", value = "exit(7780); return this;")
 	@JTranscSync
 	public StringBuilder replace(int start, int end, String str) {
 		//ensure(end);
@@ -204,9 +219,43 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 		return this;
 	}
 
+	@HaxeMethodBody("")
+	@JTranscMethodBody(target = "js", value = "")
+	@JTranscMethodBody(target = "as3", value = "")
+	@JTranscMethodBody(target = "dart", value = "")
+	//@JTranscMethodBody(target = "cpp", value = "__buffer.reserve(p0);")
 	@JTranscSync
+	public void ensureCapacity(int minimumCapacity) {
+		ensure(minimumCapacity);
+	}
+
+	@HaxeMethodBody("return N.str(this.getStr());")
+	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
+	@JTranscMethodBody(target = "as3", value = "return N.str(this._str);")
+	@JTranscMethodBody(target = "dart", value = "return N.str(this.__buffer.toString());")
+	//@JTranscMethodBody(target = "cpp", value = "return N::str(__buffer);")
+	@JTranscSync
+	public String toStringSync() {
+		return new String(buffer, 0, length);
+	}
+
+	@JTranscSync
+	//@JTranscMethodBody(target = "cpp", value = "return __buffer.capacity());")
 	public int capacity() {
 		return buffer.length;
+	}
+
+	/////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////
+
+	@JTranscSync
+	public int lastIndexOf(String str) {
+		return lastIndexOf(str, length);
+	}
+	@JTranscSync
+	public int indexOf(String str) {
+		return indexOf(str, 0);
 	}
 
 	@JTranscSync
@@ -215,27 +264,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 			buffer = Arrays.copyOf(buffer, Math.max(minimumCapacity, (buffer.length * 2) + 2));
 		}
 		return buffer;
-	}
-
-	@HaxeMethodBody("return this.add('' + p0);")
-	@JTranscMethodBody(target = "js", value = "this._str += p0; return this;")
-	@JTranscMethodBody(target = "as3", value = "this._str += p0; return this;")
-	@JTranscMethodBody(target = "dart", value = "this.__buffer.write(p0); return this;")
-	@JTranscSync
-	public StringBuilder append(int v) {
-		//return append(Integer.toString(v));
-		ensureCapacity(this.length + 11);
-		this.length += IntegerTools.writeInt(this.buffer, this.length, v, 10);
-		return this;
-	}
-
-	@HaxeMethodBody("")
-	@JTranscMethodBody(target = "js", value = "")
-	@JTranscMethodBody(target = "as3", value = "")
-	@JTranscMethodBody(target = "dart", value = "")
-	@JTranscSync
-	public void ensureCapacity(int minimumCapacity) {
-		ensure(minimumCapacity);
 	}
 
 	@JTranscSync
@@ -265,12 +293,7 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 	@JTranscSync
 	public StringBuilder append(char[] str) {
-		return this.append(new String(str));
-	}
-
-	@JTranscSync
-	public StringBuilder append(char str[], int offset, int len) {
-		return this.append(new String(str, offset, len));
+		return this.append(str, 0, str.length);
 	}
 
 	@JTranscSync
@@ -403,21 +426,12 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 	@JTranscSync
 	public String substring(int start) {
-		return this.toString().substring(start);
+		return this.substring(start, start + this.length());
 	}
 
 	@JTranscSync
 	public String substring(int start, int end) {
-		return this.toString().substring(start, end);
-	}
-
-	@HaxeMethodBody("return N.str(this.getStr());")
-	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
-	@JTranscMethodBody(target = "as3", value = "return N.str(this._str);")
-	@JTranscMethodBody(target = "dart", value = "return N.str(this.__buffer.toString());")
-	@JTranscSync
-	public String toStringSync() {
-		return new String(buffer, 0, length);
+		return this.toStringSync().substring(start, end);
 	}
 
 	@Override

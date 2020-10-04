@@ -43,7 +43,7 @@ object CppCompiler {
 		//cmdAndArgs += "-fno-stack-protector"
 		//cmdAndArgs += "-Wa,-mbig-obj"
 		cmdAndArgs += "-std=c++11"
-		cmdAndArgs += if (config.debug) "-O0" else "-O3"
+		cmdAndArgs += if (config.debug) "-O0" else "-O4"
 		if (!JTranscSystem.isMac()) cmdAndArgs += "-pthread"
 		if (config.debug) cmdAndArgs += "-g"
 	}

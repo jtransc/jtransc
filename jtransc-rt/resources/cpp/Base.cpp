@@ -7,6 +7,7 @@
 //#define _JTRANSC_USE_DYNAMIC_LIB 1
 //#define INLINE_ARRAYS 1
 #define ENABLE_SYNCHRONIZED 1
+//#define TRACING 1
 
 #ifdef _WIN32
 	#define _JTRANSC_UNIX_LIKE_ 0
@@ -147,22 +148,22 @@ inline Float32x4 max(const Float32x4& l, const Float32x4& r){ return { std::fmax
 
 const wchar_t *FUNCTION_NAME = L"Unknown";
 
-struct CLASS_TRACE {
-	const char* text;
-	static void print_indent() { for (int n = 0; n < TRACE_INDENT; n++) putchar(' '); };
-	CLASS_TRACE(const char* text) : text(text) { print_indent(); printf("Enter: %s\n", text); TRACE_INDENT++; };
-	~CLASS_TRACE() {
-		#ifdef TRACING_JUST_ENTER
-			TRACE_INDENT--;
-		#else
-			TRACE_INDENT--; print_indent(); printf("Exit: %s\n", text);
-		#endif
-	};
-};
-
 #if TRACING
+	struct CLASS_TRACE {
+		const char* text;
+		static void print_indent() { for (int n = 0; n < TRACE_INDENT; n++) putchar(' '); };
+		CLASS_TRACE(const char* text) : text(text) { print_indent(); printf("Enter: %s\n", text); TRACE_INDENT++; };
+		~CLASS_TRACE() {
+			#ifdef TRACING_JUST_ENTER
+				TRACE_INDENT--;
+			#else
+				TRACE_INDENT--; print_indent(); printf("Exit: %s\n", text);
+			#endif
+		};
+	};
+
 	#define TRACE_REGISTER(location) std::shared_ptr<CLASS_TRACE> __CLASS_TRACE(__GC_ALLOC<CLASS_TRACE>(location));
-	#define N_ENSURE_NPE(obj) N_ENSURE_NPE(obj)
+	#define N_ENSURE_NPE(obj) N::ensureNpe(obj)
 #else
 	#define TRACE_REGISTER(location) ;
 	#define N_ENSURE_NPE(obj) N::ensureNpe(obj)
@@ -327,6 +328,7 @@ struct N {
 	static JAVA_OBJECT str(const char *str);
 	static JAVA_OBJECT str(const wchar_t *str, int32_t len);
 	static JAVA_OBJECT strLiteral(const wchar_t *str, int32_t len);
+	static JAVA_OBJECT str(std::u16string str);
 	static JAVA_OBJECT str(std::wstring str);
 	static JAVA_OBJECT str(std::string str);
 	static JAVA_OBJECT strArray(int32_t count, wchar_t **strs);
@@ -336,6 +338,8 @@ struct N {
 	static JAVA_OBJECT strEmptyArray();
 	{% end %}
 
+	static const char16_t* getStrDataPtr(JAVA_OBJECT obj);
+	static std::u16string istr(JAVA_OBJECT obj);
 	static std::wstring istr2(JAVA_OBJECT obj);
 	static std::string istr3(JAVA_OBJECT obj);
 	static JAVA_OBJECT dummyMethodClass();
@@ -353,6 +357,7 @@ struct N {
 
 	static int32_t strLen(JAVA_OBJECT obj);
 	static uint16_t strCharAt(JAVA_OBJECT obj, int32_t n);
+	static JA_C* strGetCharsFast(JAVA_OBJECT obj);
 
 	static int32_t identityHashCode(JAVA_OBJECT obj);
 
@@ -1150,6 +1155,20 @@ N::strLiteral(const wchar_t *ptr, int len) {
 }
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
+N::str(std::u16string str) {
+	int32_t len = str.length();
+	p_java_lang_String out(__GC_ALLOC<{% CLASS java.lang.String %}>());
+	JAVA_OBJECT _out = (JAVA_OBJECT)out;
+	p_JA_C array = __GC_ALLOC<JA_C>(len);
+	p_JA_C arrayobj = array;
+	uint16_t *ptr = (uint16_t *)array->getStartPtr();
+	for (int32_t n = 0; n < len; n++) ptr[n] = (uint16_t)str[n];
+	out->{% FIELD java.lang.String:value %} = arrayobj;
+	//GET_OBJECT({% CLASS java.lang.String %}, out)->M_java_lang_String__init____CII_V(array, 0, len);
+	return {% if ENABLE_TYPING %}out{% else %}_out{% end %};
+};
+
+{% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
 N::str(std::wstring str) {
 	int32_t len = str.length();
 	p_java_lang_String out(__GC_ALLOC<{% CLASS java.lang.String %}>());
@@ -1225,21 +1244,44 @@ N::strArray(int argc, char **argv) {
 	return strArray(arguments);
 }
 
+const char16_t* N::getStrDataPtr(JAVA_OBJECT obj) {
+	if (obj == nullptr) return nullptr;
+	auto chars = N::strGetCharsFast(obj);
+	//auto len = chars->length;
+	auto ptr = (const char16_t *)chars->getOffsetPtr(0);
+	return ptr;
+}
 
+std::u16string N::istr(JAVA_OBJECT obj) {
+	if (obj == nullptr) return u"null";
+	auto chars = N::strGetCharsFast(obj);
+	if (chars == nullptr) return u"null";
+	std::u16string o;
+	o.reserve((int)chars->length);
+	o.append((const char16_t *)chars->getOffsetPtr(0), (int)chars->length);
+	return o;
+}
 
+// @TODO: Can we make this faster?
 std::wstring N::istr2(JAVA_OBJECT obj) {
-	int32_t len = N::strLen(obj);
-	std::wstring s;
-	s.reserve(len);
-	for (int32_t n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
-	return s;
+	if (obj == nullptr) return L"null";
+	auto chars = N::strGetCharsFast(obj);
+	auto len = chars->length;
+	auto ptr = (const uint16_t *)chars->getOffsetPtr(0);
+	std::wstring o;
+	o.reserve(len);
+	for (int32_t n = 0; n < len; n++) o.push_back(ptr[n]);
+	return o;
 }
 
 std::string N::istr3(JAVA_OBJECT obj) {
-	int32_t len = N::strLen(obj);
+	if (obj == nullptr) return "null";
+	auto chars = N::strGetCharsFast(obj);
+	auto len = chars->length;
+	auto ptr = (const uint16_t *)chars->getOffsetPtr(0);
 	std::string s;
 	s.reserve(len);
-	for (int32_t n = 0; n < len; n++) s.push_back(N::strCharAt(obj, n));
+	for (int32_t n = 0; n < len; n++) s.push_back(ptr[n]);
 	return s;
 }
 
@@ -1252,6 +1294,12 @@ uint16_t N::strCharAt(JAVA_OBJECT obj, int32_t n) {
 	auto str = GET_OBJECT({% CLASS java.lang.String %}, obj);
 	return str->{% METHOD java.lang.String:charAt %}(n);
 }
+
+JA_C *N::strGetCharsFast(JAVA_OBJECT obj) {
+	auto str = GET_OBJECT({% CLASS java.lang.String %}, obj);
+	return (JA_C *)str->{% FIELD java.lang.String:value %};
+}
+
 
 void N::log(std::wstring str) {
 	std::wcout << str << L"\n";
