@@ -40,6 +40,7 @@ object CppCompiler {
 		//if (!JTranscSystem.isMac()) cmdAndArgs += "-lrt"
 		cmdAndArgs += "-fexceptions"
 		cmdAndArgs += "-frtti"
+		cmdAndArgs += "-D_FORTIFY_SOURCE=0" // Without this: *** buffer overflow detected ***: terminated
 		//cmdAndArgs += "-fno-stack-protector"
 		//cmdAndArgs += "-Wa,-mbig-obj"
 		cmdAndArgs += "-std=c++11"
