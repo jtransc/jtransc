@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <forward_list>
 #include <unordered_set>
 #include <unordered_map>
 #include <memory>
@@ -196,8 +197,8 @@ struct __GCAllocResult {
 struct __GCMemoryBlocks {
 	void *minptr = nullptr;
 	void *maxptr = nullptr;
-	std::list<__GCMemoryBlock*> blocks;
-	std::unordered_map<int, std::list<__GC*>> freeBlocksBySize;
+	std::vector<__GCMemoryBlock*> blocks;
+	std::unordered_map<int, std::vector<__GC*>> freeBlocksBySize;
 	int allocCount = 0;
 	int allocMemory = 0;
 	int totalMemory = 0;
@@ -206,9 +207,11 @@ struct __GCMemoryBlocks {
 		int allocSize = GC_roundUp(size, __GC_ALIGNMENT_SIZE);
 		allocMemory += allocSize;
 		allocCount++;
-		for (auto ptr : freeBlocksBySize[allocSize]) {
-			freeBlocksBySize[allocSize].pop_front();
-			return { ptr, allocSize };
+		auto fblocks = &freeBlocksBySize[allocSize];
+		if (!fblocks->empty()) {
+			auto v = fblocks->back();
+			fblocks->pop_back();
+			return { v, allocSize };
 		}
 		for (auto block : blocks) {
 			auto ptr = block->Alloc(allocSize);
