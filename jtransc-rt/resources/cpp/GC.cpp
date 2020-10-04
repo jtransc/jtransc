@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -18,6 +20,9 @@
 
 #define ENABLE_GC 1
 //#define DUMMY_ALLOCATOR 1
+
+#define __GC_ALIGNMENT_SIZE 64
+#define __GC_ALIGNMENT_MASK (__GC_ALIGNMENT_SIZE - 1)
 
 struct __GCVisitor;
 struct __GCHeap;
@@ -149,18 +154,21 @@ struct __GCMemoryChunk {
 };
 
 struct __GCMemoryBlock {
+	void *__ptr;
 	void *start;
 	void *end;
 	int sizeTotal;
 	int sizeUsed;
 	__GCMemoryBlock(int size) {
-		this->start = jtalloc(size);
+		this->__ptr = jtalloc(size);
+		this->start = (void *)GC_roundUp((uintptr_t)this->__ptr, (uintptr_t)64);
 		this->sizeTotal = size;
 		this->end = ((char *)this->start) + size;
 		this->sizeUsed = 0;
 	}
 	~__GCMemoryBlock() {
-		jtfree(this->start);
+		jtfree(this->__ptr);
+		this->__ptr = nullptr;
 		this->start = nullptr;
 		this->end = nullptr;
 		this->sizeTotal = 0;
@@ -195,7 +203,7 @@ struct __GCMemoryBlocks {
 	int totalMemory = 0;
 
 	__GCAllocResult Alloc(int size) {
-		int allocSize = GC_roundUp(size, 64);
+		int allocSize = GC_roundUp(size, __GC_ALIGNMENT_SIZE);
 		allocMemory += allocSize;
 		allocCount++;
 		for (auto ptr : freeBlocksBySize[allocSize]) {
@@ -220,6 +228,10 @@ struct __GCMemoryBlocks {
 		allocCount--;
 		allocMemory -= allocSize;
 		freeBlocksBySize[allocSize].push_back(ptr);
+	}
+
+	inline bool PreContainsPointerFast(void *ptr) {
+		return (ptr > (void *)0x10000) && (((uintptr_t)ptr & __GC_ALIGNMENT_MASK) == 0);
 	}
 
 	bool ContainsPointer(void *ptr) {
@@ -463,17 +475,17 @@ struct __GCHeap {
 
         for (void **ptr = end; ptr <= start; ptr++) {
             void *value = *ptr;
-            if (value > (void *)0x10000) {
-            	auto v = (__GC*)value;
-            	bool isptr = memory.ContainsPointer(v);
-            	bool isobj = isptr && v->_gcallocated == GC_OBJECT_CONSTANT;
-                if (isobj) {
-					visitor.Trace(v);
-                }
-                #if __TRACE_GC
-                std::cout << "  - " << ptr << ": " << value << ": isptr=" << isptr << ", isobj=" << isobj << "\n";
-                #endif
-            }
+            if (!memory.PreContainsPointerFast(value)) continue;
+
+			auto v = (__GC*)value;
+			bool isptr = memory.ContainsPointer(v);
+			bool isobj = isptr && v->_gcallocated == GC_OBJECT_CONSTANT;
+			if (isobj) {
+				visitor.Trace(v);
+			}
+			#if __TRACE_GC
+			std::cout << "  - " << ptr << ": " << value << ": isptr=" << isptr << ", isobj=" << isobj << "\n";
+			#endif
         }
     }
 
