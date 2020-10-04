@@ -54,6 +54,7 @@ Math.imul = Math.imul || function(a, b) {
 
 Math.clz32 = Math.clz32 || (function (x) { return (x >>>= 0) ? 31 - Math.floor(Math.log(x + 0.5) * Math.LOG2E) : 32; });
 Math.fround = Math.fround || (function (array) { return function(x) { return array[0] = x, array[0]; }; })(new Float32Array(1));
+//Math.fround = function(v) { return v; };
 
 String.prototype.reverse = String.prototype.reverse || (function() { return this.split("").reverse().join(""); });
 
@@ -768,6 +769,10 @@ class N {
 	static i2j(v) { return Int64.ofInt(v); }
 	static i2f(v) { return +v; }
 	static i2d(v) { return +v; }
+
+	static d2f(v) { return v; }
+	//static d2f(v) { return Math.fround(v); }
+
 	static d2j(v) {
 		if (isFinite(v)) {
 			return Int64.ofFloat(v);

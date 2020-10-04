@@ -306,16 +306,16 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_f2i(str: String) = "N.f2i($str)"
 	override fun N_i2i(str: String) = N_i(str)
 	override fun N_i2j(str: String) = "N.i2j($str)"
-	override fun N_i2f(str: String) = "Math.fround(+($str))"
+	override fun N_i2f(str: String) = "N.d2f(+($str))"
 	override fun N_i2d(str: String) = "+($str)"
-	override fun N_f2f(str: String) = "Math.fround($str)"
+	override fun N_f2f(str: String) = "N.d2f($str)"
 	override fun N_f2d(str: String) = "($str)"
-	override fun N_d2f(str: String) = "Math.fround(+($str))"
+	override fun N_d2f(str: String) = "N.d2f(+($str))"
 	override fun N_d2i(str: String) = "N.d2i($str)"
 	override fun N_d2d(str: String) = "+($str)"
 	override fun N_j2i(str: String) = "N.j2i($str)"
 	override fun N_j2j(str: String) = str
-	override fun N_j2f(str: String) = "Math.fround(N.j2d($str))"
+	override fun N_j2f(str: String) = "N.d2f(N.j2d($str))"
 	override fun N_j2d(str: String) = "N.j2d($str)"
 	override fun N_getFunction(str: String) = "N.getFunction($str)"
 	override fun N_c(str: String, from: AstType, to: AstType) = "($str)"
@@ -535,6 +535,12 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genExprCastChecked(e: String, from: AstType.Reference, to: AstType.Reference): String {
 		return "N.checkCast($e, ${to.targetNameRef})"
+	}
+
+	override fun genExprLiteral(e: AstExpr.LITERAL): String {
+		val value = e.value
+		if (value is Float) return "N.d2f(${value})"
+		return super.genExprLiteral(e)
 	}
 
 	override fun genConcatString(e: AstExpr.CONCAT_STRING): String {
