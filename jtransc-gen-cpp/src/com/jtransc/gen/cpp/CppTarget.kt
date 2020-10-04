@@ -534,11 +534,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				}
 			}
 
-			if (clazz.isInterface) {
-				line("virtual p_java_lang_Object __getObj() = 0;")
-				line("virtual void* __getInterface(int classId) = 0;")
-			} else {
-				line("virtual ${JAVA_LANG_OBJECT_REF.targetNameRef} __getObj() { return (${JAVA_LANG_OBJECT_REF.targetNameRef})this; }")
+			if (!clazz.isInterface) {
 				line("virtual void* __getInterface(int classId)") {
 					if (clazz.allInterfacesInAncestors.isNotEmpty()) {
 						line("switch (classId)") {

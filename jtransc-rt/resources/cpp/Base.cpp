@@ -200,16 +200,6 @@ struct Env {
  	//
 };
 
-//template<typename T> p_java_lang_Object CC_GET_OBJECT(T t) {
-// 	if (t == nullptr) return nullptr;
-// 	return t->__toObj();
-//}
-
-//template<typename T> void* CC_GET_VOID(T t) {
-// 	if (t == nullptr) return nullptr;
-// 	return t->__toVoid();
-//}
-
 /*
 template <typename TTo> TTo CC_CHECK_CAST1(void* i, int typeId, const char *from, const char *to) {
 	//printf("N::CHECK_CAST(%p, %s -> %s)\n", i, from, to);
@@ -349,7 +339,6 @@ struct N {
 	template<typename T> static T ensureNpe(T obj);
 	static std::vector<JAVA_OBJECT> getVectorOrEmpty(JAVA_OBJECT array);
 
-	template<typename T> static p_java_lang_Object CC_GET_OBJ(T t);
 	template<typename TTo, typename TFrom> TTo static CC_CHECK_CLASS(TFrom i, int32_t typeId);
 	template<typename T> T static CC_CHECK_UNTYPED(T i, int32_t typeId);
 	template<typename TTo, typename TFrom> TTo static CC_CHECK_INTERFACE(TFrom i, int32_t typeId);
@@ -1351,11 +1340,6 @@ void N::writeChars(JAVA_OBJECT str, char *out, int32_t maxlen) {
 
 void __throwCLASSCAST() {
 	throw {% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N::str(L"Class cast error"));
-}
-
-template<typename T> p_java_lang_Object N::CC_GET_OBJ(T t) {
- 	if (t == nullptr) return nullptr;
- 	return t->__getObj();
 }
 
 template<typename TTo, typename TFrom> TTo N::CC_CHECK_CLASS(TFrom i, int32_t typeId) {
