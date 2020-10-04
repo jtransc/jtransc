@@ -21,7 +21,7 @@
 
 #define ENABLE_GC 1
 
-#define __GC_ALIGNMENT_SIZE 64
+#define __GC_ALIGNMENT_SIZE 32
 
 struct __GCVisitor;
 struct __GCHeap;
@@ -36,14 +36,14 @@ template <typename T> T GC_roundUp(T numToRound, T multiple) {
 void *jtalloc(size_t size) { return malloc(size); }
 void jtfree(void *ptr) { free(ptr); }
 
-#define GC_OBJECT_CONSTANT 0x139912F0
+const unsigned char GC_OBJECT_CONSTANT = 0xF1;
 
 struct __GC {
-    int _gcallocated = GC_OBJECT_CONSTANT;
     __GC *next = nullptr;
     unsigned short markVersion = 0;
-    unsigned short liveCount = 0;
-    int __GC_objsize;
+    unsigned short __GC_objsize;
+    unsigned char _gcallocated = GC_OBJECT_CONSTANT;
+    unsigned char liveCount = 0;
 
 	virtual std::wstring __GC_Name() { return L"__GC"; }
     virtual void __GC_Trace(__GCVisitor* visitor) {}
@@ -218,7 +218,7 @@ struct __GCMemoryBlocks {
 	}
 
 	void Free(__GC *ptr) {
-		int allocSize = ptr->__GC_objsize;
+		int allocSize = ptr->__GC_objsize * __GC_ALIGNMENT_SIZE;
 		allocCount--;
 		allocMemory -= allocSize;
 		getFreeBlocksBySizeArray(allocSize)->push_back(ptr);
@@ -564,7 +564,7 @@ struct __GCHeap {
 		//T *newobj = ::new T(std::forward<Args>(args)...);
     	#ifdef ENABLE_GC
 		newobj->__GC_Init(this);
-    	newobj->__GC_objsize = objsize;
+    	newobj->__GC_objsize = objsize / __GC_ALIGNMENT_SIZE;
     	newobj->_gcallocated = GC_OBJECT_CONSTANT;
         //allocated_gen1.push_back(newobj);
 		newobj->next = (__GC*)this->head_gen1;
