@@ -120,7 +120,7 @@ const supportsBigInt = typeof BigInt !== "undefined";
 
 //if (typeof BigInt !== "undefined") {
 if (false) {
-	Int64.is = function(value) { return typeof value == 'bigint'; };
+	Int64.is = function(value) { return typeof value === 'bigint'; };
 	Int64.make = function(high, low) {
 		if (high === 0) return BigInt(low >>> 0);
 		const i64 = new BigInt64Array(1);
@@ -196,11 +196,18 @@ if (false) {
 
 	Int64.abs = function(a) { return (Int64.sign(a) < 0) ? Int64.neg(a) : a; };
 } else {
-	const MAX_INT64 = new Int64(0x7FFFFFFF, 0xFFFFFFFF);
-	const MIN_INT64 = new Int64(0x80000000, 0x00000000);
+	Int64.make_raw = function(high, low) { return new Int64(high, low); };
+	Int64.low = function(v) { return v.low; }
+	Int64.high = function(v) { return v.high; }
 
-	Int64.zero = new Int64(0, 0);
-	Int64.one = new Int64(0, 1);
+	//Int64.make_raw = function(high, low) { const out = new Int32Array(2); out[0] = low; out[1] = high; return out; };
+	//Int64.low = function(v) { return v[0]; }
+	//Int64.high = function(v) { return v[1]; }
+
+	const MAX_INT64 = Int64.make_raw(0x7FFFFFFF, 0xFFFFFFFF);
+	const MIN_INT64 = Int64.make_raw(0x80000000, 0x00000000);
+	Int64.zero = Int64.make_raw(0, 0);
+	Int64.one = Int64.make_raw(0, 1);
 	Int64.MIN_VALUE = MIN_INT64;
 	Int64.MAX_VALUE = MAX_INT64;
 	Int64.is = function(value) { return value instanceof Int64; };
@@ -209,7 +216,7 @@ if (false) {
 			if (low === 0) return Int64.zero;
 			if (low === 1) return Int64.one;
 		}
-		return new Int64(high, low);
+		return Int64.make_raw(high, low);
 	};
 	Int64.ofInt = function(value) {
 		return Int64.make(value >> 31, value | 0);
@@ -223,8 +230,8 @@ if (false) {
 	Int64.toBigInt = function(value) {
 		const i64 = new BigInt64Array(1);
 		const i32 = new Int32Array(i64.buffer);
-		i32[0] = value.low;
-		i32[1] = value.high;
+		i32[0] = Int64.low(value);
+		i32[1] = Int64.high(value);
 		return i64[0];
 	};
 
@@ -250,32 +257,32 @@ if (false) {
 		return neg ? Int64.neg(result) : result;
 	};
 
-	Int64.toInt = function(a) { return a.low; };
+	Int64.toInt = function(a) { return Int64.low(a); };
 	Int64.toFloat = function(v) {
 		if (Int64.isNeg(v)) return Int64.eq(v, MIN_INT64) ? -9223372036854775808.0 : -Int64.toFloat(Int64.neg(v));
-		return v.low + v.high * M2P32_DBL;
+		return Int64.low(v) + Int64.high(v) * M2P32_DBL;
 	};
 
-	Int64.isNeg = function(a) { return a.high < 0; };
-	Int64.isZero = function(a) { return a.high === 0 && a.low === 0; };
-	Int64.isNotZero = function(a) { return a.high !== 0 || a.low !== 0; };
+	Int64.isNeg = function(a) { return Int64.high(a) < 0; };
+	Int64.isZero = function(a) { return Int64.high(a) === 0 && Int64.low(a) === 0; };
+	Int64.isNotZero = function(a) { return Int64.high(a) !== 0 || Int64.low(a) !== 0; };
 
 	// Comparisons
 
 	Int64.compare = function(a, b) {
-		let v = a.high - b.high | 0;
-		if (v === 0) v = Int32.ucompare(a.low, b.low);
-		return (a.high < 0) ? ((b.high < 0) ? v : -1) : ((b.high >= 0) ? v : 1);
+		let v = Int64.high(a) - Int64.high(b) | 0;
+		if (v === 0) v = Int32.ucompare(Int64.low(a), Int64.low(b));
+		return (Int64.high(a) < 0) ? ((Int64.high(b) < 0) ? v : -1) : ((Int64.high(b) >= 0) ? v : 1);
 	};
 
 	Int64.ucompare = function(a, b) {
-		let v = Int32.ucompare(a.high, b.high);
-		return (v !== 0) ? v : Int32.ucompare(a.low, b.low);
+		let v = Int32.ucompare(Int64.high(a), Int64.high(b));
+		return (v !== 0) ? v : Int32.ucompare(Int64.low(a), Int64.low(b));
 	};
 
-	Int64.eq = function(a, b) { return (a.high === b.high) && (a.low === b.low); };
-	Int64.ne = function(a, b) { return (a.high !== b.high) || (a.low !== b.low); };
-	Int64.neq= function(a, b) { return (a.high !== b.high) || (a.low !== b.low); };
+	Int64.eq = function(a, b) { return (Int64.high(a) === Int64.high(b)) && (Int64.low(a) === Int64.low(b)); };
+	Int64.ne = function(a, b) { return (Int64.high(a) !== Int64.high(b)) || (Int64.low(a) !== Int64.low(b)); };
+	Int64.neq= function(a, b) { return (Int64.high(a) !== Int64.high(b)) || (Int64.low(a) !== Int64.low(b)); };
 	Int64.lt = function(a, b) { return Int64.compare(a, b) < 0; };
 	Int64.le = function(a, b) { return Int64.compare(a, b) <= 0; };
 	Int64.gt = function(a, b) { return Int64.compare(a, b) > 0; };
@@ -295,10 +302,10 @@ if (false) {
 		while (Int64.isNotZero(i)) {
 			let r = Int64.divMod(i, ten);
 			if (Int64.isNeg(r.modulus)) {
-				str = Int64.neg(r.modulus).low + str;
+				str = Int64.low(Int64.neg(r.modulus)) + str;
 				i = Int64.neg(r.quotient);
 			} else {
-				str = r.modulus.low + str;
+				str = Int64.low(r.modulus) + str;
 				i = r.quotient;
 			}
 		}
@@ -311,14 +318,14 @@ if (false) {
 	// Arithmetic
 
 	Int64.divMod = function(dividend, divisor) {
-		if (divisor.high === 0 && divisor.low === 0) throw new Error("divide by zero");
-		if (divisor.high === 0 && divisor.low === 1) return { quotient : dividend, modulus : Int64.ofInt(0)};
-		if (dividend.high === 0 && divisor.high === 0) return {
-			quotient: Int64.ofInt(((divisor.low >>> 0) / (dividend.low >>> 0)) | 0),
-			modulus: Int64.ofInt((divisor.low >>> 0) % (dividend.low >>> 0))
+		if (Int64.high(divisor) === 0 && Int64.low(divisor) === 0) throw new Error("divide by zero");
+		if (Int64.high(divisor) === 0 && Int64.low(divisor) === 1) return { quotient : dividend, modulus : Int64.ofInt(0)};
+		if (Int64.high(dividend) === 0 && Int64.high(divisor) === 0) return {
+			quotient: Int64.ofInt(((Int64.low(divisor) >>> 0) / (Int64.low(dividend) >>> 0)) | 0),
+			modulus: Int64.ofInt((Int64.low(divisor) >>> 0) % (Int64.low(dividend) >>> 0))
 		};
 		let divSign = Int64.isNeg(dividend) !== Int64.isNeg(divisor);
-		let modulus = Int64.isNeg(dividend) ? Int64.neg(dividend) : Int64.make(dividend.high,dividend.low);
+		let modulus = Int64.isNeg(dividend) ? Int64.neg(dividend) : Int64.make(Int64.high(dividend), Int64.low(dividend));
 		if (Int64.isNeg(divisor)) divisor = Int64.neg(divisor);
 		let quotient = Int64.ofInt(0);
 		let mask = Int64.ofInt(1);
@@ -342,31 +349,31 @@ if (false) {
 	};
 
 	Int64.neg = function(x) {
-		let high = ~x.high | 0;
-		let low = -x.low | 0;
+		let high = ~Int64.high(x) | 0;
+		let low = -Int64.low(x) | 0;
 		if (low === 0) high = high + 1 | 0;
-		return Int64.make(high,low);
+		return Int64.make(high, low);
 	};
 
 	Int64.add = function(a, b) {
-		let high = a.high + b.high | 0;
-		let low = a.low + b.low | 0;
-		if (Int32.ucompare(low, a.low) < 0) high = high + 1 | 0;
+		let high = Int64.high(a) + Int64.high(b) | 0;
+		let low = Int64.low(a) + Int64.low(b) | 0;
+		if (Int32.ucompare(low, Int64.low(a)) < 0) high = high + 1 | 0;
 		return Int64.make(high,low);
 	};
 
 	Int64.sub = function(a, b) {
-		let high = a.high - b.high | 0;
-		let low = a.low - b.low | 0;
-		if (Int32.ucompare(a.low, b.low) < 0) high = high - 1 | 0;
+		let high = Int64.high(a) - Int64.high(b) | 0;
+		let low = Int64.low(a) - Int64.low(b) | 0;
+		if (Int32.ucompare(Int64.low(a), Int64.low(b)) < 0) high = high - 1 | 0;
 		return Int64.make(high,low);
 	};
 
 	Int64.mul = function(a, b) {
-		let al = a.low & 65535;
-		let ah = a.low >>> 16;
-		let bl = b.low & 65535;
-		let bh = b.low >>> 16;
+		let al = Int64.low(a) & 65535;
+		let ah = Int64.low(a) >>> 16;
+		let bl = Int64.low(b) & 65535;
+		let bh = Int64.low(b) >>> 16;
 		let p00 = Int32.mul(al,bl);
 		let p10 = Int32.mul(ah,bl);
 		let p01 = Int32.mul(al,bh);
@@ -379,7 +386,7 @@ if (false) {
 		p10 = p10 << 16;
 		low = low + p10 | 0;
 		if(Int32.ucompare(low,p10) < 0) high = high + 1 | 0;
-		high = high + (Int32.mul(a.low,b.high) + Int32.mul(a.high,b.low) | 0) | 0;
+		high = high + (Int32.mul(Int64.low(a), Int64.high(b)) + Int32.mul(Int64.high(a), Int64.low(b)) | 0) | 0;
 		return Int64.make(high,low);
 	};
 
@@ -388,31 +395,31 @@ if (false) {
 	Int64.rem = function(a, b) { return Int64.divMod(a, b).modulus; };
 
 	// BIT-WISE
-	Int64.not = function(x) { return Int64.make(~x.high, ~x.low); }
-	Int64.and = function(a, b) { return Int64.make(a.high & b.high, a.low & b.low); }
-	Int64.or = function(a, b) { return Int64.make(a.high | b.high, a.low | b.low); }
-	Int64.xor = function(a, b) { return Int64.make(a.high ^ b.high, a.low ^ b.low); }
+	Int64.not = function(x) { return Int64.make(~Int64.high(x), ~Int64.low(x)); }
+	Int64.and = function(a, b) { return Int64.make(Int64.high(a) & Int64.high(b), Int64.low(a) & Int64.low(b)); }
+	Int64.or = function(a, b) { return Int64.make(Int64.high(a) | Int64.high(b), Int64.low(a) | Int64.low(b)); }
+	Int64.xor = function(a, b) { return Int64.make(Int64.high(a) ^ Int64.high(b), Int64.low(a) ^ Int64.low(b)); }
 	Int64.shl = function(a, b) {
 		b &= 63;
 		if (b === 0) {
-			return Int64.make(a.high,a.low);
+			return Int64.make(Int64.high(a), Int64.low(a));
 		} else if(b < 32) {
-			return Int64.make(a.high << b | a.low >>> 32 - b,a.low << b);
+			return Int64.make(Int64.high(a) << b | Int64.low(a) >>> 32 - b, Int64.low(a) << b);
 		} else {
-			return Int64.make(a.low << b - 32,0);
+			return Int64.make(Int64.low(a) << b - 32,0);
 		}
 	}
 	Int64.shr = function(a, b) {
 		b &= 63;
-		if (b === 0) return Int64.make(a.high, a.low);
-		if (b < 32) return Int64.make(a.high >> b, a.high << 32 - b | a.low >>> b);
-		return Int64.make(a.high >> 31, a.high >> b - 32);
+		if (b === 0) return Int64.make(Int64.high(a), Int64.low(a));
+		if (b < 32) return Int64.make(Int64.high(a) >> b, Int64.high(a) << 32 - b | Int64.low(a) >>> b);
+		return Int64.make(Int64.high(a) >> 31, Int64.high(a) >> b - 32);
 	}
 	Int64.ushr = function(a, b) {
 		b &= 63;
-		if (b === 0) return Int64.make(a.high, a.low);
-		if (b < 32) return Int64.make(a.high >>> b, a.high << 32 - b | a.low >>> b);
-		return Int64.make(0, a.high >>> b - 32);
+		if (b === 0) return Int64.make(Int64.high(a), Int64.low(a));
+		if (b < 32) return Int64.make(Int64.high(a) >>> b, Int64.high(a) << 32 - b | Int64.low(a) >>> b);
+		return Int64.make(0, Int64.high(a) >>> b - 32);
 	}
 
 	// Funcs
@@ -807,8 +814,8 @@ class N {
 	static lnew(high, low) { return Int64.make(high, low); };
 	static lnewFloat(v) { return Int64.ofFloat(v); };
 	static ltoFloat(v) { return Int64.toFloat(v); };
-	static llow (v) { return v.low; }
-	static lhigh(v) { return v.high; }
+	static llow (v) { return Int64.low(v); }
+	static lhigh(v) { return Int64.high(v); }
 	static ladd (a, b) { return Int64.add(a, b); }
 	static lsub (a, b) { return Int64.sub(a, b); }
 	static lmul (a, b) { return Int64.mul(a, b); }
