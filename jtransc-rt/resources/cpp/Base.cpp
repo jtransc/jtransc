@@ -6,7 +6,7 @@
 
 //#define _JTRANSC_USE_DYNAMIC_LIB 1
 //#define INLINE_ARRAYS 1
-#define ENABLE_SYNCHRONIZED 1
+//#define ENABLE_SYNCHRONIZED 1
 //#define TRACING 1
 
 #ifdef _WIN32

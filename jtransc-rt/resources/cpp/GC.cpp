@@ -23,7 +23,6 @@
 //#define DUMMY_ALLOCATOR 1
 
 #define __GC_ALIGNMENT_SIZE 64
-#define __GC_ALIGNMENT_MASK (__GC_ALIGNMENT_SIZE - 1)
 
 struct __GCVisitor;
 struct __GCHeap;
@@ -155,7 +154,7 @@ struct __GCMemoryBlock {
 	int sizeUsed;
 	__GCMemoryBlock(int size) {
 		this->__ptr = jtalloc(size);
-		this->start = (void *)GC_roundUp((uintptr_t)this->__ptr, (uintptr_t)64);
+		this->start = (void *)GC_roundUp((uintptr_t)this->__ptr, (uintptr_t)__GC_ALIGNMENT_SIZE);
 		this->sizeTotal = size;
 		this->end = ((char *)this->start) + size;
 		this->sizeUsed = 0;
@@ -187,26 +186,27 @@ struct __GCAllocResult {
 	int size;
 };
 
+#define MAX_FAST_FREE_BLOCKS_BY_SIZES 16
+
 struct __GCMemoryBlocks {
 	void *minptr = nullptr;
 	void *maxptr = nullptr;
 	__GCMemoryBlock* lastBlock = nullptr;
 	std::vector<__GCMemoryBlock*> blocks;
-	std::vector<__GC*> freeBlocksBySize128;
-	std::vector<__GC*> freeBlocksBySize64;
+	std::vector<__GC*> freeBlocksBySizes[MAX_FAST_FREE_BLOCKS_BY_SIZES];
 	std::unordered_map<int, std::vector<__GC*>> freeBlocksBySize;
 	int allocCount = 0;
 	int allocMemory = 0;
 	int totalMemory = 0;
 
 	__GCMemoryBlocks() {
-		freeBlocksBySize128.reserve(1024);
-		freeBlocksBySize64.reserve(1024);
 	}
 
 	std::vector<__GC*> *getFreeBlocksBySizeArray(int allocSize) {
-		if (allocSize == 128) return &freeBlocksBySize128;
-		if (allocSize == 64) return &freeBlocksBySize64;
+		int index = allocSize / __GC_ALIGNMENT_SIZE;
+		if (index < MAX_FAST_FREE_BLOCKS_BY_SIZES) {
+			return &freeBlocksBySizes[index];
+		}
 		//std::cout << allocSize << "\n";
 		return &freeBlocksBySize[allocSize];
 	}
@@ -247,7 +247,7 @@ struct __GCMemoryBlocks {
 	}
 
 	inline bool PreContainsPointerFast(void *ptr) {
-		return (ptr > (void *)0x10000) && (((uintptr_t)ptr & __GC_ALIGNMENT_MASK) == 0);
+		return (ptr > (void *)0x10000) && (((uintptr_t)ptr % __GC_ALIGNMENT_SIZE) == 0);
 	}
 
 	bool ContainsPointer(void *ptr) {
