@@ -14,6 +14,7 @@ import com.jtransc.gen.cpp.libs.Libs
 import com.jtransc.injector.Injector
 import com.jtransc.injector.Singleton
 import com.jtransc.io.ProcessResult2
+import com.jtransc.plugin.finalizer.descendantList
 import com.jtransc.text.Indenter
 import com.jtransc.text.quote
 import com.jtransc.text.toCommentString
@@ -166,7 +167,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val objectClassId = program["java.lang.Object".fqname].classId
 		for (clazz in ordereredClassesMustGenerate) {
 			val ids = clazz.getAllRelatedTypesIdsWith0AtEnd()
-			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size}, new int32_t[${ids.size}]{${ids.joinToString(", ")}} };")
+			line("const TYPE_INFO ${clazz.cppName}::TABLE_INFO = { ${ids.size - 1}, new int32_t[${ids.size}]{${ids.joinToString(", ")}} };")
 		}
 
 		line("const int32_t TYPE_TABLE::count = $lastClassId;")
@@ -1015,7 +1016,16 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun N_is(a: String, b: AstType.Reference): String = when (b) {
-		is AstType.REF -> N_func("is", "($a), ${program[b.name].classId}")
+		is AstType.REF -> {
+			val clazz = program[b.name]
+			val ids = clazz.getAllRelatedTypes() + clazz.descendantList.toSet()
+			//if (!clazz.isInterface && clazz.isFinal && ids.size <= 7) {
+			if (!clazz.isInterface && ids.size <= 7) {
+				N_func("isFast", "($a), ${ids.map { it.classId }.joinToString(", ")}")
+			} else {
+				N_func("is", "($a), ${clazz.classId}")
+			}
+		}
 		is AstType.ARRAY -> N_func("isArray", "($a), L${b.mangle().quote()}")
 		else -> N_func("isUnknown", """$a, "Unsupported $b"""")
 	}

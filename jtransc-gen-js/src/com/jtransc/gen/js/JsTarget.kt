@@ -280,22 +280,6 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
-	override fun N_is(a: String, b: AstType.Reference): String {
-		return when (b) {
-			is AstType.REF -> {
-				val clazz = program[b]!!
-				if (clazz.isInterface) {
-					"N.isClassId($a, ${clazz.classId})"
-				} else {
-					"($a instanceof ${b.targetName})"
-				}
-			}
-			else -> {
-				super.N_is(a, b)
-			}
-		}
-	}
-
 	override fun N_func(name: String, args: String): String {
 		val base = "N$staticAccessOperator$name($args)"
 		return when (name) {
@@ -310,6 +294,8 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	override fun N_isObj(a: String, b: AstClass): String = "N.isObj($a, ${b.ref.targetName})"
+	override fun N_isIfc(a: String, b: AstClass): String = "N.isClassId($a, ${b.classId})"
 	override fun N_is(a: String, b: String) = "N.is($a, $b)"
 	override fun N_z2i(str: String) = "N.z2i($str)"
 	override fun N_i(str: String) = "(($str)|0)"

@@ -8,3 +8,4 @@ com.jtransc.plugin.lang.IncludeSingleConstructorsJTranscPlugin
 com.jtransc.plugin.overlay.OverlayJTranscPlugin
 com.jtransc.plugin.reref.ReReferenceJTranscPlugin
 com.jtransc.plugin.junit.JUnitJTranscPlugin
+com.jtransc.plugin.finalizer.FinalizerJTranscPlugin

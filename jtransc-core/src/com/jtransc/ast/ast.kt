@@ -597,8 +597,8 @@ class AstClass(
 
 	fun getAllRelatedTypes() = (thisAndAncestors + allInterfacesInAncestors).toSet()
 
-	fun getAllRelatedTypesIdsWithout0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull()
-	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypes().distinct().map { it.classId }.filterNotNull() + listOf(0)
+	fun getAllRelatedTypesIdsWithout0AtEnd() = getAllRelatedTypes().map { it.classId }
+	fun getAllRelatedTypesIdsWith0AtEnd() = getAllRelatedTypesIdsWithout0AtEnd() + listOf(0)
 
 	val ancestors: List<AstClass> by lazy { thisAndAncestors.drop(1) }
 	val thisAncestorsAndInterfaces: Set<AstClass> by lazy { (thisAndAncestors + allDirectInterfaces).toSet() }
@@ -872,7 +872,7 @@ interface WithAstModifiersParameter : WithAstModifiers
 interface WithAstModifiersClass : WithAstModifiers
 
 @Suppress("unused")
-data class AstModifiers(val acc: Int) : WithAstModifiersMethod, WithAstModifiersField, WithAstModifiersClass, WithAstModifiersParameter {
+data class AstModifiers(var acc: Int) : WithAstModifiersMethod, WithAstModifiersField, WithAstModifiersClass, WithAstModifiersParameter {
 	override val modifiers = this
 	companion object {
 		fun withFlags(vararg flags: Int): AstModifiers {

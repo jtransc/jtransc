@@ -1597,7 +1597,15 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	open protected fun N_unboxDouble(e: String) = N_func("unboxDouble", "$e")
 	open protected fun N_unboxRaw(e: String) = N_func("unbox", "$e")
 
-	open protected fun N_is(a: String, b: AstType.Reference) = N_is(a, b.targetName)
+	open protected fun N_is(a: String, b: AstType.Reference): String {
+		if (b.isREF()) {
+			val clazz = program[b.asREF()] ?: error("Can't find class $b")
+			return  if (clazz!!.isInterface) N_isIfc(a, clazz) else N_isObj(a, clazz)
+		}
+		return N_is(a, b.targetName)
+	}
+	open protected fun N_isObj(a: String, b: AstClass) = N_is(a, b.ref.targetName)
+	open protected fun N_isIfc(a: String, b: AstClass) = N_is(a, b.ref.targetName)
 	open protected fun N_is(a: String, b: String) = N_func("is", "$a, $b")
 	open protected fun N_z2z(str: String) = "($str)"
 	open protected fun N_z2i(str: String) = N_func("z2i", "$str")

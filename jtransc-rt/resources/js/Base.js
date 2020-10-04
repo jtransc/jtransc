@@ -856,21 +856,44 @@ class N {
 		}
 	};
 
-	// @TODO: optimize this again!
-	static is(i, clazz) {
-		if (i instanceof clazz) return true;
-		if (i == null) return false;
+	static isObj(i, clazz) {
+		return i instanceof clazz;
+	}
+
+	static isIfc(i, clazz) {
+		if (i === null) return false;
 		if (typeof i.__JT__CLASS_ID === 'undefined') return false;
 		return i.__JT__CLASS_IDS.indexOf(clazz.__JT__CLASS_ID) >= 0;
-	};
+	}
+
+	// @TODO: optimize this again!
+	static is(i, clazz) {
+		if (N.isObj(i, clazz)) return true;
+		return N.isIfc(i, clazz);
+	}
+
+	static throwInvalidConversion() {
+		throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
+	}
+
+	static checkCastObj(i, clazz) {
+		if (i == null) return null;
+		if (clazz === null) throw new Error('Internal error N.checkCast');
+		if (!N.isObj(i, clazz)) N.throwInvalidConversion();
+		return i;
+	}
+
+	static checkCastIfc(i, clazz) {
+		if (i == null) return null;
+		if (clazz === null) throw new Error('Internal error N.checkCast');
+		if (!N.isIfc(i, clazz)) N.throwInvalidConversion();
+		return i;
+	}
 
 	static checkCast(i, clazz) {
 		if (i == null) return null;
 		if (clazz === null) throw new Error('Internal error N.checkCast');
-		if (!N.is(i, clazz)) {
-			//throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion ' + i + ' != ' + clazz)));
-			throw NewWrappedError({% CONSTRUCTOR java.lang.ClassCastException:(Ljava/lang/String;)V %}(N.str('Invalid conversion')));
-		}
+		if (!N.is(i, clazz)) N.throwInvalidConversion();
 		return i;
 	};
 
@@ -1065,17 +1088,17 @@ class N {
 	};
 
 	static unbox(value, throwOnInvalid) {
-		if (N.is(value, {% CLASS java.lang.Boolean %})) return N.unboxBool(value);
-		if (N.is(value, {% CLASS java.lang.Byte %})) return N.unboxByte(value);
-		if (N.is(value, {% CLASS java.lang.Short %})) return N.unboxShort(value);
-		if (N.is(value, {% CLASS java.lang.Character %})) return N.unboxChar(value);
-		if (N.is(value, {% CLASS java.lang.Integer %})) return N.unboxInt(value);
-		if (N.is(value, {% CLASS java.lang.Long %})) return N.unboxLong(value);
-		if (N.is(value, {% CLASS java.lang.Float %})) return N.unboxFloat(value);
-		if (N.is(value, {% CLASS java.lang.Double %})) return N.unboxDouble(value);
-		if (N.is(value, {% CLASS java.lang.String %})) return N.unboxString(value);
+		if (N.isObj(value, {% CLASS java.lang.Boolean %})) return N.unboxBool(value);
+		if (N.isObj(value, {% CLASS java.lang.Byte %})) return N.unboxByte(value);
+		if (N.isObj(value, {% CLASS java.lang.Short %})) return N.unboxShort(value);
+		if (N.isObj(value, {% CLASS java.lang.Character %})) return N.unboxChar(value);
+		if (N.isObj(value, {% CLASS java.lang.Integer %})) return N.unboxInt(value);
+		if (N.isObj(value, {% CLASS java.lang.Long %})) return N.unboxLong(value);
+		if (N.isObj(value, {% CLASS java.lang.Float %})) return N.unboxFloat(value);
+		if (N.isObj(value, {% CLASS java.lang.Double %})) return N.unboxDouble(value);
+		if (N.isObj(value, {% CLASS java.lang.String %})) return N.unboxString(value);
 		if (value instanceof JA_B) return N.unboxByteArray(value);
-		if (N.is(value, {% CLASS com.jtransc.JTranscWrapped %})) return N.unboxWrapped(value);
+		if (N.isObj(value, {% CLASS com.jtransc.JTranscWrapped %})) return N.unboxWrapped(value);
 		if (throwOnInvalid) throw 'Was not able to unbox "' + value + '"';
 		return value;
 	}
@@ -1150,7 +1173,7 @@ class N {
 		if (typeof v == 'string') return N.str(v);
 		if ((v|0) == v) return N.boxInt({{ JC_COMMA }}v);
 		if (+(v) == v) return N.boxFloat({{ JC_COMMA }}v);
-		if ((v == null) || N.is(v, {% CLASS java.lang.Object %})) return v;
+		if ((v == null) || N.isObj(v, {% CLASS java.lang.Object %})) return v;
 		return N.wrap(v);
 	};
 

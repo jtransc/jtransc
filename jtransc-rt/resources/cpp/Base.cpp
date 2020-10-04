@@ -251,7 +251,16 @@ struct N {
 
 	static JAVA_OBJECT resolveClass(std::wstring str);
 	inline static int64_t lnew(int32_t high, int32_t low);
+
 	static JT_BOOL is(JAVA_OBJECT obj, int32_t type);
+	static JT_BOOL isFast(JAVA_OBJECT obj, int32_t t0);
+	static JT_BOOL isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1);
+	static JT_BOOL isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2);
+	static JT_BOOL isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t3);
+	static JT_BOOL isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t3, int32_t t4);
+	static JT_BOOL isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t3, int32_t t4, int32_t t5);
+	static JT_BOOL isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t3, int32_t t4, int32_t t5, int32_t t6);
+
 	template<typename T> inline static bool is(T* obj, int32_t type) { return is((JAVA_OBJECT)obj, type); }
 	static JT_BOOL isArray(JAVA_OBJECT obj);
 	static JT_BOOL isArray(JAVA_OBJECT obj, std::wstring desc);
@@ -858,12 +867,78 @@ int64_t N::lnew(int32_t high, int32_t low) {
 
 JT_BOOL N::is(JAVA_OBJECT obj, int32_t type) {
 	if (obj == nullptr) return false;
-	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj->__JT__CLASS_ID];
+	int obj_type = obj->__JT__CLASS_ID;
+	if (obj_type == type) return true;
+	const TYPE_INFO type_info = TYPE_TABLE::TABLE[obj_type];
 	const size_t size = type_info.size;
 	const int32_t* subtypes = type_info.subtypes;
-    for (size_t i = 0; i < size; i++){
+    for (size_t i = 0; i < size; i++) {
     	if (subtypes[i] == type) return true;
     }
+	return false;
+};
+
+JT_BOOL N::isFast(JAVA_OBJECT obj, int32_t t0) {
+	if (obj == nullptr) return false;
+	int obj_type = obj->__JT__CLASS_ID;
+	if (obj_type == t0) return true;
+	return false;
+};
+JT_BOOL N::isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1) {
+	if (obj == nullptr) return false;
+	int obj_type = obj->__JT__CLASS_ID;
+	if (obj_type == t0) return true;
+	if (obj_type == t1) return true;
+	return false;
+};
+JT_BOOL N::isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2) {
+	if (obj == nullptr) return false;
+	int obj_type = obj->__JT__CLASS_ID;
+	if (obj_type == t0) return true;
+	if (obj_type == t1) return true;
+	if (obj_type == t2) return true;
+	return false;
+};
+JT_BOOL N::isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t3) {
+	if (obj == nullptr) return false;
+	int obj_type = obj->__JT__CLASS_ID;
+	if (obj_type == t0) return true;
+	if (obj_type == t1) return true;
+	if (obj_type == t2) return true;
+	if (obj_type == t3) return true;
+	return false;
+};
+JT_BOOL N::isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t3, int32_t t4) {
+	if (obj == nullptr) return false;
+	int obj_type = obj->__JT__CLASS_ID;
+	if (obj_type == t0) return true;
+	if (obj_type == t1) return true;
+	if (obj_type == t2) return true;
+	if (obj_type == t3) return true;
+	if (obj_type == t4) return true;
+	return false;
+};
+JT_BOOL N::isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t3, int32_t t4, int32_t t5) {
+	if (obj == nullptr) return false;
+	int obj_type = obj->__JT__CLASS_ID;
+	if (obj_type == t0) return true;
+	if (obj_type == t1) return true;
+	if (obj_type == t2) return true;
+	if (obj_type == t3) return true;
+	if (obj_type == t4) return true;
+	if (obj_type == t5) return true;
+	return false;
+};
+JT_BOOL N::isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t3, int32_t t4, int32_t t5, int32_t t6) {
+	if (obj == nullptr) return false;
+	int obj_type = obj->__JT__CLASS_ID;
+	if (obj_type == t0) return true;
+	if (obj_type == t1) return true;
+	if (obj_type == t2) return true;
+	if (obj_type == t3) return true;
+	if (obj_type == t4) return true;
+	if (obj_type == t5) return true;
+	if (obj_type == t6) return true;
 	return false;
 };
 
