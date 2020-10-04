@@ -310,6 +310,10 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 		}
 	}
 
+	fun AstClass.getNativeWrapper(): String? {
+		return this.annotationsList.getTypedList(JTranscNativeWrapperList::value).firstOrNull { it.target == targetName.name }?.value
+	}
+
 	open fun genClassBodyFields(clazz: AstClass, kind: MemberTypes): Indenter = Indenter {
 		for (f in clazz.fields) if (kind.check(f)) line(genField(f))
 	}

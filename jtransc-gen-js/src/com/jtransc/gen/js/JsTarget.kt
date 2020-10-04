@@ -167,10 +167,10 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 		))
 
 		val strs = Indenter {
-			val strs = getGlobalStrings()
-			val maxId = strs.maxBy { it.id }?.id ?: 0
-			line("SS = new Array($maxId);")
-			for (e in strs) line("SS[${e.id}] = ${e.str.quote()};")
+			//val strs = getGlobalStrings()
+			//val maxId = strs.maxBy { it.id }?.id ?: 0
+			//line("SS = new Array($maxId);")
+			//for (e in strs) line("SS[${e.id}] = ${e.str.quote()};")
 		}
 
 		val out = Indenter {
@@ -183,7 +183,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("${ASYNC}function __main()") {
 				line("var _jc = { threadId: 0, global: {} };") // JTransc Context (we can implement threads here)
 				line("$AWAIT __createJavaArrays();")
-				line("$AWAIT __buildStrings();")
+				//line("$AWAIT __buildStrings();")
 				line("$AWAIT N.preInit($JC);")
 				line(genStaticConstructorsSorted())
 				//line(buildStaticInit(mainClassFq))
@@ -326,8 +326,9 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_znot(str: String) = "!($str)"
 	override fun N_imul(l: String, r: String): String = "Math.imul($l, $r)"
 
-	override val String.escapeString: String get() = "S[" + allocString(context.clazz.name, this) + "]"
-	val String.escapeStringJs: String get() = "SS[" + allocString(context.clazz.name, this) + "]"
+	//override val String.escapeString: String get() = "S[" + allocString(context.clazz.name, this) + "]"
+	override val String.escapeString: String get() = this.quote()
+	//val String.escapeStringJs: String get() = "SS[" + allocString(context.clazz.name, this) + "]"
 
 	private fun ensureAsynchronous(msg: String) {
 		val methodAsync = context.method.isAsync
@@ -506,13 +507,31 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 				for (method in clazz.methods.filter { !it.isClassOrInstanceInit }) line(writeMethod(method))
 			}
 
+			val nativeWrapper = clazz.getNativeWrapper()
+
 			val relatedTypesIds = (clazz.getAllRelatedTypes() + listOf(JAVA_LANG_OBJECT_CLASS)).toSet().map { it.classId }
-			for (field in allInstanceFieldsProto) {
-				val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
-				line("$classBase.prototype${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
+
+			fun writeStore(classBase: String) {
+				for (field in allInstanceFieldsProto) {
+					val nativeMemberName = if (field.targetName == field.name) field.name else field.targetName
+					line("$classBase.prototype${instanceAccess(nativeMemberName, field = true)} = ${field.escapedConstantValue};")
+				}
+				line("$classBase.prototype.__JT__CLASS_ID = $classBase.__JT__CLASS_ID = ${clazz.classId};")
+				line("$classBase.prototype.__JT__CLASS_IDS = $classBase.__JT__CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
 			}
-			line("$classBase.prototype.__JT__CLASS_ID = $classBase.__JT__CLASS_ID = ${clazz.classId};")
-			line("$classBase.prototype.__JT__CLASS_IDS = $classBase.__JT__CLASS_IDS = [${relatedTypesIds.joinToString(",")}];")
+			writeStore(classBase)
+			if (nativeWrapper != null) {
+				writeStore(nativeWrapper)
+				line("$nativeWrapper.SI = $classBase.SI;")
+				for (method in clazz.methods) {
+					if (method.isStatic) {
+						line("$nativeWrapper${commonAccess(method.targetName, false)} = $classBase${commonAccess(method.targetName, false)};")
+					} else {
+						line("$nativeWrapper.prototype${commonAccess(method.targetName, false)} = $classBase.prototype${commonAccess(method.targetName, false)};")
+					}
+				}
+				line("$classBase = $nativeWrapper;")
+			}
 			line("")
 		}
 

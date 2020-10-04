@@ -435,14 +435,14 @@ if (false) {
 
 ////////////////////////////////////////////////////////////////////////////
 
-let S = [];
-let SS = [];
-
-function __buildStrings() {
-	var len = SS.length
-	S.length = len;
-	for (var n = 0; n < len; ++n) S[n] = N.str(SS[n]);
-}
+//let S = [];
+//let SS = [];
+//
+//function __buildStrings() {
+//	var len = SS.length
+//	S.length = len;
+//	for (var n = 0; n < len; ++n) S[n] = N.str(SS[n]);
+//}
 
 let JA_0 = null;
 let JA_Z = null;
@@ -909,8 +909,7 @@ class N {
 	};
 
 	static istr(str) {
-		if (str == null) return null;
-		if (str instanceof {% CLASS java.lang.String %}) return str._str;
+		if (str === null) return null;
 		return '' + str;
 	}
 
@@ -919,11 +918,8 @@ class N {
 	}
 
 	static str(str) {
-		if (str == null) return null;
-		if (str instanceof {% CLASS java.lang.String %}) return str;
-		var out = new {% CLASS java.lang.String %}();
-		out._str = '' + str;
-		return out;
+		if (str === null) return null;
+		return '' + str;
 	}
 
 	static strLit(str) {
