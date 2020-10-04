@@ -16,22 +16,19 @@
 
 package com.jtransc.util
 
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import java.io.*
 
 object BinarySerializer {
 	fun <T> serialize(value: T): ByteArray {
-		val bos = ByteOutputStream()
+		val bos = ByteArrayOutputStream()
 		val oos = ObjectOutputStream(bos)
 		oos.writeUnshared(value)
-		return bos.bytes.sliceArray(0 until bos.size())
+		return bos.toByteArray()
 	}
 
 	@Suppress("unchecked_cast")
 	fun <T> deserialize(data:ByteArray):T {
-		val ois = ObjectInputStream(ByteInputStream(data, data.size))
+		val ois = ObjectInputStream(ByteArrayInputStream(data, 0, data.size))
 		return ois.readUnshared() as T
 	}
 }
