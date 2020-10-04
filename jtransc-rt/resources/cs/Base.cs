@@ -9,8 +9,6 @@ class N {
 	public static readonly float FloatNaN = intBitsToFloat(0x7FC00000);
 	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
 
-	public static readonly double DoubleNaN = longBitsToDouble(0x7FF8000000000000);
-
 	//public static readonly long MAX_INT64 = 9223372036854775807;
 	//public static readonly long MIN_INT64 = -9223372036854775808;
 	//public static readonly int MAX_INT32 = 2147483647;
