@@ -20,7 +20,6 @@
 //#define __TRACE_GC 1
 
 #define ENABLE_GC 1
-//#define DUMMY_ALLOCATOR 1
 
 #define __GC_ALIGNMENT_SIZE 64
 
@@ -34,29 +33,8 @@ template <typename T> T GC_roundUp(T numToRound, T multiple) {
 	return numToRound + multiple - remainder;
 }
 
-#ifdef DUMMY_ALLOCATOR
-	int64_t BIG_HEAP_SIZE = (3LL * 1024LL * 1024LL * 1024LL) - 16;
-	char *BIG_HEAP = (char *)malloc(BIG_HEAP_SIZE + 1024);
-	char *BIG_HEAP_END = BIG_HEAP + BIG_HEAP_SIZE;
-
-	void *jtalloc(size_t size) {
-		//return malloc(size);
-		auto out = BIG_HEAP;
-		if (out + size >= BIG_HEAP_END) {
-			std::cout << "ERROR ALLOCATING" << out << " > " << BIG_HEAP_END << "\n";
-			abort();
-		}
-		BIG_HEAP += GC_roundUp(size, (size_t)128);
-		memset(out, 0, size);
-		return out;
-	}
-	void jtfree(void *ptr) {
-		//free(ptr);
-	}
-#else
-	void *jtalloc(size_t size) { return malloc(size); }
-	void jtfree(void *ptr) { free(ptr); }
-#endif
+void *jtalloc(size_t size) { return malloc(size); }
+void jtfree(void *ptr) { free(ptr); }
 
 #define GC_OBJECT_CONSTANT 0x139912F0
 
