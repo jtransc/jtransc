@@ -71,13 +71,6 @@ struct __GC {
 	virtual std::wstring __GC_Name() { return L"__GC"; }
     virtual void __GC_Trace(__GCVisitor* visitor) {}
 
-    __GC() {
-    }
-
-    virtual ~__GC() {
-       //__GC_Delete();
-    }
-
     virtual void __GC_Init(__GCHeap *heap) {
 		#if __TRACE_GC
 		std::wcout << L"Created " << __GC_Name() << " - " << this << L"\n";
@@ -197,6 +190,7 @@ struct __GCAllocResult {
 struct __GCMemoryBlocks {
 	void *minptr = nullptr;
 	void *maxptr = nullptr;
+	__GCMemoryBlock* lastBlock = nullptr;
 	std::vector<__GCMemoryBlock*> blocks;
 	std::vector<__GC*> freeBlocksBySize128;
 	std::vector<__GC*> freeBlocksBySize64;
@@ -227,15 +221,20 @@ struct __GCMemoryBlocks {
 			fblocks->pop_back();
 			return { v, allocSize };
 		}
+		if (lastBlock != nullptr) {
+			auto ptr = lastBlock->Alloc(allocSize);
+			if (ptr != nullptr) return { ptr, allocSize };
+		}
 		for (auto block : blocks) {
 			auto ptr = block->Alloc(allocSize);
 			if (ptr != nullptr) return { ptr, allocSize };
 		}
-		int blockSize = 16 * 1024 * 1024;
+		int blockSize = std::max((int)allocSize, (int)((1 + blocks.size()) * 1024 * 1024));
 		auto block = new __GCMemoryBlock(blockSize);
 		minptr = (minptr != nullptr) ? std::min(minptr, block->start) : block->start;
 		maxptr = (maxptr != nullptr) ? std::max(maxptr, block->end) : block->end;
 		totalMemory += blockSize;
+		lastBlock = block;
 		blocks.push_back(block);
 		return { block->Alloc(allocSize), allocSize };
 	}
@@ -272,7 +271,8 @@ struct __GCHeap {
     __GC* head_gen2 = nullptr;
     __GC* head_delete = nullptr;
     __GCVisitor visitor;
-    std::atomic<bool> sweepingStop;
+    //std::atomic<bool> sweepingStop;
+    bool sweepingStop = false;
     //int gcCountThresold = 100000;
     //int gcCountThresold = 10000;
     int gcCountThresold = 1000;
@@ -562,6 +562,9 @@ struct __GCHeap {
 	template <typename T, typename... Args>
 	T* AllocCustomSize(int size, Args&&... args) {
     	#ifdef ENABLE_GC
+		if (sweepingStop) {
+			CheckCurrentThread();
+		}
 		if (enabled) {
 			if (memory.allocCount >= gcCountThresold) {
 				GC(false);

@@ -688,7 +688,17 @@ public class Benchmark {
 			}
 		});
 
+		benchmark("force gc", new Task() {
+			@Override
+			public int run() {
+				int m = 0;
+				System.gc();
+				return m;
+			}
+		});
+
 		System.out.println("TOTAL time: " + totalTime);
+		for (int n = 0; n < 10; n++) System.gc();
 		JTranscSystem.gcStats();
 
 		//try {

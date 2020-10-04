@@ -461,6 +461,15 @@ struct DYN {
 #define INLINE_ARRAYS_OFFSET 64
 
 struct JA_0 : public java_lang_Object {
+	void *_data;
+	int32_t length;
+	int8_t elementSize;
+	std::wstring desc;
+	bool allocated;
+	#ifdef INLINE_ARRAYS
+		int __inline_data;
+	#endif
+
 	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::wstring d) {
 		this->__JT__CLASS_ID = 1;
 		this->length = len;
@@ -483,21 +492,16 @@ struct JA_0 : public java_lang_Object {
 		#endif
 	}
 
-	~JA_0() {
-	}
+    virtual void __GC_Init(__GCHeap *heap) {
+    	java_lang_Object::__GC_Init(heap);
+		heap->allocatedArraySize += length * elementSize;
+    }
 
-	void __GC_Dispose() {
+    virtual void __GC_Dispose(__GCHeap *heap) {
+    	java_lang_Object::__GC_Dispose(heap);
+		heap->allocatedArraySize -= bytesLength();
 		if (allocated) ::jtfree(_data);
 	}
-
-	void *_data;
-	int32_t length;
-	int8_t elementSize;
-	std::wstring desc;
-	bool allocated;
-	#ifdef INLINE_ARRAYS
-		int __inline_data;
-	#endif
 
 	std::wstring __GC_Name() { return L"JA_0"; }
 
@@ -506,16 +510,6 @@ struct JA_0 : public java_lang_Object {
 	#else
 		inline void *getStartPtrRaw() { return _data; }
 	#endif
-
-    virtual void __GC_Init(__GCHeap *heap) {
-    	java_lang_Object::__GC_Init(heap);
-		heap->allocatedArraySize += length * elementSize;
-    }
-
-    virtual void __GC_Dispose(__GCHeap *heap) {
-    	java_lang_Object::__GC_Dispose(heap);
-		heap->allocatedArraySize -= length * elementSize;
-    }
 
 	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
 		void * result = nullptr;
