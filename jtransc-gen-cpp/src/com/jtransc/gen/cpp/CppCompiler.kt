@@ -56,6 +56,7 @@ object CppCompiler {
 			cmdAndArgs += "-g"
 			cmdAndArgs += "-O0"
 		} else {
+			//cmdAndArgs += "-s"
 			cmdAndArgs += "-fomit-frame-pointer"
 			cmdAndArgs += "-fno-stack-protector"
 			cmdAndArgs += "-Ofast"
