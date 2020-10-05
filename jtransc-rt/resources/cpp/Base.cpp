@@ -963,13 +963,13 @@ int FIXSHIFT(int r) {
 	}
 }
 
-int32_t N::ishl(int32_t a, int32_t b) { return (a << FIXSHIFT(b)); }
-int32_t N::ishr(int32_t a, int32_t b) { return (a >> FIXSHIFT(b)); }
-int32_t N::iushr(int32_t a, int32_t b) { return (int32_t)(((uint32_t)a) >> FIXSHIFT(b)); }
+inline int32_t N::ishl(int32_t a, int32_t b) const { return (a << FIXSHIFT(b)); }
+inline int32_t N::ishr(int32_t a, int32_t b) const { return (a >> FIXSHIFT(b)); }
+inline int32_t N::iushr(int32_t a, int32_t b) const { return (int32_t)(((uint32_t)a) >> FIXSHIFT(b)); }
 
-int32_t N::ishl_cst(int32_t a, int32_t b) { return (a << b); }
-int32_t N::ishr_cst(int32_t a, int32_t b) { return (a >> b); }
-int32_t N::iushr_cst(int32_t a, int32_t b) { return (int32_t)(((uint32_t)a) >> b); }
+inline int32_t N::ishl_cst(int32_t a, int32_t b) const { return (a << b); }
+inline int32_t N::ishr_cst(int32_t a, int32_t b) const { return (a >> b); }
+inline int32_t N::iushr_cst(int32_t a, int32_t b) const { return (int32_t)(((uint32_t)a) >> b); }
 
 int32_t N::idiv(int32_t a, int32_t b) {
 	if (a == 0) return 0;
@@ -1011,10 +1011,10 @@ int32_t N::irem(int32_t a, int32_t b) {
 //INT_LEFT_SHIFT_RANGE_OVERFLOW (a, b, min, max)
 //Yield 1 if a << b would overflow in [min,max] integer arithmetic. See above for restrictions. Here, min and max are for a only, and b need not be of the same type as the other arguments. The C standard says that behavior is undefined for shifts unless 0≤b<w where w is a’s word width, and that when a is negative then a << b has undefined behavior, but this macro does not check these other restrictions.
 
-int64_t N::lcmp (int64_t a, int64_t b) { return (a < b) ? -1 : ((a > b) ? +1 : 0); }
-int64_t N::ladd (int64_t a, int64_t b) { return a + b; }
-int64_t N::lsub (int64_t a, int64_t b) { return a - b; }
-int64_t N::lmul (int64_t a, int64_t b) { return a * b; }
+inline int64_t N::lcmp (int64_t a, int64_t b) const { return (a < b) ? -1 : ((a > b) ? +1 : 0); }
+inline int64_t N::ladd (int64_t a, int64_t b) const { return a + b; }
+inline int64_t N::lsub (int64_t a, int64_t b) const { return a - b; }
+inline int64_t N::lmul (int64_t a, int64_t b) const { return a * b; }
 int64_t N::ldiv (int64_t a, int64_t b) {
 	if (a == 0) return 0;
 	if (b == 0) return 0;
@@ -1026,15 +1026,12 @@ int64_t N::ldiv (int64_t a, int64_t b) {
 	}
 	return a / b;
 }
-int64_t N::lrem (int64_t a, int64_t b) {
-	if (a == 0) return 0;
-	if (b == 0) return 0;
-	if (a == N::MIN_INT64 && b == -1) return 0;
-	return a % b;
+int64_t N::lrem (int64_t a, int64_t b) const {
+	return (a == 0 || b == 0 || (a == N::MIN_INT64 && b == -1)) ? 0 : (a % b);
 }
-int64_t N::land (int64_t a, int64_t b) { return a & b; }
-int64_t N::lor  (int64_t a, int64_t b) { return a | b; }
-int64_t N::lxor (int64_t a, int64_t b) { return a ^ b; }
+inline int64_t N::land (int64_t a, int64_t b) const { return a & b; }
+inline int64_t N::lor  (int64_t a, int64_t b) const { return a | b; }
+inline int64_t N::lxor (int64_t a, int64_t b) const { return a ^ b; }
 
 int LFIXSHIFT(int r) {
 	if (r < 0) {
@@ -1044,20 +1041,20 @@ int LFIXSHIFT(int r) {
 	}
 }
 
-int64_t N::lshl(int64_t a, int b) { return (a << LFIXSHIFT(b)); }
-int64_t N::lshr(int64_t a, int b) { return (a >> LFIXSHIFT(b)); }
-int64_t N::lushr(int64_t a, int b) { return (int64_t)(((uint64_t)a) >> LFIXSHIFT(b)); }
+inline int64_t N::lshl(int64_t a, int b) const { return (a << LFIXSHIFT(b)); }
+inline int64_t N::lshr(int64_t a, int b) const { return (a >> LFIXSHIFT(b)); }
+inline int64_t N::lushr(int64_t a, int b) const { return (int64_t)(((uint64_t)a) >> LFIXSHIFT(b)); }
 
-int64_t N::lshl_cst(int64_t a, int b) { return (a << b); }
-int64_t N::lshr_cst(int64_t a, int b) { return (a >> b); }
-int64_t N::lushr_cst(int64_t a, int b) { return (int64_t)(((uint64_t)a) >> b); }
+inline int64_t N::lshl_cst(int64_t a, int b) const { return (a << b); }
+inline int64_t N::lshr_cst(int64_t a, int b) const { return (a >> b); }
+inline int64_t N::lushr_cst(int64_t a, int b) const { return (int64_t)(((uint64_t)a) >> b); }
 
-int32_t N::z2i(int32_t v) { return (v != 0) ? 1 : 0; }
-int64_t N::i2j(int32_t v) { return (int64_t)v; }
+inline int32_t N::z2i(int32_t v) const { return (v != 0) ? 1 : 0; }
+inline int64_t N::i2j(int32_t v) const { return (int64_t)v; }
 
-float   N::j2f(int64_t v) { return (float)v; }
-double  N::j2d(int64_t v) { return (double)v; }
-int32_t N::j2i(int64_t v) { return (int32_t)v; }
+inline float   N::j2f(int64_t v) const { return (float)v; }
+inline double  N::j2d(int64_t v) const { return (double)v; }
+inline int32_t N::j2i(int64_t v) const { return (int32_t)v; }
 
 int64_t N::f2j(float v) {
 	if (std::isfinite(v)) {

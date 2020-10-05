@@ -45,6 +45,12 @@ object CppCompiler {
 		cmdAndArgs += "-static-libgcc"
 		cmdAndArgs += "-static-libstdc++"
 		//cmdAndArgs += "-Wa,-mbig-obj"
+		cmdAndArgs += "-fdce"
+		//cmdAndArgs += "-flto"
+		//cmdAndArgs += "-ffunction-sections"
+		//cmdAndArgs += "-fdata-sections"
+		cmdAndArgs += "-fwhole-program"
+		cmdAndArgs += "-Wl,--gc-sections"
 		cmdAndArgs += "-std=c++11"
 		if (config.debug) {
 			cmdAndArgs += "-g"
