@@ -378,7 +378,7 @@ struct __GCHeap {
     	int exploreCount = 0;
 		int deleteCount = 0;
 		int version = visitor.version;
-		bool reset = version >= 10000;
+		bool reset = version >= 1000000000;
 		__GC* prev = nullptr;
 		__GC* current = head;
 		while (current != nullptr) {

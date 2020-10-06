@@ -189,7 +189,6 @@ public class MiscTest {
 		//	JTranscSystem.debugger();
 		//}
 
-		tryCatchTest();
 		testDynamicInstanceof();
 		testArrays2();
 		simpleReflection();
@@ -198,14 +197,6 @@ public class MiscTest {
 		fieldReflection();
 		//testTestSpecialIdentifiers();
 
-		try {
-			testThrowPrevStack();
-		} catch (Throwable t) {
-			System.out.println("[1]");
-			System.out.println(t.getMessage());
-		}
-
-		testCatchBlockAccessingArguments(3, 7);
 		//testRegex();
 
 		JTranscReflectionTest.main(new String[0]);
@@ -215,6 +206,15 @@ public class MiscTest {
 		systemPropertiesTest();
 
 		testArrayCopy();
+
+		testCatchBlockAccessingArguments(3, 7);
+		try {
+			testThrowPrevStack();
+		} catch (Throwable t) {
+			System.out.println("[1]");
+			System.out.println(t.getMessage());
+		}
+		tryCatchTest();
 
 		System.out.println("COMPLETED");
 		//stage.getStage3Ds()[0].requestContext3D(Context3DRenderMode.AUTO, "baselineConstrained");
