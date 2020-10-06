@@ -2,6 +2,7 @@ package com.jtransc.gen.cpp
 
 import com.jtransc.JTranscSystem
 import com.jtransc.JTranscVersion
+import com.jtransc.env.*
 import com.jtransc.error.invalidOp
 import com.jtransc.gen.common.BaseCompiler
 import com.jtransc.vfs.ExecOptions
@@ -41,16 +42,18 @@ object CppCompiler {
 		cmdAndArgs += "-fexceptions"
 		cmdAndArgs += "-frtti"
 		cmdAndArgs += "-D_FORTIFY_SOURCE=0" // Without this: *** buffer overflow detected ***: terminated
-		cmdAndArgs += "-static"
-		cmdAndArgs += "-static-libgcc"
-		cmdAndArgs += "-static-libstdc++"
+		if (!OS.isMac) {
+			cmdAndArgs += "-static"
+			cmdAndArgs += "-static-libgcc"
+			cmdAndArgs += "-static-libstdc++"
+			cmdAndArgs += "-fdce"
+			cmdAndArgs += "-Wl,--gc-sections"
+		}
 		//cmdAndArgs += "-Wa,-mbig-obj"
-		cmdAndArgs += "-fdce"
 		//cmdAndArgs += "-flto"
 		//cmdAndArgs += "-ffunction-sections"
 		//cmdAndArgs += "-fdata-sections"
 		cmdAndArgs += "-fwhole-program"
-		cmdAndArgs += "-Wl,--gc-sections"
 		cmdAndArgs += "-std=c++11"
 		if (config.debug) {
 			cmdAndArgs += "-g"
