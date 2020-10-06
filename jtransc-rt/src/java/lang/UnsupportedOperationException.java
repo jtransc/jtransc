@@ -16,25 +16,19 @@
 
 package java.lang;
 
-import com.jtransc.annotation.JTranscSync;
-
 public class UnsupportedOperationException extends RuntimeException {
-	@JTranscSync
 	public UnsupportedOperationException() {
 		super();
 	}
 
-	@JTranscSync
 	public UnsupportedOperationException(String s) {
 		super(s);
 	}
 
-	@JTranscSync
 	public UnsupportedOperationException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	@JTranscSync
 	public UnsupportedOperationException(Throwable cause) {
 		super(cause);
 	}

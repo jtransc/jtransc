@@ -1,8 +1,6 @@
 package com.jtransc.charset.charsets;
 
 import com.jtransc.JTranscBits;
-import com.jtransc.annotation.JTranscAsync;
-import com.jtransc.annotation.JTranscSync;
 import com.jtransc.charset.JTranscCharBuffer;
 import com.jtransc.charset.JTranscCharset;
 
@@ -14,14 +12,12 @@ abstract class JTranscCharsetUTF16Base extends JTranscCharset {
     private String[] aliases;
     private boolean littleEndian;
     
-    @JTranscSync
     public JTranscCharsetUTF16Base(String[] names, boolean littleEndian) {
         super(names, 2, 2, 2);
         this.littleEndian = littleEndian;
     }
     
     @Override
-    @JTranscSync
     public void encode(char[] in, int offset, int len, ByteArrayOutputStream out) {
         for (int n = 0; n < len; n++) {
             char c = in[offset + n];
@@ -36,7 +32,6 @@ abstract class JTranscCharsetUTF16Base extends JTranscCharset {
     }
     
     @Override
-    @JTranscSync
     public void decode(byte[] in, int offset, int len, JTranscCharBuffer out) {
         for (int n = 0; n < len; n += 2) {
             out.append((char) JTranscBits.readInt16(in, offset + n, littleEndian));
@@ -44,8 +39,7 @@ abstract class JTranscCharsetUTF16Base extends JTranscCharset {
     }
     
     @Override
-    @JTranscAsync
-    public void decode(ByteBuffer in, CharBuffer out) {
+	public void decode(ByteBuffer in, CharBuffer out) {
         for (int n = 0; n < in.remaining() && out.hasRemaining(); n += 2) {
             out.append((char) JTranscBits.readInt16(in, littleEndian));
         }

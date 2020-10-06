@@ -1,7 +1,5 @@
 package com.jtransc.charset.charsets;
 
-import com.jtransc.annotation.JTranscAsync;
-import com.jtransc.annotation.JTranscSync;
 import com.jtransc.charset.JTranscCharBuffer;
 import com.jtransc.charset.JTranscCharset;
 
@@ -10,13 +8,11 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
 public class JTranscCharsetUTF8 extends JTranscCharset {
-    @JTranscSync
     public JTranscCharsetUTF8() {
         super(new String[]{"UTF-8", "UTF8"}, 1, 1.2f, 4);
     }
     
     @Override
-    @JTranscSync
     public void encode(char[] in, int offset, int len, ByteArrayOutputStream out) {
         for (int n = 0; n < len; n++) {
             int codePoint = in[offset + n];
@@ -39,13 +35,11 @@ public class JTranscCharsetUTF8 extends JTranscCharset {
         }
     }
     
-    @JTranscSync
     static private int createByte(int codePoint, int shift) {
         return ((codePoint >> shift) & 0x3F) | 0x80;
     }
     
     @Override
-    @JTranscSync
     public void decode(byte[] in, int offset, int len, JTranscCharBuffer out) {
         int i = offset;
         int end = offset + len;
@@ -80,8 +74,7 @@ public class JTranscCharsetUTF8 extends JTranscCharset {
     }
     
     @Override
-    @JTranscAsync
-    public void decode(ByteBuffer in, CharBuffer out) {
+	public void decode(ByteBuffer in, CharBuffer out) {
         while (in.hasRemaining() && out.hasRemaining()) {
             int c = in.get() & 0xFF;
             

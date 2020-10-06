@@ -16,9 +16,7 @@
 
 package java.lang.reflect;
 
-import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscInvisible;
-import com.jtransc.annotation.JTranscSync;
 import com.jtransc.io.JTranscConsole;
 import com.jtransc.text.MStringReader;
 
@@ -26,7 +24,6 @@ import java.util.ArrayList;
 
 @JTranscInvisible
 class _InternalUtils {
-	@JTranscSync
 	static Class<?> Class_forName0(String className) {
 		try {
 			return Class.forName(className);
@@ -36,17 +33,14 @@ class _InternalUtils {
 		}
 	}
 
-	@JTranscSync
 	static MethodTypeImpl parseMethodType(String str, Type owner) {
 		return (MethodTypeImpl) parseType(new MStringReader(str), owner);
 	}
 
-	@JTranscSync
 	static Type parseType(String str, Type owner) {
 		return parseType(new MStringReader(str), owner);
 	}
 
-	@JTranscSync
 	static Type parseType(MStringReader sr, Type owner) {
 		char c = sr.read();
 		//System.out.println("parseType:sr=" + sr.str + ":owner=" + owner.getTypeName());
@@ -105,7 +99,6 @@ class _InternalUtils {
 		throw new Error("Can't parse type '" + c + "' of " + sr.str);
 	}
 
-	@JTranscSync
 	static Type parseTypeGeneric(Type base, MStringReader sr, Type owner) {
 		sr.expect('<');
 		ArrayList<Type> paramTypes = new ArrayList<>();
@@ -116,12 +109,10 @@ class _InternalUtils {
 		return new ParameterizedTypeImpl(paramTypes.toArray(new Type[paramTypes.size()]), base, owner);
 	}
 
-	@JTranscSync
 	static Type[] parseTypes(String str, Type owner) {
 		return parseTypes(new MStringReader(str, 0), owner);
 	}
 
-	@JTranscSync
 	static Type[] parseTypes(MStringReader sr, Type owner) {
 		ArrayList<Type> types = new ArrayList<Type>();
 		while (sr.hasMore()) {
@@ -132,7 +123,6 @@ class _InternalUtils {
 	}
 
 	//@JTranscSync
-	@JTranscAsync
 	static String getTypeName(Type type) {
 		if (type instanceof Class<?>) return ((Class<?>) type).getName();
 		return type.toString();
@@ -143,7 +133,6 @@ class _InternalUtils {
 class ArrayType implements Type {
 	public Type element;
 
-	@JTranscSync
 	public ArrayType(Type element) {
 		this.element = element;
 	}
@@ -155,7 +144,6 @@ class MethodTypeImpl implements Type {
 	public Type[] args;
 	public Type rettype;
 
-	@JTranscSync
 	public MethodTypeImpl(Type[] args, Type rettype) {
 		this.args = args;
 		this.rettype = rettype;
@@ -168,7 +156,6 @@ class ParameterizedTypeImpl implements ParameterizedType {
 	private Type rawType;
 	private Type ownerType;
 
-	@JTranscSync
 	public ParameterizedTypeImpl(Type[] actualTypeArguments, Type rawType, Type ownerType) {
 		this.actualTypeArguments = actualTypeArguments;
 		this.rawType = rawType;
@@ -176,25 +163,21 @@ class ParameterizedTypeImpl implements ParameterizedType {
 	}
 
 	@Override
-	@JTranscSync
-	public Type[] getActualTypeArguments() {
+    public Type[] getActualTypeArguments() {
 		return actualTypeArguments;
 	}
 
 	@Override
-	@JTranscSync
-	public Type getRawType() {
+    public Type getRawType() {
 		return rawType;
 	}
 
 	@Override
-	@JTranscSync
-	public Type getOwnerType() {
+    public Type getOwnerType() {
 		return ownerType;
 	}
 
 	//@JTranscSync
-	@JTranscAsync
 	public String toString() {
 		StringBuilder out = new StringBuilder();
 		out.append(_InternalUtils.getTypeName(rawType));

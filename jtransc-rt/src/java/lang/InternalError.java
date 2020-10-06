@@ -16,24 +16,18 @@
 
 package java.lang;
 
-import com.jtransc.annotation.JTranscSync;
-
 public class InternalError extends Error {
-	@JTranscSync
 	public InternalError() {
 	}
 
-	@JTranscSync
 	public InternalError(String message) {
 		super(message);
 	}
 
-	@JTranscSync
 	public InternalError(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	@JTranscSync
 	public InternalError(Throwable cause) {
 		super(cause);
 	}

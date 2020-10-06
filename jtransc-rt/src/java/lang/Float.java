@@ -18,7 +18,6 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscSync;
 
 import com.jtransc.text.JTranscStringTools;
 
@@ -37,129 +36,105 @@ public final class Float extends Number implements Comparable<Float> {
 
 	private final float value;
 
-	@JTranscSync
 	public static float parseFloat(String value) throws NumberFormatException {
 		return (float)Double.parseDouble(value);
 	}
 
-	@JTranscSync
 	public static String toString(float v) {
 		return JTranscStringTools.toString(v);
 	}
 
 	// @TODO: CHECK!
-	@JTranscSync
 	public static String toHexString(float value) {
 		return Double.toHexString(value);
 	}
 
-	@JTranscSync
 	public static Float valueOf(String value) throws NumberFormatException {
 		return valueOf(parseFloat(value));
 	}
 
 	@JTranscKeep
-	@JTranscSync
 	public static Float valueOf(float value) {
 		return new Float(value);
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return std::isnan(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Single.IsNaN(p0);")
-	@JTranscSync
 	public static boolean isNaN(float value) {
 		return Double.isNaN((double)value);
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return std::isfinite(p0);")
 	@JTranscMethodBody(target = "cs", value = "return !float.IsNaN(p0) && !float.IsInfinity(p0);")
-	@JTranscSync
 	private static boolean _isFinite(float v) {
 		return Double.isFinite(v);
 	}
 
-	@JTranscSync
 	public static boolean isInfinite(float v) {
 		return !isNaN(v) && !_isFinite(v);
 	}
 
-	@JTranscSync
 	public static boolean isFinite(float d) {
 		return _isFinite(d);
 	}
 
-	@JTranscSync
 	public Float(float value) {
 		this.value = value;
 	}
 
-	@JTranscSync
 	public Float(double value) {
 		this.value = (float) value;
 	}
 
-	@JTranscSync
 	public Float(String s) throws NumberFormatException {
 		value = parseFloat(s);
 	}
 
-	@JTranscSync
 	public boolean isNaN() {
 		return isNaN(value);
 	}
 
-	@JTranscSync
 	public boolean isInfinite() {
 		return isInfinite(value);
 	}
 
-	@JTranscSync
 	public String toString() {
 		return toString(value);
 	}
 
-	@JTranscSync
 	public byte byteValue() {
 		return (byte) value;
 	}
 
-	@JTranscSync
 	public short shortValue() {
 		return (short) value;
 	}
 
-	@JTranscSync
 	public int intValue() {
 		return (int) value;
 	}
 
-	@JTranscSync
 	public long longValue() {
 		return (long) value;
 	}
 
-	@JTranscSync
 	public float floatValue() {
 		return value;
 	}
 
-	@JTranscSync
 	public double doubleValue() {
 		return (double) value;
 	}
 
 	@Override
-	@JTranscSync
 	public int hashCode() {
 		return Float.hashCode(value);
 	}
 
-	@JTranscSync
 	public static int hashCode(float value) {
 		return floatToIntBits(value);
 	}
 
-	@JTranscSync
 	public boolean equals(Object obj) {
 		return (obj instanceof Float) && (floatToIntBits(((Float) obj).value) == floatToIntBits(value));
 	}
@@ -169,7 +144,6 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "cpp", value = "return *(int *)&p0;")
 	@JTranscMethodBody(target = "cs", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.floatToIntBits(p0);")
-	@JTranscSync
 	native public static int floatToIntBits(float value);
 
 
@@ -177,7 +151,6 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "cpp", value = "return *(int *)&p0;")
 	@JTranscMethodBody(target = "cs", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.floatToIntBits(p0);")
-	@JTranscSync
 	native public static int floatToRawIntBits(float value);
 
 
@@ -185,15 +158,12 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscMethodBody(target = "cpp", value = "return *(float *)&p0;")
 	@JTranscMethodBody(target = "cs", value = "return N.intBitsToFloat(p0);")
 	@JTranscMethodBody(target = "dart", value = "return N.intBitsToFloat(p0);")
-	@JTranscSync
 	native public static float intBitsToFloat(int bits);
 
-	@JTranscSync
 	public int compareTo(Float that) {
 		return compare(this.value, that.value);
 	}
 
-	@JTranscSync
 	public static int compare(float f1, float f2) {
 		if (f1 < f2) return -1;
 		if (f1 > f2) return 1;
@@ -202,17 +172,14 @@ public final class Float extends Number implements Comparable<Float> {
 		return (b1 == b2 ? 0 : (b1 < b2 ? -1 : 1));
 	}
 
-	@JTranscSync
 	public static float sum(float l, float r) {
 		return l + r;
 	}
 
-	@JTranscSync
 	public static float max(float l, float r) {
 		return Math.max(l, r);
 	}
 
-	@JTranscSync
 	public static float min(float l, float r) {
 		return Math.min(l, r);
 	}

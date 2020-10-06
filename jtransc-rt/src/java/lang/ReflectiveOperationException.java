@@ -16,25 +16,19 @@
 
 package java.lang;
 
-import com.jtransc.annotation.JTranscSync;
-
 public class ReflectiveOperationException extends Exception {
-	@JTranscSync
 	public ReflectiveOperationException() {
 		super();
 	}
 
-	@JTranscSync
 	public ReflectiveOperationException(String message) {
 		super(message);
 	}
 
-	@JTranscSync
 	public ReflectiveOperationException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	@JTranscSync
 	public ReflectiveOperationException(Throwable cause) {
 		super(cause);
 	}

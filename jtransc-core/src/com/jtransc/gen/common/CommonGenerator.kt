@@ -3,7 +3,6 @@ package com.jtransc.gen.common
 import com.jtransc.*
 import com.jtransc.annotation.*
 import com.jtransc.ast.*
-import com.jtransc.ast.async.AsyncAnalyzer
 import com.jtransc.ast.template.CommonTagHandler
 import com.jtransc.ast.treeshaking.getTargetAddFiles
 import com.jtransc.ds.getOrPut2
@@ -67,9 +66,7 @@ abstract class CommonGenerator(val injector: Injector) : IProgramTemplate {
 	val program: AstProgram = injector.get()
 	val sortedClasses by lazy { program.classes.filter { it.mustGenerate }.sortedByExtending() }
 	val targetName = injector.get<TargetName>()
-	val asyncAnalyzer = AsyncAnalyzer(targetName)
 	val AstMethodRef.actualMethod get() = this.getMethod(program)
-	val AstMethod.isAsync get() = asyncAnalyzer.isMethodAsync(this)
 	open val methodFeatures: Set<Class<out AstMethodFeature>> = setOf()
 	open val methodFeaturesWithTraps: Set<Class<out AstMethodFeature>> get() = methodFeatures
 	open val keywords: Set<String> = program.getExtraKeywords(targetName.name).toSet()

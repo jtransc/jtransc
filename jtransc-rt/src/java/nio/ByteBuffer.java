@@ -18,7 +18,6 @@
 package java.nio;
 
 import com.jtransc.JTranscArrays;
-import com.jtransc.annotation.JTranscSync;
 import libcore.io.Memory;
 
 import java.nio.internal.SizeOf;
@@ -79,8 +78,7 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 	}
 
 	@Override
-	@JTranscSync
-	public final byte[] array() {
+    public final byte[] array() {
 		_checkWritable();
 		return backingArray;
 	}
@@ -267,23 +265,19 @@ public class ByteBuffer extends Buffer implements Comparable<ByteBuffer> {
 		return this;
 	}
 
-	@JTranscSync
 	public boolean isReadOnly() {
 		return isReadOnly;
 	}
 
-	@JTranscSync
 	private void _checkWritable() {
 		if (isReadOnly) throw new ReadOnlyBufferException();
 	}
 
-	@JTranscSync
 	byte[] protectedArray() {
 		_checkWritable();
 		return backingArray;
 	}
 
-	@JTranscSync
 	int protectedArrayOffset() {
 		_checkWritable();
 		return arrayOffset;

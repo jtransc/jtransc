@@ -17,11 +17,7 @@
 
 package java.util;
 
-import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscSync;
-
-import com.jtransc.mem.FastMemByte;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -1563,7 +1559,6 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-    @JTranscSync
     public static String toString(boolean[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
@@ -1590,8 +1585,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-	@JTranscSync
-    public static String toString(byte[] array) {
+	public static String toString(byte[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 6);
@@ -1617,8 +1611,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-	@JTranscSync
-    public static String toString(char[] array) {
+	public static String toString(char[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 3);
@@ -1644,8 +1637,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-	@JTranscSync
-    public static String toString(double[] array) {
+	public static String toString(double[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 7);
@@ -1671,8 +1663,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-	@JTranscSync
-    public static String toString(float[] array) {
+	public static String toString(float[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 7);
@@ -1698,8 +1689,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-	@JTranscSync
-    public static String toString(int[] array) {
+	public static String toString(int[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 6);
@@ -1725,8 +1715,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-	@JTranscSync
-    public static String toString(long[] array) {
+	public static String toString(long[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 6);
@@ -1752,8 +1741,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-	@JTranscSync
-    public static String toString(short[] array) {
+	public static String toString(short[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 6);
@@ -1779,8 +1767,7 @@ public class Arrays {
      * @return the {@code String} representation of {@code array}.
      * @since 1.5
      */
-	@JTranscAsync
-    public static String toString(Object[] array) {
+	public static String toString(Object[] array) {
         if (array == null) return "null";
         if (array.length == 0) return "[]";
         StringBuilder sb = new StringBuilder(array.length * 7);
@@ -1928,58 +1915,47 @@ public class Arrays {
         return false;
     }
 
-	@JTranscSync
-    public static boolean[] copyOf(boolean[] original, int newLength) {
+	public static boolean[] copyOf(boolean[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static byte[] copyOf(byte[] original, int newLength) {
+	public static byte[] copyOf(byte[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static char[] copyOf(char[] original, int newLength) {
+	public static char[] copyOf(char[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static double[] copyOf(double[] original, int newLength) {
+	public static double[] copyOf(double[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static float[] copyOf(float[] original, int newLength) {
+	public static float[] copyOf(float[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static int[] copyOf(int[] original, int newLength) {
+	public static int[] copyOf(int[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static long[] copyOf(long[] original, int newLength) {
+	public static long[] copyOf(long[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static short[] copyOf(short[] original, int newLength) {
+	public static short[] copyOf(short[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static <T> T[] copyOf(T[] original, int newLength) {
+	public static <T> T[] copyOf(T[] original, int newLength) {
         return copyOfRange(original, 0, newLength);
     }
 
-	@JTranscSync
-    public static <T, U> T[] copyOf(U[] original, int newLength, Class<? extends T[]> newType) {
+	public static <T, U> T[] copyOf(U[] original, int newLength, Class<? extends T[]> newType) {
         return copyOfRange(original, 0, newLength, newType);
     }
 
-	@JTranscSync
-    public static boolean[] copyOfRange(boolean[] original, int start, int end) {
+	public static boolean[] copyOfRange(boolean[] original, int start, int end) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -1988,8 +1964,7 @@ public class Arrays {
         return result;
     }
 
-	@JTranscSync
-    public static byte[] copyOfRange(byte[] original, int start, int end) {
+	public static byte[] copyOfRange(byte[] original, int start, int end) {
         int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -1998,8 +1973,7 @@ public class Arrays {
         return result;
     }
 
-	@JTranscSync
-    public static char[] copyOfRange(char[] original, int start, int end) {
+	public static char[] copyOfRange(char[] original, int start, int end) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -2008,8 +1982,7 @@ public class Arrays {
         return result;
     }
 
-	@JTranscSync
-    public static double[] copyOfRange(double[] original, int start, int end) {
+	public static double[] copyOfRange(double[] original, int start, int end) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -2018,8 +1991,7 @@ public class Arrays {
         return result;
     }
 
-	@JTranscSync
-    public static float[] copyOfRange(float[] original, int start, int end) {
+	public static float[] copyOfRange(float[] original, int start, int end) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -2028,8 +2000,7 @@ public class Arrays {
         return result;
     }
 
-	@JTranscSync
-    public static int[] copyOfRange(int[] original, int start, int end) {
+	public static int[] copyOfRange(int[] original, int start, int end) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -2038,8 +2009,7 @@ public class Arrays {
         return result;
     }
 
-	@JTranscSync
-    public static long[] copyOfRange(long[] original, int start, int end) {
+	public static long[] copyOfRange(long[] original, int start, int end) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -2048,8 +2018,7 @@ public class Arrays {
         return result;
     }
 
-	@JTranscSync
-    public static short[] copyOfRange(short[] original, int start, int end) {
+	public static short[] copyOfRange(short[] original, int start, int end) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -2060,8 +2029,7 @@ public class Arrays {
 
     @SuppressWarnings("unchecked")
 	@JTranscMethodBody(target = "js", value = "return JA_L.copyOfRange(p0, p1, p2);")
-	@JTranscSync
-    public static <T> T[] copyOfRange(T[] original, int start, int end) {
+	public static <T> T[] copyOfRange(T[] original, int start, int end) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -2072,8 +2040,7 @@ public class Arrays {
 
     @SuppressWarnings("unchecked")
 	@JTranscMethodBody(target = "js", value = "return JA_L.copyOfRange(p0, p1, p2, p3.name);")
-	@JTranscSync
-    public static <T, U> T[] copyOfRange(U[] original, int start, int end, Class<? extends T[]> newType) {
+	public static <T, U> T[] copyOfRange(U[] original, int start, int end, Class<? extends T[]> newType) {
 		int originalLength = checkRange(start, end, original.length);
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
@@ -2082,7 +2049,6 @@ public class Arrays {
         return result;
     }
 
-	@JTranscSync
 	static private int checkRange(int start, int end, int originalLength) {
 		//if (end < 0) throw new NegativeArraySizeException(Integer.toString(end));
 		if (start > end) throw new IllegalArgumentException();

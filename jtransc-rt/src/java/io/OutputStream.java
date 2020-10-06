@@ -18,14 +18,12 @@
 package java.io;
 
 import com.jtransc.JTranscArrays;
-import com.jtransc.annotation.JTranscSync;
 
 public abstract class OutputStream implements Closeable, Flushable {
     
     /**
      * Default constructor.
      */
-    @JTranscSync
     public OutputStream() {
     }
     
@@ -35,7 +33,6 @@ public abstract class OutputStream implements Closeable, Flushable {
      *
      * @throws IOException if an error occurs while closing this stream.
      */
-    @JTranscSync
     public void close() throws IOException {
         /* empty */
     }
@@ -46,7 +43,6 @@ public abstract class OutputStream implements Closeable, Flushable {
      *
      * @throws IOException if an error occurs while flushing this stream.
      */
-    @JTranscSync
     public void flush() throws IOException {
         /* empty */
     }

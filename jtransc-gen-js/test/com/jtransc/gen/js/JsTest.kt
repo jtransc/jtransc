@@ -65,8 +65,6 @@ class JsTest : _Base() {
 
 	@Test fun testBigWithoutTreeShaking() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false))
 
-	@Test fun testBigWithoutTreeShakingAndAsync() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false, treeShaking = false, extra = mapOf("js_enable_async" to "true")))
-
 	@Test fun testSideEffects() = testClass(Params(clazz = SideEffectsTest::class.java, minimize = false, log = false, treeShaking = true, debug = true))
 
 	@Test fun testBig() = testClass(Params(clazz = BigTest::class.java, minimize = false, log = false))
@@ -252,8 +250,6 @@ class JsTest : _Base() {
 	// Requires await/async ES6: https://caniuse.com/#search=await (71.5% and growing)
 	// You can transform output using a ES6->ES5 transpiler
 	@Test fun testSleep() = testClass(Params(clazz = SleepTest::class.java, minimize = false, log = false, debug = true))
-
-	@Test fun testThreadTest() = testClass(Params(clazz = ThreadTest::class.java, minimize = false, log = false, debug = false, extra = mapOf("js_enable_async" to "true")))
 
 	@Test fun testMisc2() = testClass(Params(clazz = Misc2Test::class.java, minimize = false, log = false))
 }

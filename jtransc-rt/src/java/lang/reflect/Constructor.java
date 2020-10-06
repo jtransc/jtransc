@@ -16,8 +16,6 @@
 
 package java.lang.reflect;
 
-import com.jtransc.annotation.JTranscAsync;
-import com.jtransc.annotation.JTranscSync;
 import j.MemberInfo;
 import j.ProgramReflection;
 
@@ -26,75 +24,59 @@ import java.util.Arrays;
 
 @SuppressWarnings({"unchecked", "unused"})
 public final class Constructor<T> extends MethodConstructor implements Member, GenericDeclaration {
-	@JTranscSync
 	public Constructor(Class<?> containingClass, MemberInfo info) {
 		super(containingClass, info);
 	}
 
-	@JTranscSync
 	public Class<T> getDeclaringClass() {
 		return (Class<T>) clazz;
 	}
 
-	@JTranscSync
 	public String getName() {
 		return getDeclaringClass().getName();
 	}
 
 	@Override
-	@JTranscSync
-	protected boolean isConstructor() {
+    protected boolean isConstructor() {
 		return true;
 	}
 
-	@JTranscSync
 	native public TypeVariable<Constructor<T>>[] getTypeParameters();
 
-	@JTranscSync
 	public Class<?>[] getParameterTypes() {
 		return (Class<?>[]) methodType().args;
 	}
 
-	@JTranscSync
 	public Type[] getGenericParameterTypes() {
 		return genericMethodType().args;
 	}
 
-	@JTranscSync
 	public Class<?>[] getExceptionTypes() {
 		return Arrays.copyOf(exceptionTypes, exceptionTypes.length);
 	}
 
-	@JTranscSync
 	native public Type[] getGenericExceptionTypes();
 
-	@JTranscSync
 	native public boolean equals(Object obj);
 
-	@JTranscSync
 	public int hashCode() {
 		return getDeclaringClass().getName().hashCode();
 	}
 
-	@JTranscSync
 	native public String toGenericString();
 
-	@JTranscSync
 	public <TA extends Annotation> TA getAnnotation(Class<TA> annotationClass) {
 		return super.getAnnotation(annotationClass);
 	}
 
-	@JTranscSync
 	public Annotation[] getDeclaredAnnotations() {
 		return super.getDeclaredAnnotations();
 	}
 
-	@JTranscSync
 	public Annotation[][] getParameterAnnotations() {
 		return super.getParameterAnnotations();
 	}
 
-	@JTranscAsync
 	public T newInstance(Object... initargs) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		return (T) ProgramReflection.dynamicNew(this.clazz.id, this.slot, initargs);
 	}

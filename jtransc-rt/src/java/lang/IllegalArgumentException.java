@@ -16,25 +16,19 @@
 
 package java.lang;
 
-import com.jtransc.annotation.JTranscSync;
-
 public class IllegalArgumentException extends RuntimeException {
-	@JTranscSync
 	public IllegalArgumentException() {
 		super();
 	}
 
-	@JTranscSync
 	public IllegalArgumentException(String s) {
 		super(s);
 	}
 
-	@JTranscSync
 	public IllegalArgumentException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	@JTranscSync
 	public IllegalArgumentException(Throwable cause) {
 		super(cause);
 	}

@@ -17,8 +17,6 @@
 
 package java.io;
 
-import com.jtransc.annotation.JTranscSync;
-
 /**
  * Thrown when a file specified by a program cannot be found.
  */
@@ -27,7 +25,6 @@ public class FileNotFoundException extends IOException {
      * Constructs a new {@code FileNotFoundException} with its stack trace
      * filled in.
      */
-    @JTranscSync
     public FileNotFoundException() {
     }
     
@@ -37,7 +34,6 @@ public class FileNotFoundException extends IOException {
      *
      * @param detailMessage the detail message for this exception.
      */
-    @JTranscSync
     public FileNotFoundException(String detailMessage) {
         super(detailMessage);
     }

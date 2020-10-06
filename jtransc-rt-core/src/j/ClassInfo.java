@@ -23,7 +23,6 @@ public class ClassInfo {
 
 	static private int[] EMPTY_INT_ARRAY = new int[0];
 
-	@JTranscSync
 	public ClassInfo(int id, String internalName, String name, int modifiers, int parent, int[] interfaces, int[] related) {
 		if (internalName == null) internalName = name;
 		this.id = id;
@@ -37,8 +36,7 @@ public class ClassInfo {
 
 	@JTranscKeep
 	@JTranscNativeName("c")
-	@JTranscSync
-	static public ClassInfo create(int id, String internalName, String name, int modifiers, int parent, int[] interfaces, int[] related) {
+    static public ClassInfo create(int id, String internalName, String name, int modifiers, int parent, int[] interfaces, int[] related) {
 		return new ClassInfo(id, internalName, name, modifiers, parent, interfaces, related);
 	}
 }

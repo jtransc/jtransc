@@ -18,7 +18,6 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscSync;
 import com.jtransc.internal.JTranscCType;
 
 public final class Long extends Number implements Comparable<Long> {
@@ -28,7 +27,6 @@ public final class Long extends Number implements Comparable<Long> {
 
 	private final long value;
 
-	@JTranscSync
 	public static String toString(long i, int radix) {
 		if (i == 0) return "0";
 		if (i == MIN_VALUE) return "-9223372036854775808";
@@ -44,7 +42,6 @@ public final class Long extends Number implements Comparable<Long> {
 		return out.toString();
 	}
 
-	@JTranscSync
 	public static String toUnsignedString(long i, int radix) {
 		if (i == 0) return "0";
 		StringBuilder out = new StringBuilder();
@@ -56,27 +53,22 @@ public final class Long extends Number implements Comparable<Long> {
 		return out.toString();
 	}
 
-	@JTranscSync
 	public static String toHexString(long i) {
 		return toUnsignedString(i, 16);
 	}
 
-	@JTranscSync
 	public static String toOctalString(long i) {
 		return toUnsignedString(i, 8);
 	}
 
-	@JTranscSync
 	public static String toBinaryString(long i) {
 		return toUnsignedString(i, 2);
 	}
 
-	@JTranscSync
 	public static String toUnsignedString(long i) {
 		return toUnsignedString(i, 10);
 	}
 
-	@JTranscSync
 	public static long parseLong(String s, int radix) throws NumberFormatException {
 		long result = 0;
 		int len = s.length();
@@ -91,38 +83,31 @@ public final class Long extends Number implements Comparable<Long> {
 	}
 
 	// @TODO: CHECK!
-	@JTranscSync
 	public static long parseUnsignedLong(String s, int radix) throws NumberFormatException {
 		return parseLong(s, radix);
 	}
 
-	@JTranscSync
 	public static Long valueOf(String s, int radix) throws NumberFormatException {
 		return Long.valueOf(parseLong(s, radix));
 	}
 
-	@JTranscSync
 	public static long parseLong(String s) throws NumberFormatException {
 		return parseLong(s, 10);
 	}
 
-	@JTranscSync
 	public static long parseUnsignedLong(String s) throws NumberFormatException {
 		return parseUnsignedLong(s, 10);
 	}
 
-	@JTranscSync
 	public static Long valueOf(String s) throws NumberFormatException {
 		return valueOf(s, 10);
 	}
 
 	@JTranscKeep
-	@JTranscSync
-	public static Long valueOf(long l) {
+    public static Long valueOf(long l) {
 		return new Long(l);
 	}
 
-	@JTranscSync
 	public static Long decode(String nm) throws NumberFormatException {
 		if (nm.length() == 0) throw new NumberFormatException("Zero length string");
 		if (nm.startsWith("-")) return -decode(nm.substring(1));
@@ -134,58 +119,47 @@ public final class Long extends Number implements Comparable<Long> {
 		return parseLong(nm, 10);
 	}
 
-	@JTranscSync
 	public Long(long value) {
 		this.value = value;
 	}
 
-	@JTranscSync
 	public Long(String s) throws NumberFormatException {
 		this.value = parseLong(s, 10);
 	}
 
-	@JTranscSync
 	public byte byteValue() {
 		return (byte) value;
 	}
 
-	@JTranscSync
 	public short shortValue() {
 		return (short) value;
 	}
 
-	@JTranscSync
 	public int intValue() {
 		return (int) value;
 	}
 
-	@JTranscSync
 	public long longValue() {
 		return value;
 	}
 
-	@JTranscSync
 	public float floatValue() {
 		return (float) value;
 	}
 
-	@JTranscSync
 	public double doubleValue() {
 		return (double) value;
 	}
 
 	@Override
-	@JTranscSync
-	public int hashCode() {
+    public int hashCode() {
 		return Long.hashCode(value);
 	}
 
-	@JTranscSync
 	public static int hashCode(long value) {
 		return (int) (value ^ (value >>> 32));
 	}
 
-	@JTranscSync
 	public boolean equals(Object obj) {
 		return obj instanceof Long && value == ((Long) obj).longValue();
 	}
@@ -208,24 +182,20 @@ public final class Long extends Number implements Comparable<Long> {
 		}
 	}
 
-	@JTranscSync
 	public int compareTo(Long anotherLong) {
 		return compare(this.value, anotherLong.value);
 	}
 
-	@JTranscSync
 	public static int compare(long x, long y) {
 		return (x < y) ? -1 : ((x == y) ? 0 : 1);
 	}
 
-	@JTranscSync
 	public static int compareUnsigned(long x, long y) {
 		return compare(x ^ MIN_VALUE, y ^ MIN_VALUE);
 	}
 
 	// https://github.com/google/guava/blob/master/guava/src/com/google/common/primitives/UnsignedLongs.java
 	// https://github.com/google/guava/blob/master/guava/src/com/google/common/primitives/UnsignedLong.java
-	@JTranscSync
 	public static long divideUnsigned(long dividend, long divisor) {
 		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? 0 : 1;
 		if (dividend >= 0) return dividend / divisor;
@@ -234,7 +204,6 @@ public final class Long extends Number implements Comparable<Long> {
 		return quotient + (compareUnsigned(rem, divisor) >= 0 ? 1 : 0);
 	}
 
-	@JTranscSync
 	public static long remainderUnsigned(long dividend, long divisor) {
 		if (divisor < 0) return (compareUnsigned(dividend, divisor) < 0) ? dividend : (dividend - divisor);
 		if (dividend >= 0) return dividend % divisor;
@@ -246,7 +215,6 @@ public final class Long extends Number implements Comparable<Long> {
 	public static final int SIZE = 64;
 	public static final int BYTES = SIZE / Byte.SIZE;
 
-	@JTranscSync
 	public static long highestOneBit(long v) {
 		// Hacker's Delight, Figure 3-1
 		v |= (v >> 1);
@@ -258,12 +226,10 @@ public final class Long extends Number implements Comparable<Long> {
 		return v - (v >>> 1);
 	}
 
-	@JTranscSync
 	public static long lowestOneBit(long v) {
 		return v & -v;
 	}
 
-	@JTranscSync
 	public static int numberOfLeadingZeros(long v) {
 		// After Hacker's Delight, Figure 5-6
 		if (v < 0) return 0;
@@ -296,13 +262,11 @@ public final class Long extends Number implements Comparable<Long> {
 		return n - (i >>> 31);
 	}
 
-	@JTranscSync
 	public static int numberOfTrailingZeros(long v) {
 		int low = (int) v;
 		return low != 0 ? Integer.numberOfTrailingZeros(low) : 32 + Integer.numberOfTrailingZeros((int) (v >>> 32));
 	}
 
-	@JTranscSync
 	public static int bitCount(long v) {
 		// Combines techniques from several sources
 		v -= (v >>> 1) & 0x5555555555555555L;
@@ -314,17 +278,14 @@ public final class Long extends Number implements Comparable<Long> {
 		return i & 0x0000007F;
 	}
 
-	@JTranscSync
 	public static long rotateLeft(long value, int distance) {
 		return (value << distance) | (value >>> -distance);
 	}
 
-	@JTranscSync
 	public static long rotateRight(long value, int distance) {
 		return (value >>> distance) | (value << -distance);
 	}
 
-	@JTranscSync
 	public static long reverse(long v) {
 		// Hacker's Delight 7-1, with minor tweak from Veldmeijer
 		// http://graphics.stanford.edu/~seander/bithacks.html
@@ -336,14 +297,12 @@ public final class Long extends Number implements Comparable<Long> {
 		return ((v >>> 32)) | ((v) << 32);
 	}
 
-	@JTranscSync
 	public static int signum(long v) {
 		return (int) ((v >> 63) | (-v >>> 63));
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return N::bswap64(p0);")
-	@JTranscSync
-	public static long reverseBytes(long v) {
+    public static long reverseBytes(long v) {
 		// Hacker's Delight 7-1, with minor tweak from Veldmeijer
 		// http://graphics.stanford.edu/~seander/bithacks.html
 		v = ((v >>> 8) & 0x00FF00FF00FF00FFL) | ((v & 0x00FF00FF00FF00FFL) << 8);
@@ -351,27 +310,22 @@ public final class Long extends Number implements Comparable<Long> {
 		return ((v >>> 32)) | ((v) << 32);
 	}
 
-	@JTranscSync
 	public static long sum(long l, long r) {
 		return l + r;
 	}
 
-	@JTranscSync
 	public static long max(long l, long r) {
 		return Math.max(l, r);
 	}
 
-	@JTranscSync
 	public static long min(long l, long r) {
 		return Math.min(l, r);
 	}
 
-	@JTranscSync
 	public static String toString(long i) {
 		return toString(i, 10);
 	}
 
-	@JTranscSync
 	public String toString() {
 		return toString(value);
 	}

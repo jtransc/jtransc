@@ -1,14 +1,11 @@
 package com.jtransc.text;
 
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscMethodBodyList;
-import com.jtransc.annotation.JTranscSync;
 
 
 @SuppressWarnings("IndexOfReplaceableByContains")
 public class JTranscStringTools {
 	//@JTranscMethodBody(target = "js", value = "return N.str('' + p0);")
-	@JTranscSync
 	public static String toString(float v) {
 		//return RealToString.getInstance().floatToString(v);
 		String out = toString((double) v);
@@ -39,7 +36,6 @@ public class JTranscStringTools {
 	//}
 
 	//@JTranscMethodBody(target = "js", value = "return N.str('' + p0);")
-	@JTranscSync
 	public static String toString(double v) {
 		if (Double.isNaN(v)) return "NaN";
 		if (Double.isInfinite(v)) return (v < 0) ? "-Infinity" : "Infinity";
@@ -64,10 +60,9 @@ public class JTranscStringTools {
 
 
 	@JTranscMethodBody(target = "cpp", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
-	@JTranscMethodBody(target = "js", value   = "return {% SMETHOD java.lang.String:_replace %}({{ JC_COMMA }}p0, p1, p2);")
+	@JTranscMethodBody(target = "js", value   = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
 	@JTranscMethodBody(target = "dart", value = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
-	@JTranscSync
-	native static public String replace(String base, String s, String t);
+    native static public String replace(String base, String s, String t);
 
 	//@JTranscMethodBody(target = "js", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +Math.fround(p0)));")
 	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[128] = {0}; swprintf(temp, sizeof(temp), L\"%f\", (float)p0); return N::str(std::wstring(temp));")
@@ -80,6 +75,5 @@ public class JTranscStringTools {
 	@JTranscMethodBody(target = "cpp", value = "wchar_t temp[32] = {0}; swprintf(temp, sizeof(temp), L\"%.16g\", p0); return N::str(temp);")
 	@JTranscMethodBody(target = "cs", value = "return N.str(Convert.ToString(p0, System.Globalization.CultureInfo.InvariantCulture));")
 	@JTranscMethodBody(target = "dart", value = "return N.str(p0.toString());")
-	@JTranscSync
-	native static public String _toString(double v);
+    native static public String _toString(double v);
 }

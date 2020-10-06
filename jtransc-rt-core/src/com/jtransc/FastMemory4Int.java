@@ -18,35 +18,30 @@ package com.jtransc;
 
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscInvisible;
-import com.jtransc.annotation.JTranscSync;
 
 
 @JTranscInvisible
 final public class FastMemory4Int {
 	private FastMemory mem;
 
-	@JTranscSync
 	public FastMemory4Int(FastMemory mem) {
 		this.mem = mem;
 	}
 
 	@JTranscInline
 
-	@JTranscSync
 	final public int getLength() {
 		return mem.getLength() / 4;
 	}
 
 	@JTranscInline
 
-	@JTranscSync
 	final public int get(int index) {
 		return mem.getAlignedInt32(index);
 	}
 
 	@JTranscInline
 
-	@JTranscSync
 	final public void set(int index, int value) {
 		mem.setAlignedInt32(index, value);
 	}

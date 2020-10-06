@@ -22,7 +22,6 @@ import com.jtransc.annotation.*;
 
 
 import java.util.HashMap;
-import java.util.Set;
 
 @JTranscInvisible
 public class FastStringMap<T> {
@@ -30,35 +29,30 @@ public class FastStringMap<T> {
 
 
 	@JTranscMethodBody(target = "js", value = "this.data = new Map();")
-	@JTranscSync
 	public FastStringMap() {
 		this.map = new HashMap<String, T>();
 	}
 
 
 	@JTranscMethodBody(target = "js", value = "return this.data.get(N.istr(p0));")
-	@JTranscSync
-    public T get(String key) {
+	public T get(String key) {
 		return this.map.get(key);
 	}
 
 
 	@JTranscMethodBody(target = "js", value = "this.data.set(N.istr(p0), p1);")
-	@JTranscSync
 	public void set(String key, T value) {
 		this.map.put(key, value);
 	}
 
 
 	@JTranscMethodBody(target = "js", value = "return this.data.has(N.istr(p0));")
-	@JTranscSync
 	public boolean has(String key) {
 		return this.map.containsKey(key);
 	}
 
 
 	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray1(Array.from(this.data.keys()).map(function(it) { return N.str(it); }), 'Ljava/lang/String;');")
-	@JTranscSync
 	public String[] getKeys() {
 		String[] out = new String[map.size()];
 		int n = 0;
@@ -66,7 +60,6 @@ public class FastStringMap<T> {
 		return out;
 	}
 
-	@JTranscSync
 	public T[] getValues() {
 		String[] keys = getKeys();
 		Object[] values = new Object[keys.length];

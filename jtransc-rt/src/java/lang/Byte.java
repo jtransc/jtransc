@@ -17,7 +17,6 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscKeep;
-import com.jtransc.annotation.JTranscSync;
 
 @SuppressWarnings({"unchecked", "UnnecessaryBoxing", "WeakerAccess", "UnnecessaryUnboxing", "PointlessArithmeticExpression"})
 public final class Byte extends Number implements Comparable<Byte> {
@@ -32,8 +31,7 @@ public final class Byte extends Number implements Comparable<Byte> {
 	private static final Byte cache[] = new Byte[256];
 
 	@JTranscKeep
-	@JTranscSync
-	public static Byte valueOf(byte value) {
+    public static Byte valueOf(byte value) {
 		final int index = value + 128;
 		if (cache[index] == null) cache[index] = new Byte(value);
 		return cache[index];
@@ -67,7 +65,6 @@ public final class Byte extends Number implements Comparable<Byte> {
 
 	private final byte value;
 
-	@JTranscSync
 	public Byte(byte value) {
 		this.value = value;
 	}
@@ -76,32 +73,26 @@ public final class Byte extends Number implements Comparable<Byte> {
 		this.value = parseByte(value, 10);
 	}
 
-	@JTranscSync
 	public byte byteValue() {
 		return value;
 	}
 
-	@JTranscSync
 	public short shortValue() {
 		return (short) value;
 	}
 
-	@JTranscSync
 	public int intValue() {
 		return (int) value;
 	}
 
-	@JTranscSync
 	public long longValue() {
 		return (long) value;
 	}
 
-	@JTranscSync
 	public float floatValue() {
 		return (float) value;
 	}
 
-	@JTranscSync
 	public double doubleValue() {
 		return (double) value;
 	}
@@ -115,7 +106,6 @@ public final class Byte extends Number implements Comparable<Byte> {
 		return Byte.hashCode(value);
 	}
 
-	@JTranscSync
 	public static int hashCode(byte value) {
 		return (int) value;
 	}
@@ -128,17 +118,14 @@ public final class Byte extends Number implements Comparable<Byte> {
 		return compare(this.value, that.value);
 	}
 
-	@JTranscSync
 	public static int compare(byte l, byte r) {
 		return l - r;
 	}
 
-	@JTranscSync
 	public static int toUnsignedInt(byte value) {
 		return ((int) value) & 0xff;
 	}
 
-	@JTranscSync
 	public static long toUnsignedLong(byte value) {
 		return ((long) value) & 0xffL;
 	}

@@ -16,7 +16,6 @@
 
 package java.nio.charset;
 
-import com.jtransc.annotation.JTranscSync;
 import com.jtransc.ds.FastStringMap;
 
 import com.jtransc.charset.JTranscCharset;
@@ -109,27 +108,22 @@ public abstract class Charset implements Comparable<Charset> {
 		for (int n = 0; n < aliases.length; n++) this.aliases.add(aliases[n]);
 	}
 
-	@JTranscSync
 	public final String name() {
 		return canonicalName;
 	}
 
-	@JTranscSync
 	public String displayName() {
 		return canonicalName;
 	}
 
-	@JTranscSync
 	public final Set<String> aliases() {
 		return this.aliases;
 	}
 
-	@JTranscSync
 	public final boolean isRegistered() {
 		return true;
 	}
 
-	@JTranscSync
 	public String displayName(Locale locale) {
 		return canonicalName;
 	}
@@ -140,7 +134,6 @@ public abstract class Charset implements Comparable<Charset> {
 
 	public abstract CharsetEncoder newEncoder();
 
-	@JTranscSync
 	public boolean canEncode() {
 		return true;
 	}

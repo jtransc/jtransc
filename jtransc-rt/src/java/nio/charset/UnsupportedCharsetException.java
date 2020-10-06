@@ -16,20 +16,16 @@
 
 package java.nio.charset;
 
-import com.jtransc.annotation.JTranscSync;
-
 import java.lang.jtransc.JTranscStrings;
 
 public class UnsupportedCharsetException extends IllegalArgumentException {
 	private String charsetName;
 
-	@JTranscSync
 	public UnsupportedCharsetException(String charsetName) {
 		super(JTranscStrings.valueOf(charsetName));
 		this.charsetName = charsetName;
 	}
 
-	@JTranscSync
 	public String getCharsetName() {
 		return charsetName;
 	}

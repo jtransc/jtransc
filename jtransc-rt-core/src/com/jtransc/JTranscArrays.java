@@ -1,16 +1,11 @@
 package com.jtransc;
 
-import com.jtransc.annotation.JTranscAsync;
-import com.jtransc.annotation.JTranscSync;
-
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class JTranscArrays {
 	public static final byte[] EMPTY_BYTE = new byte[0];
 	public static final Class<?>[] EMPTY_CLASS = new Class<?>[0];
 
-	@JTranscSync
 	static public byte[] copyReinterpret(int[] data) {
 		byte[] out = new byte[data.length * 4];
 		int m = 0;
@@ -23,7 +18,6 @@ public class JTranscArrays {
 		return out;
 	}
 
-	@JTranscSync
 	static public byte[] copyReinterpret(short[] data) {
 		byte[] out = new byte[data.length * 2];
 		int m = 0;
@@ -34,7 +28,6 @@ public class JTranscArrays {
 		return out;
 	}
 
-	@JTranscSync
 	static public int[] copyReinterpretInt_LE(byte[] data) {
 		int[] out = new int[data.length / 4];
 		int m = 0;
@@ -44,7 +37,6 @@ public class JTranscArrays {
 		return out;
 	}
 
-	@JTranscSync
 	static public short[] copyReinterpretShort_LE(byte[] data) {
 		short[] out = new short[data.length / 2];
 		int m = 0;
@@ -54,7 +46,6 @@ public class JTranscArrays {
 		return out;
 	}
 
-	@JTranscSync
 	static public byte[] copyReinterpretReversed(int[] data) {
 		int[] temp = Arrays.copyOf(data, data.length);
 		swizzle_inplace_reverse(temp);
@@ -62,7 +53,6 @@ public class JTranscArrays {
 	}
 
 	//@JTranscInline
-	@JTranscSync
 	static final public void swizzle_inplace(int[] data, int v3, int v2, int v1, int v0) {
 		int size = data.length;
 		for (int n = 0; n < size; n++) {
@@ -71,7 +61,6 @@ public class JTranscArrays {
 		}
 	}
 
-	@JTranscSync
 	static final public void swizzle_inplace_reverse(int[] data) {
 		//swizzle_inplace(data, 0, 8, 16, 24);
 		int size = data.length;
@@ -81,17 +70,14 @@ public class JTranscArrays {
 		}
 	}
 
-	@JTranscSync
 	static public void add(int count, byte[] target, int targetpos, byte[] a, int apos, byte[] b, int bpos) {
 		for (int n = 0; n < count; n++) target[targetpos + n] = (byte) (a[apos + n] + b[bpos + n]);
 	}
 
-	@JTranscSync
 	static public void sub(int count, byte[] target, int targetpos, byte[] a, int apos, byte[] b, int bpos) {
 		for (int n = 0; n < count; n++) target[targetpos + n] = (byte) (a[apos + n] - b[bpos + n]);
 	}
 
-	@JTranscSync
 	static public void mixUnsigned(int count, byte[] target, int targetpos, byte[] a, int apos, byte[] b, int bpos, double ratio) {
 		double ratiob = 1.0 - ratio;
 		for (int n = 0; n < count; n++)
@@ -99,25 +85,21 @@ public class JTranscArrays {
 	}
 
 	// Use clamped array?
-	@JTranscSync
 	static public void addUnsignedClamped(int count, byte[] target, int targetpos, byte[] a, int apos, byte[] b, int bpos) {
 		for (int n = 0; n < count; n++)
 			target[targetpos + n] = (byte) clamp255((a[apos + n] & 0xFF) + (b[bpos + n] & 0xFF));
 	}
 
-	@JTranscSync
 	static private int clamp255(int v) {
 		return Math.min(Math.max(v, 0), 255);
 	}
 
-	@JTranscSync
 	public static void checkOffsetAndCount(int arrayLength, int offset, int count) {
 		if ((offset | count) < 0 || offset > arrayLength || arrayLength - offset < count) {
 			throw new ArrayIndexOutOfBoundsException("length=" + arrayLength + "; regionStart=" + offset + "; regionLength=" + count);
 		}
 	}
 
-	@JTranscAsync
 	static public String toString(Object array) {
 		if (array == null) return "null";
 		//System.out.println("ARRAY:" + (array instanceof boolean[]) + "," + (array instanceof byte[]));
@@ -133,7 +115,6 @@ public class JTranscArrays {
 		return array.getClass().getName() + "???????" + array.getClass().isArray();
 	}
 
-	@JTranscAsync
 	static public String toStringCharsAsInts(Object array) {
 		if (array instanceof char[]) {
 			char[] a = (char[]) array;

@@ -84,7 +84,6 @@ String.prototype.quote = String.prototype.quote || (function () { return JSON.st
 
 //const _global = (typeof window !== "undefined") ? window : global;
 const DEBUG_VERSION = {{ debug != false }};
-const IS_ASYNC = {{ !!IS_ASYNC }};
 const onBrowser = typeof window != "undefined";
 const onNodeJs = typeof window == "undefined";
 
@@ -463,23 +462,23 @@ function __createJavaArrayBaseType() {
 			this.desc = desc;
 		}
 
-		getClass({{ JC }}) {
-			return N.resolveClass({{ JC_COMMA }}this.desc);
+		getClass() {
+			return N.resolveClass(this.desc);
 		}
 
-		"{% METHOD java.lang.Object:getClass %}"({{ JC }}) {
-			return N.resolveClass({{ JC_COMMA }}this.desc);
+		"{% METHOD java.lang.Object:getClass %}"() {
+			return N.resolveClass(this.desc);
 		}
 
 		"{% METHOD java.lang.Object:clone %}"() {
 			return this.clone();
 		}
 
-		"{% METHOD java.lang.Object:getClass %}"({{ JC }}) {
-			return N.resolveClass({{ JC_COMMA }}this.desc);
+		"{% METHOD java.lang.Object:getClass %}"() {
+			return N.resolveClass(this.desc);
 		};
 
-		"{% METHOD java.lang.Object:toString %}"({{ JC }}) {
+		"{% METHOD java.lang.Object:toString %}"() {
 			return N.str('ARRAY(' + this.desc + ')');
 		};
 	}
@@ -732,10 +731,10 @@ var __reints = (function() {
 })();
 
 class N {
-	static {{ ASYNC }} preInit({{ JC }}) {
+	static preInit() {
 	}
 
-	static afterInit({{ JC }}) {
+	static afterInit() {
 		//console.log(JA_Z);
 		//console.log(JA_B);
 		//console.log(JA_C);
@@ -951,24 +950,24 @@ class N {
 		return strs.data.map(function(s) { return N.istr(s); });
 	};
 
-	static {{ ASYNC }} iteratorToArray({{ JC_COMMA }}it) {
+	static iteratorToArray(it) {
 		if (it == null) return null;
 		var out = [];
-		while ({{ AWAIT }} it{% IMETHOD java.util.Iterator:hasNext:()Z %}({{ JC }})) {
-			out.push({{ AWAIT }} it{% IMETHOD java.util.Iterator:next:()Ljava/lang/Object; %}({{ JC }}));
+		while (it{% IMETHOD java.util.Iterator:hasNext:()Z %}()) {
+			out.push(it{% IMETHOD java.util.Iterator:next:()Ljava/lang/Object; %}());
 		}
 		return out;
 	};
 
-	static {{ ASYNC }} imap({{ JC_COMMA }}map) {
+	static imap(map) {
 		if (map == null) return null;
 		var obj = {};
-		let array = {{ AWAIT }}(N.iteratorToArray({{ JC_COMMA }}{{ AWAIT }} {{ AWAIT }} map{% IMETHOD java.util.Map:entrySet %}(){% IMETHOD java.util.Set:iterator %}({{ JC }})))
+		let array = (N.iteratorToArray(map{% IMETHOD java.util.Map:entrySet %}(){% IMETHOD java.util.Set:iterator %}()))
 
 		for (let n = 0; n < array.length; n++) {
 			let item = array[n];
-			var key = {{ AWAIT }} item{% IMETHOD java.util.Map$Entry:getKey %}({{ JC }});
-			var value = {{ AWAIT }} item{% IMETHOD java.util.Map$Entry:getValue %}({{ JC }});
+			var key = item{% IMETHOD java.util.Map$Entry:getKey %}();
+			var value = item{% IMETHOD java.util.Map$Entry:getValue %}();
 			obj[N.unbox(key)] = N.unbox(value);
 		}
 		return obj;
@@ -1005,8 +1004,8 @@ class N {
 	};
 
 	// @TODO: Make this sync
-	static resolveClass({{ JC_COMMA }}name) {
-		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}({{ JC_COMMA }}N.str(name));
+	static resolveClass(name) {
+		return {% SMETHOD java.lang.Class:forName:(Ljava/lang/String;)Ljava/lang/Class; %}(N.str(name));
 	};
 
 	static createStackTraceElement(declaringClass, methodName, fileName, lineNumber) {
@@ -1060,17 +1059,17 @@ class N {
 		for (var n = 0; n < array.length; ++n) array.set(n, buf[n]);
 	};
 
-	static boxVoid    ({{ JC_COMMA }}value) { return null; }
-	static boxBool    ({{ JC_COMMA }}value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}({{ JC_COMMA }}value); }
-	static boxByte    ({{ JC_COMMA }}value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}({{ JC_COMMA }}value); }
-	static boxShort   ({{ JC_COMMA }}value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}({{ JC_COMMA }}value); }
-	static boxChar    ({{ JC_COMMA }}value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}({{ JC_COMMA }}value); }
-	static boxInt     ({{ JC_COMMA }}value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}({{ JC_COMMA }}value); }
-	static boxLong    ({{ JC_COMMA }}value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}({{ JC_COMMA }}value); }
-	static boxFloat   ({{ JC_COMMA }}value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}({{ JC_COMMA }}value); }
-	static boxDouble  ({{ JC_COMMA }}value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}({{ JC_COMMA }}value); }
-	static boxString  ({{ JC_COMMA }}value) { return (value != null) ? N.str(value) : null; }
-	static boxWrapped ({{ JC_COMMA }}value) { return N.wrap(value); }
+	static boxVoid    (value) { return null; }
+	static boxBool    (value) { return {% SMETHOD java.lang.Boolean:valueOf:(Z)Ljava/lang/Boolean; %}(value); }
+	static boxByte    (value) { return {% SMETHOD java.lang.Byte:valueOf:(B)Ljava/lang/Byte; %}(value); }
+	static boxShort   (value) { return {% SMETHOD java.lang.Short:valueOf:(S)Ljava/lang/Short; %}(value); }
+	static boxChar    (value) { return {% SMETHOD java.lang.Character:valueOf:(C)Ljava/lang/Character; %}(value); }
+	static boxInt     (value) { return {% SMETHOD java.lang.Integer:valueOf:(I)Ljava/lang/Integer; %}(value); }
+	static boxLong    (value) { return {% SMETHOD java.lang.Long:valueOf:(J)Ljava/lang/Long; %}(value); }
+	static boxFloat   (value) { return {% SMETHOD java.lang.Float:valueOf:(F)Ljava/lang/Float; %}(value); }
+	static boxDouble  (value) { return {% SMETHOD java.lang.Double:valueOf:(D)Ljava/lang/Double; %}(value); }
+	static boxString  (value) { return (value != null) ? N.str(value) : null; }
+	static boxWrapped (value) { return N.wrap(value); }
 
 	static unboxVoid      (value) { return null; }
 	static unboxBool      (value) { return value["{% FIELD java.lang.Boolean:value:Z %}"]; }
@@ -1110,8 +1109,8 @@ class N {
 		return out;
 	}
 
-	static createRuntimeException({{ JC_COMMA }}msg) {
-		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}({{ JC_COMMA }}N.str(msg));
+	static createRuntimeException(msg) {
+		return {% CONSTRUCTOR java.lang.RuntimeException:(Ljava/lang/String;)V %}(N.str(msg));
 	};
 
 	static throwRuntimeException(msg) {
@@ -1168,40 +1167,30 @@ class N {
 		return JA_L.fromArray(array.map(function(it) { return N.box(it); }));
 	};
 
-	static box({{ JC_COMMA }}v) {
+	static box(v) {
 		if (v instanceof {% CLASS java.lang.Object %}) return v; // already boxed!
-		if (v instanceof Int64) return N.boxLong({{ JC_COMMA }}v);
+		if (v instanceof Int64) return N.boxLong(v);
 		if (typeof v == 'string') return N.str(v);
-		if ((v|0) == v) return N.boxInt({{ JC_COMMA }}v);
-		if (+(v) == v) return N.boxFloat({{ JC_COMMA }}v);
+		if ((v|0) == v) return N.boxInt(v);
+		if (+(v) == v) return N.boxFloat(v);
 		if ((v == null) || N.isObj(v, {% CLASS java.lang.Object %})) return v;
 		return N.wrap(v);
 	};
 
 	static isNegativeZero(x) { return x === 0 && 1 / x === -Infinity; };
 
-	//N.sort = {{ ASYNC }} function(array, start, end, comparator) {
+	//N.sort = function(array, start, end, comparator) {
 	//	var slice = array.slice(start, end);
 	//	if (comparator === undefined) {
 	//		slice.sort();
 	//	} else {
 	//		throw 'Unsupported N.sort!';
-	//		//slice.sort({{ ASYNC }} function(a, b) {
-	//		//	return {{ AWAIT }} comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
+	//		//slice.sort(function(a, b) {
+	//		//	return comparator["{% METHOD java.util.Comparator:compare:(Ljava/lang/Object;Ljava/lang/Object;)I %}"](a, b);
 	//		//});
 	//	}
 	//	for (var n = 0; n < slice.length; ++n) array[start + n] = slice[n];
 	//};
-
-	static {{ ASYNC }} asyncAsyncStr({{ JC_COMMA }}v) {
-		if (v == null) return 'null';
-		{% if IS_ASYNC %}
-		if (typeof v.toStringAsync !== 'undefined') {
-			return N.istr({{ AWAIT }}(v.toStringAsync({{ JC }})));
-		}
-		{% end %}
-		return '' + v;
-	}
 
 	static getByteArray(v) {
 		if (v instanceof JA_B) return v;
@@ -1231,165 +1220,17 @@ class N {
     static get floatToIntBits() { return __reints.floatToIntBits; }
     static get doubleToLongBits() { return __reints.doubleToLongBits; }
     static get longBitsToDouble() { return __reints.longBitsToDouble; }
-
-    // @TODO: {{ ASYNC }}
-   	{% if IS_JC %}
-		static {{ ASYNC }} monitorEnter({{ JC_COMMA }}obj) {
-			{{ AWAIT }}(RecursiveMutex.getMutex(obj).lock({{ JC }}));
-		}
-
-		static {{ ASYNC }} monitorExit({{ JC_COMMA }}obj) {
-			{{ AWAIT }}(RecursiveMutex.getMutex(obj).unlock({{ JC }}));
-		}
-
-		static {{ ASYNC }} threadNotify({{ JC_COMMA }}obj) {
-			{{ AWAIT }}(RecursiveMutex.getMutex(obj).notify({{ JC }}));
-		}
-
-		static {{ ASYNC }} threadNotifyAll({{ JC_COMMA }}obj) {
-			{{ AWAIT }}(RecursiveMutex.getMutex(obj).notifyAll({{ JC }}));
-		}
-
-		static {{ ASYNC }} threadWait({{ JC_COMMA }}obj, timeoutMs, timeoutNanos) {
-			{{ AWAIT }}(RecursiveMutex.getMutex(obj).wait({{ JC_COMMA }}timeoutMs, timeoutNanos));
-		}
-	{% else %}
-		static {{ ASYNC }} monitorEnter({{ JC_COMMA }}obj) { }
-		static {{ ASYNC }} monitorExit({{ JC_COMMA }}obj) { }
-		static {{ ASYNC }} threadNotify({{ JC_COMMA }}obj) { throw new Error('Not implemented N.threadNotify'); }
-		static {{ ASYNC }} threadNotifyAll({{ JC_COMMA }}obj) { throw new Error('Not implemented N.threadNotifyAll'); }
-		static {{ ASYNC }} threadWait({{ JC_COMMA }}obj, timeoutMs, timeoutNanos) { throw new Error('Not implemented N.threadWait'); }
-	{% end %}
 } // N
 
-{% if IS_JC %}
-class RecursiveMutex {
-	static getMutex(obj) {
-    	if (obj.__jt_mutex__ == null) obj.__jt_mutex__ = new RecursiveMutex();
-    	return obj.__jt_mutex__;
-	}
-
-	constructor() {
-		this.capturedThread = -1;
-		this.capturedCount = 0;
-		this.lockQueue = [];
-		this.waitQueue = [];
-	}
-
-	// MUTEX
-
-	{{ ASYNC }} lock({{ JC }}) {
-    	//console.log('RecursiveMutex.lock:', this, {{ JC }});
-		let threadId = {{ JC }}.threadId;
-		if (this.capturedThread == -1) this.capturedThread = threadId;
-
-		if (this.capturedThread == threadId) {
-			this.capturedCount++;
-		} else {
-			return new Promise((resolve, reject) => {
-				this.lockQueue.push(() => {
-					this.capturedThread = threadId;
-					this.capturedCount++;
-					resolve();
-				});
-			});
-		}
-	}
-
-	{{ ASYNC }} unlock({{ JC }}) {
-    	//console.log('RecursiveMutex.unlock:', this, {{ JC }});
-		let threadId = {{ JC }}.threadId;
-
-		if (this.capturedThread == threadId) {
-			this.capturedCount--;
-		}
-
-		if (this.capturedCount <= 0) {
-			this.capturedCount = 0;
-			this.capturedThread = -1;
-			this.unlockNext();
-		}
-	}
-
-	unlockNext() {
-		if (this.lockQueue.length > 0) {
-			let func = this.lockQueue.shift();
-			func();
-		}
-	}
-
-	// WAIT/NOTIFY
-
-	{{ ASYNC }} notify({{ JC }}) {
-		//console.log('RecursiveMutex.notify', {{ JC }});
-		if (this.waitQueue.length > 0) {
-			let callback = this.waitQueue.shift();
-			callback();
-		}
-	}
-
-	{{ ASYNC }} notifyAll({{ JC }}) {
-		//console.log('RecursiveMutex.notifyAll', {{ JC }});
-		var queue = this.waitQueue.splice(0, this.waitQueue.length);
-		for (let callback of queue) callback();
-	}
-
-	{{ ASYNC }} wait({{ JC_COMMA }}timeoutMs, timeoutNano) {
-		//console.log('RecursiveMutex.wait', {{ JC_COMMA }}timeoutMs, timeoutNano);
-		return new Promise((resolve, reject) => {
-			let func;
-			let timer = -1;
-			func = () => {
-				if (timer >= 0) clearTimeout(timer);
-				//console.log('------ resolved');
-				resolve();
-			};
-
-			// 0 means wait forever
-			if (timeoutMs > 0) {
-				timer = setTimeout(() => {
-					//console.log('------ timeout');
-					let index = this.waitQueue.indexOf(func);
-					if (index >= 0) {
-						this.waitQueue.splice(index, 1);
-					}
-					reject(new Error("Timeout!"));
-				}, timeoutMs);
-			}
-
-			this.waitQueue.push(func);
-		});
-	}
-}
-{% end %}
-
 function stackTrace() {
-	var err = new Error();
-	return err.stack.split('\n').slice(3);
+	return (new Error()).stack.split('\n').slice(3);
 }
 
 class java_lang_Object_base {
-	constructor() {
-	}
-
-	toString() {
-		{% if IS_ASYNC %}
-			console.error('unsupported use toStringAsync instead:');
-			console.error((new Error()).stack);
-			return '(' + this.constructor.name + '): unsupported use toStringAsync instead';
-		{% else %}
-			return this ? N.istr(this{% IMETHOD java.lang.Object:toString %}({{ JC }})) : null;
-		{% end %}
-	}
-
-	{{ ASYNC }} toStringAsync({{ JC }}) {
-		return this ? N.istr({{ AWAIT }} this{% IMETHOD java.lang.Object:toString %}({{ JC }})) : null;
-	};
+	constructor() {}
+	toString() { return this ? N.istr(this{% IMETHOD java.lang.Object:toString %}()) : null; }
 }
 
-{% if IS_JC %}
-java_lang_Object_base.prototype.__jt_mutex__ = null;
-{% end %}
 java_lang_Object_base.prototype.___id = 0;
 java_lang_Object_base.prototype.__JT__CLASS_ID = java_lang_Object_base.__JT__CLASS_ID = 0;
 java_lang_Object_base.prototype.__JT__CLASS_IDS = java_lang_Object_base.__JT__CLASS_IDS = [0];

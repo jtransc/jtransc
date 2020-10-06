@@ -1,21 +1,18 @@
 package java.lang;
 
 import com.jtransc.annotation.JTranscInvisible;
-import com.jtransc.annotation.JTranscSync;
 
 @JTranscInvisible
 public class JTranscNumber {
 	@JTranscInvisible
-	@JTranscSync
-	static public void checkNumber(String str, int radix, boolean allowFloat) {
+    static public void checkNumber(String str, int radix, boolean allowFloat) {
 		if (!JTranscNumber.validateNumber(str, radix, allowFloat)) {
 			throw new NumberFormatException("For input string: \"" + str + "\"");
 		}
 	}
 
 	@JTranscInvisible
-	@JTranscSync
-	static public boolean validateNumber(String str, int radix, boolean allowFloat) {
+    static public boolean validateNumber(String str, int radix, boolean allowFloat) {
 		final int len = str.length();
 		int n = 0;
 		int numpart = 0;
@@ -54,15 +51,13 @@ public class JTranscNumber {
 	}
 
 	@JTranscInvisible
-	@JTranscSync
-	static public boolean isDigit(char c, int radix) {
+    static public boolean isDigit(char c, int radix) {
 		int d = digit(c);
 		return d >= 0 && d < radix;
 	}
 
 	@JTranscInvisible
-	@JTranscSync
-	static public int digit(char c) {
+    static public int digit(char c) {
 		if (c >= '0' && c <= '9') return (c - '0');
 		if (c >= 'a' && c <= 'z') return (c - 'a') + 10;
 		if (c >= 'A' && c <= 'Z') return (c - 'A') + 10;

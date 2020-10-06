@@ -17,35 +17,30 @@
 package com.jtransc;
 
 import com.jtransc.annotation.JTranscInline;
-import com.jtransc.annotation.JTranscSync;
 
 
 final public class FastMemory4Float {
     private FastMemory mem;
 
-	@JTranscSync
-    public FastMemory4Float(FastMemory mem) {
+	public FastMemory4Float(FastMemory mem) {
         this.mem = mem;
     }
 
     @JTranscInline
 
-	@JTranscSync
-    final public int getLength() {
+	final public int getLength() {
         return mem.getLength() / 4;
     }
 
     @JTranscInline
 
-	@JTranscSync
-    final public float get(int index) {
+	final public float get(int index) {
         return mem.getAlignedFloat32(index);
     }
 
     @JTranscInline
 
-	@JTranscSync
-    final public void set(int index, float value) {
+	final public void set(int index, float value) {
         mem.setAlignedFloat32(index, value);
     }
 }

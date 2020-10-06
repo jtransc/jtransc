@@ -36,11 +36,9 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "cs", priority = -1, process = true, src = "cs/program.csproj", dst = "program.csproj")
 @JTranscAddMembers(target = "cs", value = "public int __id = 0;")
 public class Object {
-	@JTranscSync
 	public Object() {
 	}
 
-	@JTranscSync
 	public boolean __equalsSync__(Object obj) {
 		return (this == obj);
 	}
@@ -50,7 +48,6 @@ public class Object {
 	}
 
 	// @TODO: All object could have class descriptor eg. [I
-	@JTranscSync
 	public final Class<?> getClass() {
 		if (JTranscCoreReflection.isArray(this)) {
 			return JTranscCoreReflection.getClassByName(JTranscCoreReflection.getArrayDescriptor(this));
@@ -59,7 +56,6 @@ public class Object {
 		}
 	}
 
-	//@JTranscKeep
 	public int hashCode() {
 		return SystemInt.identityHashCode(this);
 	}
@@ -90,48 +86,24 @@ public class Object {
 	}
 
 	@JTranscKeep
-	//@JTranscMethodBody(target = "js", value = "return N.str('Object');")
 	public String toString() {
 		return getClass().getName() + "@" + Integer.toHexString(this.hashCode());
 	}
 
-	//private static final long SAMPLING_STEP = 50;
-	//private long waitTimeout;
-
-	@JTranscAsync
 	public final void wait(long timeout) throws InterruptedException {
-		//wait(timeout, 0);
 	}
 
-	@JTranscAsync
 	public final void wait() throws InterruptedException {
-		//wait(0L, 0);
 	}
 
-	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadWait({{ JC_COMMA }}this, N.j2d(p0), p1);", async = true)
-	@JTranscAsync
 	public final void wait(long timeout, int nanos) throws InterruptedException {
-		//if (timeout < 0)
-		//	throw new IllegalArgumentException("timeout is negative");
-		//waitTimeout = timeout == 0 ? Long.MAX_VALUE : timeout;
-		//while (waitTimeout > 0) {
-		//	waitTimeout -= SAMPLING_STEP;
-		//	Thread.sleep(SAMPLING_STEP);
-		//}
 	}
 
-	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadNotify({{ JC_COMMA }}this);", async = true)
-	@JTranscAsync
 	public final void notify() {
-		//waitTimeout = 0;
 	}
 
-	@JTranscMethodBody(target = "js", value = "{{ AWAIT }} N.threadNotifyAll({{ JC_COMMA }}this);", async = true)
-	@JTranscAsync
 	public final void notifyAll() {
-		//waitTimeout = 0;
 	}
-
 
 	protected void finalize() throws Throwable {
 	}

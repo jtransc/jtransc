@@ -16,31 +16,22 @@
 
 package java.lang;
 
-import com.jtransc.annotation.JTranscSync;
-
 abstract public class Number {
-	@JTranscSync
 	public Number() {
 	}
 
-	@JTranscSync
 	public abstract int intValue();
 
-	@JTranscSync
 	public abstract long longValue();
 
-	@JTranscSync
 	public abstract float floatValue();
 
-	@JTranscSync
 	public abstract double doubleValue();
 
-	@JTranscSync
 	public byte byteValue() {
 		return (byte) intValue();
 	}
 
-	@JTranscSync
 	public short shortValue() {
 		return (short) intValue();
 	}

@@ -18,7 +18,6 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.JTranscSync;
 
 import com.jtransc.lang.DoubleInfo;
 import com.jtransc.lang.FloatInfo;
@@ -27,7 +26,6 @@ import java.util.Random;
 
 @SuppressWarnings("WeakerAccess")
 public final class Math {
-	@JTranscSync
 	private Math() {
 	}
 
@@ -40,7 +38,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::sin(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Sin(p0);")
 	@JTranscMethodBody(target = "dart", value = "return Math.sin(p0);")
-	@JTranscSync
 	native public static double sin(double a);
 
 	@JTranscInline
@@ -49,7 +46,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::cos(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Cos(p0);")
 	@JTranscMethodBody(target = "dart", value = "return Math.cos(p0);")
-	@JTranscSync
 	native public static double cos(double a);
 
 	@JTranscInline
@@ -58,7 +54,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::tan(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Tan(p0);")
 	@JTranscMethodBody(target = "dart", value = "return Math.tan(p0);")
-	@JTranscSync
 	public static double tan(double a) {
 		return Math.sin(a) / Math.cos(a);
 	}
@@ -69,7 +64,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::asin(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Asin(p0);")
 	@JTranscMethodBody(target = "dart", value = "return Math.asin(p0);")
-	@JTranscSync
 	native public static double asin(double a);
 
 	@JTranscInline
@@ -78,7 +72,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::acos(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Acos(p0);")
 	@JTranscMethodBody(target = "dart", value = "return Math.acos(p0);")
-	@JTranscSync
 	native public static double acos(double a);
 
 	@JTranscInline
@@ -87,15 +80,12 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::atan(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Atan(p0);")
 	@JTranscMethodBody(target = "dart", value = "return Math.atan(p0);")
-	@JTranscSync
 	native public static double atan(double a);
 
-	@JTranscSync
 	public static double toRadians(double angdeg) {
 		return angdeg / 180.0 * Math.PI;
 	}
 
-	@JTranscSync
 	public static double toDegrees(double angrad) {
 		return angrad * 180.0 / Math.PI;
 	}
@@ -105,7 +95,6 @@ public final class Math {
 	@JTranscMethodBody(target = "js", value = "return Math.exp(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::exp(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Exp(p0);")
-	@JTranscSync
 	public static double exp(double a) {
 		return Math.pow(a, Math.E);
 	}
@@ -116,14 +105,12 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::log(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Log(p0);")
 	@JTranscMethodBody(target = "dart", value = "return Math.log(p0);")
-	@JTranscSync
 	native public static double log(double a);
 
 
 	@JTranscMethodBody(target = "js", value = "return Math.log10(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::log10(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Log10(p0);")
-	@JTranscSync
 	public static double log10(double a) {
 		return log(a) / log(10.0);
 	}
@@ -134,19 +121,16 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::sqrt(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Sqrt(p0);")
 	@JTranscMethodBody(target = "dart", value = "return Math.sqrt(p0);")
-	@JTranscSync
 	public static double sqrt(double a) {
 		return Math.pow(a, 0.5);
 	}
 
-	@JTranscSync
 	static public double cbrt(double x) {
 		double y = Math.pow(Math.abs(x), 1.0 / 3.0);
 		return (x < 0) ? -y : y;
 	}
 
 	//
-	@JTranscSync
 	native public static double IEEEremainder(double f1, double f2);
 
 	@JTranscInline
@@ -155,7 +139,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::ceil(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Ceiling(p0);")
 	@JTranscMethodBody(target = "dart", value = "return (p0).ceil();")
-	@JTranscSync
 	native public static double ceil(double a);
 
 	@JTranscInline
@@ -164,11 +147,9 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::floor(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Floor(p0);")
 	@JTranscMethodBody(target = "dart", value = "return (p0).floor();")
-	@JTranscSync
 	native public static double floor(double a);
 
 	//
-	@JTranscSync
 	public static double rint(double a) {
 		double r = (double) (int) a;
 		if (a < 0 && r == 0.0) return -0.0;
@@ -181,7 +162,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::atan2(p0, p1);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Atan2(p0, p1);")
 	@JTranscMethodBody(target = "dart", value = "return Math.atan2(p0, p1);")
-	@JTranscSync
 	native public static double atan2(double y, double x);
 
 	@JTranscInline
@@ -190,7 +170,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return ::pow(p0, p1);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Pow(p0, p1);")
 	@JTranscMethodBody(target = "dart", value = "return Math.pow(p0, p1);")
-	@JTranscSync
 	native public static double pow(double a, double b);
 
 	@JTranscInline
@@ -199,7 +178,6 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return (int32_t)::lround(p0);")
 	@JTranscMethodBody(target = "cs", value = "return (int)Math.Round(p0);")
 	@JTranscMethodBody(target = "dart", value = "return p0.round();")
-	@JTranscSync
 	native public static int round(float a);
 
 	@JTranscInline
@@ -208,13 +186,11 @@ public final class Math {
 	@JTranscMethodBody(target = "cpp", value = "return (int64_t)::llround(p0);")
 	@JTranscMethodBody(target = "cs", value = "return (long)Math.Round(p0);")
 	@JTranscMethodBody(target = "dart", value = "return p0.round();")
-	@JTranscSync
 	native public static long round(double a);
 
 	@JTranscInline
 
 	@JTranscMethodBody(target = "js", value = "return Math.random();")
-	@JTranscSync
 	public static double random() {
 		if (random == null) random = new Random();
 		return random.nextDouble();
@@ -222,133 +198,101 @@ public final class Math {
 
 	static private Random random;
 
-	@JTranscSync
 	native public static int addExact(int x, int y);
 
-	@JTranscSync
 	native public static long addExact(long x, long y);
 
-	@JTranscSync
 	native public static int subtractExact(int x, int y);
 
-	@JTranscSync
 	native public static long subtractExact(long x, long y);
 
-	@JTranscSync
 	native public static int multiplyExact(int x, int y);
 
-	@JTranscSync
 	native public static long multiplyExact(long x, long y);
 
-	@JTranscSync
 	native public static int incrementExact(int a);
 
-	@JTranscSync
 	native public static long incrementExact(long a);
 
-	@JTranscSync
 	native public static int decrementExact(int a);
 
-	@JTranscSync
 	native public static long decrementExact(long a);
 
-	@JTranscSync
 	native public static int negateExact(int a);
 
-	@JTranscSync
 	native public static long negateExact(long a);
 
-	@JTranscSync
 	native public static int toIntExact(long value);
 
-	@JTranscSync
 	native public static int floorDiv(int x, int y);
 
-	@JTranscSync
 	native public static long floorDiv(long x, long y);
 
-	@JTranscSync
 	native public static int floorMod(int x, int y);
 
-	@JTranscSync
 	native public static long floorMod(long x, long y);
 
 	// ABS
 
-	@JTranscSync
 	public static int abs(int a) {
 		return (a >= 0) ? a : -a;
 	}
 
-	@JTranscSync
 	public static long abs(long a) {
 		return (a >= 0) ? a : -a;
 	}
 
-	@JTranscSync
 	public static float abs(float a) {
 		return (a >= 0) ? a : -a;
 	}
 
-	@JTranscSync
 	public static double abs(double a) {
 		return (a >= 0) ? a : -a;
 	}
 
 	// MAX
 
-	@JTranscSync
 	public static int max(int a, int b) {
 		return (a > b) ? a : b;
 	}
 
-	@JTranscSync
 	public static long max(long a, long b) {
 		return (a > b) ? a : b;
 	}
 
-	@JTranscSync
 	public static float max(float a, float b) {
 		return (a > b) ? a : b;
 	}
 
-	@JTranscSync
 	public static double max(double a, double b) {
 		return (a > b) ? a : b;
 	}
 
 	// MIN
 
-	@JTranscSync
 	public static int min(int a, int b) {
 		return (a < b) ? a : b;
 	}
 
-	@JTranscSync
 	public static long min(long a, long b) {
 		return (a < b) ? a : b;
 	}
 
-	@JTranscSync
 	public static float min(float a, float b) {
 		return (a < b) ? a : b;
 	}
 
-	@JTranscSync
 	public static double min(double a, double b) {
 		return (a < b) ? a : b;
 	}
 
-	@JTranscSync
 	native public static double ulp(double d);
 
-	@JTranscSync
 	native public static float ulp(float f);
 
 
 	@JTranscMethodBody(target = "js", value = "return Math.sign(p0);")
 	@JTranscMethodBody(target = "cs", value = "return (double)Math.Sign(p0);")
-	@JTranscSync
 	public static double signum(double v) {
 		if (v < 0) return -1;
 		if (v > 0) return +1;
@@ -358,7 +302,6 @@ public final class Math {
 
 	@JTranscMethodBody(target = "js", value = "return Math.sign(p0);")
 	@JTranscMethodBody(target = "cs", value = "return (float)Math.Sign(p0);")
-	@JTranscSync
 	public static float signum(float v) {
 		if (v < 0) return -1;
 		if (v > 0) return +1;
@@ -368,7 +311,6 @@ public final class Math {
 	//
 	@JTranscMethodBody(target = "cpp", value = "return ::sinh(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Sinh(p0);")
-	@JTranscSync
 	public static double sinh(double x) {
 		return (Math.pow(Math.E, x) - Math.pow(Math.E, -x)) / 2.0;
 	}
@@ -376,7 +318,6 @@ public final class Math {
 	//
 	@JTranscMethodBody(target = "cpp", value = "return ::cosh(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Cosh(p0);")
-	@JTranscSync
 	public static double cosh(double x) {
 		return (Math.pow(Math.E, x) + Math.pow(Math.E, -x)) / 2.0;
 	}
@@ -384,7 +325,6 @@ public final class Math {
 	//
 	@JTranscMethodBody(target = "cpp", value = "return ::tanh(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Tanh(p0);")
-	@JTranscSync
 	public static double tanh(double x) {
 		return sinh(x) / cosh(x);
 	}
@@ -392,20 +332,16 @@ public final class Math {
 
 	@JTranscMethodBody(target = "js", value = "return Math.hypot(p0, p1);")
 	@JTranscMethodBody(target = "cpp", value = "return ::hypot(p0, p1);")
-	@JTranscSync
 	public static double hypot(double x, double y) {
 		return sqrt((x * x) + (y * y));
 	}
 
-	@JTranscSync
 	public static double expm1(double x) {
 		return pow(E, x) - 1;
 	}
 
-	@JTranscSync
 	native public static double log1p(double x);
 
-	@JTranscSync
 	public static double copySign(double magnitude, double sign) {
 		long magnitudeBits = Double.doubleToRawLongBits(magnitude);
 		long signBits = Double.doubleToRawLongBits(sign);
@@ -413,7 +349,6 @@ public final class Math {
 		return Double.longBitsToDouble(magnitudeBits);
 	}
 
-	@JTranscSync
 	public static float copySign(float magnitude, float sign) {
 		int magnitudeBits = Float.floatToRawIntBits(magnitude);
 		int signBits = Float.floatToRawIntBits(sign);
@@ -421,38 +356,28 @@ public final class Math {
 		return Float.intBitsToFloat(magnitudeBits);
 	}
 
-	@JTranscSync
 	native public static int getExponent(float f);
 
-	@JTranscSync
 	native public static int getExponent(double d);
 
-	@JTranscSync
 	native public static double nextAfter(double start, double direction);
 
-	@JTranscSync
 	native public static float nextAfter(float start, double direction);
 
-	@JTranscSync
 	native public static double nextUp(double d);
 
-	@JTranscSync
 	native public static float nextUp(float f);
 
-	@JTranscSync
 	native public static double nextDown(double d);
 
-	@JTranscSync
 	native public static float nextDown(float f);
 
 	//
-	@JTranscSync
 	public static double scalb(double d, int scaleFactor) {
 		return d * Math.pow(2, scaleFactor);
 	}
 
 	//
-	@JTranscSync
 	public static float scalb(float f, int scaleFactor) {
 		return (float) (f * Math.pow(2, scaleFactor));
 	}

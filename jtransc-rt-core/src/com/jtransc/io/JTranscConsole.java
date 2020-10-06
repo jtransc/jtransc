@@ -4,13 +4,9 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.*;
 
 
-
-
-import java.io.ObjectInputStream;
 import java.util.Objects;
 
 public class JTranscConsole {
-	@JTranscSync
 	static public void log(char[] v) {
 		logString(new String(v));
 	}
@@ -20,13 +16,11 @@ public class JTranscConsole {
 	@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));")
 	@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
-	@JTranscSync
 	static public void logString(String v) {
 		JTranscSystem.checkInJVM("logObject");
 		System.out.println(v);
 	}
 
-	@JTranscAsync
 	static public void log(Object v) {
 		logString(Objects.toString(v));
 	}
@@ -35,13 +29,12 @@ public class JTranscConsole {
 	@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? p0->{% METHOD java.lang.Object:toString %}() : N::str(std::wstring(L\"null\")));")
 	@JTranscMethodBody(target = "cs", value = "Console.WriteLine((p0 != null) ? p0.ToString() : \"null\");")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
-	@JTranscAsync
 	static public void dump(Object v) {
 		log(v);
 	}
 
 
-	@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));")
+	@JTranscMethodBody(target = "js", value = "console.log(N.str(p0));")
 	@JTranscMethodBody(target = "cpp", value = "N::log(p0 ? L\"true\" : L\"false\");")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
 	static public void log(boolean v) {
@@ -49,7 +42,7 @@ public class JTranscConsole {
 	}
 
 
-	@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));")
+	@JTranscMethodBody(target = "js", value = "console.log(N.str(p0));")
 	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);")
 	@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
@@ -58,7 +51,7 @@ public class JTranscConsole {
 	}
 
 
-	@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));")
+	@JTranscMethodBody(target = "js", value = "console.log(N.str(p0));")
 	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);")
 	@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
@@ -76,7 +69,7 @@ public class JTranscConsole {
 	}
 
 
-	@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));")
+	@JTranscMethodBody(target = "js", value = "console.log(N.str(p0));")
 	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%d\\n\", (int32_t)p0); fflush(stdout);")
 	@JTranscMethodBody(target = "cs", value = "Console.WriteLine(p0);")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
@@ -96,7 +89,7 @@ public class JTranscConsole {
 	}
 
 
-	@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));")
+	@JTranscMethodBody(target = "js", value = "console.log(N.str(p0));")
 	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%f\\n\", (float32_t)p0); fflush(stdout);")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
 	static public void log(float v) {
@@ -105,7 +98,7 @@ public class JTranscConsole {
 	}
 
 
-	@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));")
+	@JTranscMethodBody(target = "js", value = "console.log(N.str(p0));")
 	@JTranscMethodBody(target = "cpp", value = "wprintf(L\"%llf\\n\", (float64_t)p0); fflush(stdout);")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
 	static public void log(double v) {
@@ -116,13 +109,11 @@ public class JTranscConsole {
 	@JTranscMethodBody(target = "js", value = "console.error(N.istr(p0));")
 	@JTranscMethodBody(target = "cs", value = "Console.Error.WriteLine(p0);")
 	@JTranscMethodBody(target = "dart", value = "print(p0);")
-	@JTranscSync
 	static public void errorString(String msg) {
 		JTranscSystem.checkInJVM("logError");
 		System.err.println(msg);
 	}
 
-	@JTranscSync
 	static public void error(String msg) {
 		errorString(msg);
 	}
@@ -130,7 +121,6 @@ public class JTranscConsole {
 	//@JTranscMethodBody(target = "js", value = "console.error('' + p0);")
 	//@JTranscMethodBody(target = "cs", value = "Console.Error.WriteLine(p0);")
 	//@JTranscMethodBody(target = "dart", value = "print(p0);")
-	@JTranscAsync
 	static public void error(Object msg) {
 		errorString(Objects.toString(msg));
 	}
@@ -143,7 +133,6 @@ public class JTranscConsole {
 		}
 	}
 
-	@JTranscSync
 	public static void syncPrintStackTrace(Throwable e) {
 		error("JTranscConsole.printStackTrace:");
 		error(e.getMessage());

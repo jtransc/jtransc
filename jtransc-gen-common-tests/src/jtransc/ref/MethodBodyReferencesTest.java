@@ -19,7 +19,7 @@ public class MethodBodyReferencesTest {
 		}
 	}
 
-	@JTranscMethodBody(target = "js", value = "{% SMETHOD jtransc.ref.MethodBodyReferencesTestJs:test %}({{ JC }});")
+	@JTranscMethodBody(target = "js", value = "{% SMETHOD jtransc.ref.MethodBodyReferencesTestJs:test %}();")
 	@JTranscMethodBody(target = "cpp", value = "{% SMETHOD jtransc.ref.MethodBodyReferencesTestCpp:test %}();")
 	static private void demo() {
 		MethodBodyReferencesTestJvm.test();

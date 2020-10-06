@@ -16,9 +16,6 @@
 
 package java.util;
 
-import com.jtransc.annotation.JTranscAsync;
-import com.jtransc.annotation.JTranscSync;
-
 import java.util.function.Supplier;
 
 /**
@@ -27,7 +24,6 @@ import java.util.function.Supplier;
  * @since 1.7
  */
 public final class Objects {
-	@JTranscSync
 	private Objects() {
 	}
 
@@ -35,7 +31,6 @@ public final class Objects {
 	 * Returns 0 if {@code a == b}, or {@code c.compare(a, b)} otherwise.
 	 * That is, this makes {@code c} null-safe.
 	 */
-	@JTranscAsync
 	public static <T> int compare(T a, T b, Comparator<? super T> c) {
 		return (a != b) ? c.compare(a, b) : 0;
 	}
@@ -46,7 +41,6 @@ public final class Objects {
 	 * the result of {@link Arrays#deepEquals} if both arguments are arrays of reference types,
 	 * and the result of {@link #equals} otherwise.
 	 */
-	@JTranscAsync
 	public static boolean deepEquals(Object a, Object b) {
 		if (a == null || b == null) {
 			return a == b;
@@ -75,7 +69,6 @@ public final class Objects {
 	/**
 	 * Null-safe equivalent of {@code a.equals(b)}.
 	 */
-	@JTranscAsync
 	public static boolean equals(Object a, Object b) {
 		return (a == null) ? (b == null) : a.equals(b);
 	}
@@ -85,7 +78,6 @@ public final class Objects {
 	 * This can be used to compute a hash code for an object's fields as follows:
 	 * {@code Objects.hash(a, b, c)}.
 	 */
-	@JTranscAsync
 	public static int hash(Object... values) {
 		return Arrays.hashCode(values);
 	}
@@ -93,7 +85,6 @@ public final class Objects {
 	/**
 	 * Returns 0 for null or {@code o.hashCode()}.
 	 */
-	@JTranscAsync
 	public static int hashCode(Object o) {
 		return (o == null) ? 0 : o.hashCode();
 	}
@@ -101,7 +92,6 @@ public final class Objects {
 	/**
 	 * Returns {@code o} if non-null, or throws {@code NullPointerException}.
 	 */
-	@JTranscSync
 	public static <T> T requireNonNull(T o) {
 		if (o == null) {
 			throw new NullPointerException();
@@ -113,7 +103,6 @@ public final class Objects {
 	 * Returns {@code o} if non-null, or throws {@code NullPointerException}
 	 * with the given detail message.
 	 */
-	@JTranscSync
 	public static <T> T requireNonNull(T o, String message) {
 		if (o == null) {
 			throw new NullPointerException(message);
@@ -124,7 +113,6 @@ public final class Objects {
 	/**
 	 * Returns "null" for null or {@code o.toString()}.
 	 */
-	@JTranscAsync
 	public static String toString(Object o) {
 		return (o == null) ? "null" : o.toString();
 	}
@@ -132,22 +120,18 @@ public final class Objects {
 	/**
 	 * Returns {@code nullString} for null or {@code o.toString()}.
 	 */
-	@JTranscAsync
 	public static String toString(Object o, String nullString) {
 		return (o == null) ? nullString : o.toString();
 	}
 
-	@JTranscSync
 	public static boolean isNull(Object obj) {
 		return obj == null;
 	}
 
-	@JTranscSync
 	public static boolean nonNull(Object obj) {
 		return obj != null;
 	}
 
-	@JTranscAsync
 	public static <T> T requireNonNull(T obj, Supplier<String> messageSupplier) {
 		if (obj == null) throw new NullPointerException(messageSupplier.get());
 		return obj;

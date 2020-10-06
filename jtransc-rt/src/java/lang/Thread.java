@@ -19,7 +19,6 @@ package java.lang;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscAddIncludes;
 import com.jtransc.annotation.JTranscAddMembers;
-import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
 
 
@@ -48,9 +47,7 @@ public class Thread implements Runnable {
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return _cpp_threads[std::this_thread::get_id()];")
-	@JTranscMethodBody(target = "js", value = {
-		"{% if IS_JC %}return {% SMETHOD #CLASS:getThreadById %}({{ JC_COMMA }}_jc.threadId);{% else %}return {% SMETHOD #CLASS:getDefaultThread %}();{% end %}"
-	})
+	@JTranscMethodBody(target = "js", value = "return {% SMETHOD #CLASS:getDefaultThread %}();")
 	private static Thread _getCurrentThreadOrNull() {
 		for (Thread t : getThreadsCopy()) return t; // Just valid for programs with just once thread
 		return null;
@@ -81,12 +78,6 @@ public class Thread implements Runnable {
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "std::this_thread::sleep_for(std::chrono::milliseconds(p0));")
-	//@JTranscMethodBody(target = "js", value = {
-	//	"{% if IS_ASYNC %}return new Promise((resolve, reject) => { setTimeout(resolve, p0); });" +
-	//	"{% else %}return {% SMETHOD com.jtransc.JTranscSystem:sleep %}(p0);" +
-	//	"{% end %}"
-	//}, async = true)
-	@JTranscMethodBody(target = "js", cond = "IS_ASYNC", value = "return new Promise((resolve, reject) => { setTimeout(resolve, p0); });", async = true)
 	public static void sleep(long millis) throws InterruptedException {
 		JTranscSystem.sleep(millis);
 	}
@@ -185,17 +176,9 @@ public class Thread implements Runnable {
 		_start(id);
 	}
 
-	@JTranscMethodBody(target = "cs", value = {
-		"_cs_thread = new System.Threading.Thread(new System.Threading.ThreadStart(delegate() { this{% IMETHOD java.lang.Thread:runInternal:()V %}();  }));",
-		"_cs_thread.Start();",
-	})
-	@JTranscMethodBody(target = "cpp", value = {
-		"t_ = std::thread(&{% SMETHOD java.lang.Thread:runInternalStatic:(Ljava/lang/Thread;)V %}, this);",
-	})
-	@JTranscMethodBody(target = "js", value = {
-		"{% if IS_JC %}this{% IMETHOD java.lang.Thread:runInternal:()V %}({ threadId: p0, global: _jc.global });{% else %}this{% IMETHOD java.lang.Thread:runInternal:()V %}();{% end %}"
-	}) // NOTE: await missing intentionally
-	@JTranscAsync
+	@JTranscMethodBody(target = "cs", value = "_cs_thread = new System.Threading.Thread(new System.Threading.ThreadStart(delegate() { this{% IMETHOD java.lang.Thread:runInternal:()V %}();  })); _cs_thread.Start();")
+	@JTranscMethodBody(target = "cpp", value = "t_ = std::thread(&{% SMETHOD java.lang.Thread:runInternalStatic:(Ljava/lang/Thread;)V %}, this);")
+	@JTranscMethodBody(target = "js", value = "this{% IMETHOD java.lang.Thread:runInternal:()V %}();")
 	private void _start(@SuppressWarnings("unused") int threadId) {
 		System.err.println("WARNING: Threads not supported! Executing thread code in the parent's thread!");
 		runInternal();
