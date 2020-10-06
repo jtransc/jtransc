@@ -7,12 +7,10 @@ import com.jtransc.annotation.*;
 import java.lang.reflect.Field;
 import java.util.Objects;
 
-@JTranscAddMembersList({
-	@JTranscAddMembers(target = "cs", value = {
-		"public object _wrapped;",
-		"static public {% CLASS com.jtransc.JTranscWrapped: %} wrap(object value) { var o = new {% CLASS com.jtransc.JTranscWrapped: %}(); o._wrapped = value; return o; }",
-		"static public object unwrap({% CLASS com.jtransc.JTranscWrapped: %} value) { return value._wrapped; }"
-	}),
+@JTranscAddMembers(target = "cs", value = {
+	"public object _wrapped;",
+	"static public {% CLASS com.jtransc.JTranscWrapped: %} wrap(object value) { var o = new {% CLASS com.jtransc.JTranscWrapped: %}(); o._wrapped = value; return o; }",
+	"static public object unwrap({% CLASS com.jtransc.JTranscWrapped: %} value) { return value._wrapped; }"
 })
 @JTranscKeep
 public class JTranscWrapped {

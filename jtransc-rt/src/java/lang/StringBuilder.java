@@ -29,7 +29,6 @@ import java.util.Arrays;
 
 // @TODO: Optimize using arrays
 @SuppressWarnings("UnnecessaryCallToStringValueOf")
-@JTranscAddMembers(target = "as3", value = "public var _str: String = '';")
 @JTranscAddMembers(target = "dart", value = "StringBuffer __buffer = new StringBuffer();")
 //@JTranscAddMembers(target = "cpp", value = "std::u16string __buffer;")
 public class StringBuilder implements java.io.Serializable, Appendable, CharSequence {
@@ -44,7 +43,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 	}
 
 	@JTranscMethodBody(target = "js", value = "this._str = ''; return this;")
-	@JTranscMethodBody(target = "as3", value = "this._str = ''; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.__buffer = new StringBuffer(); return this;")
 	//@JTranscMethodBody(target = "cpp", value = "__buffer.reserve(p0); return this;")
 	@JTranscSync
@@ -66,7 +64,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "return this._str.length;")
-	@JTranscMethodBody(target = "as3", value = "return this._str.length;")
 	@JTranscMethodBody(target = "dart", value = "return this.__buffer.length;")
 	//@JTranscMethodBody(target = "cpp", value = "return __buffer.length();")
 	@JTranscSync
@@ -77,7 +74,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "")
-	@JTranscMethodBody(target = "as3", value = "")
 	@JTranscMethodBody(target = "dart", value = "")
 	//@JTranscMethodBody(target = "cpp", value = "__buffer.shrink_to_fit();")
 	@JTranscSync
@@ -87,7 +83,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "this._str += N.istr(p0); return this;")
-	@JTranscMethodBody(target = "as3", value = "this._str += N.istr(p0); return this;")
 	@JTranscMethodBody(target = "dart", value = "this.__buffer.write((p0 != null) ? N.istr(p0) : 'null'); return this;")
 	//@JTranscMethodBody(target = "cpp", value = "if (p0 == nullptr) __buffer.append(u\"null\"); else __buffer.append((const char16_t *)N::getStrDataPtr(p0), (int)N::strLen(p0)); return this;")
 	@JTranscSync
@@ -109,7 +104,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "this._str += N.ichar(p0); return this;")
-	@JTranscMethodBody(target = "as3", value = "this._str += N.ichar(p0); return this;")
 	@JTranscMethodBody(target = "dart", value = "this.__buffer.write(N.ichar(p0)); return this;")
 	//@JTranscMethodBody(target = "cpp", value = "__buffer.push_back(p0); return this;")
 	@JTranscSync
@@ -123,7 +117,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "this._str += p0; return this;")
-	@JTranscMethodBody(target = "as3", value = "this._str += p0; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.__buffer.write(p0); return this;")
 	//@JTranscMethodBody(target = "cpp", value = "char16_t buffer16[12]; char buffer[12]; itoa(p0, buffer, 10); int len = strlen(buffer); for (int n = 0; n < len; n++) buffer16[n] = buffer[n]; __buffer.append(buffer16, len); return this;")
 	@JTranscSync
@@ -137,7 +130,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 	//@Override
 
 	@JTranscMethodBody(target = "js", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
-	@JTranscMethodBody(target = "as3", value = "return this._str.charCodeAt(p0) & 0xFFFF;")
 	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().codeUnitAt(p0) & 0xFFFF;")
 	//@JTranscMethodBody(target = "cpp", value = "return __buffer[p0];")
 	@JTranscSync
@@ -147,7 +139,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "return this._str.indexOf(p0._str, p1);")
-	@JTranscMethodBody(target = "as3", value = "return this._str.indexOf(N.istr(p0), p1);")
 	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().indexOf(N.istr(p0), p1);")
 	//@JTranscMethodBody(target = "cpp", value = "exit(7777);")
 	@JTranscSync
@@ -157,7 +148,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
-	@JTranscMethodBody(target = "as3", value = "return this._str.lastIndexOf(N.istr(p0), p1);")
 	@JTranscMethodBody(target = "dart", value = "return this.__buffer.toString().lastIndexOf(N.istr(p0), p1);")
 	//@JTranscMethodBody(target = "cpp", value = "exit(7778);")
 	@JTranscSync
@@ -167,7 +157,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.reverse(); return this;")
-	@JTranscMethodBody(target = "as3", value = "var len: int = this._str.length; var reversed: String = ''; for (var n:int = 0; n < len; n++) reversed += this._str.substr(len - n - 1, 1); this._str = reversed; return this;")
 	@JTranscMethodBody(target = "dart", value = "var str = this.__buffer.toString(); int len = str.length; this.__buffer = new StringBuffer(); for (int n = 0; n < len; n++) this.__buffer.write(str[len - n - 1]); return this;")
 	//@JTranscMethodBody(target = "cpp", value = "auto len = __buffer.length(); for (int n = 0; n < len; n++) std::swap(__buffer[n], __buffer[len - n - 1]); return this;")
 	@JTranscSync
@@ -184,7 +173,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
-	@JTranscMethodBody(target = "as3", value = "this._str = this._str.substr(0, p0) + this._str.substr(p1); return this;")
 	@JTranscMethodBody(target = "dart", value = "var str = this.__buffer.toString(); this.__buffer = new StringBuffer()..write(str.substring(0, p0))..write(str.substring(p1)); return this;")
 	//@JTranscMethodBody(target = "cpp", value = "__buffer.erase(p0, p1 - p0); return this;")
 	@JTranscSync
@@ -194,7 +182,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "this._str = this._str.substr(0, p0) + N.istr(p2) + this._str.substr(p1); return this;")
-	@JTranscMethodBody(target = "as3", value = "this._str = this._str.substr(0, p0) + N.istr(p2) + this._str.substr(p1); return this;")
 	@JTranscMethodBody(target = "dart", value = "var str = this.__buffer.toString(); this.__buffer = new StringBuffer()..write(str.substring(0, p0))..write(N.istr(p2))..write(str.substring(p1)); return this;")
 	//@JTranscMethodBody(target = "cpp", value = "exit(7780); return this;")
 	@JTranscSync
@@ -213,7 +200,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "")
-	@JTranscMethodBody(target = "as3", value = "")
 	@JTranscMethodBody(target = "dart", value = "")
 	//@JTranscMethodBody(target = "cpp", value = "__buffer.reserve(p0);")
 	@JTranscSync
@@ -223,7 +209,6 @@ public class StringBuilder implements java.io.Serializable, Appendable, CharSequ
 
 
 	@JTranscMethodBody(target = "js", value = "return N.str(this._str);")
-	@JTranscMethodBody(target = "as3", value = "return N.str(this._str);")
 	@JTranscMethodBody(target = "dart", value = "return N.str(this.__buffer.toString());")
 	//@JTranscMethodBody(target = "cpp", value = "return N::str(__buffer);")
 	@JTranscSync

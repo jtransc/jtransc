@@ -58,12 +58,10 @@ public class System {
 		System.err = err;
 	}
 
-	@JTranscMethodBody(target = "d", value = "return N.currentTimeMillis();")
 	public static long currentTimeMillis() {
 		return (long) JTranscSystem.fastTime();
 	}
 
-	@JTranscMethodBody(target = "d", value = "return N.nanoTime();")
 	public static long nanoTime() {
 		return JTranscSystem.nanoTime();
 	}
@@ -71,11 +69,8 @@ public class System {
 
 	@JTranscMethodBody(target = "js", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0, p1, (JA_0*)p2, p3, p4);")
-	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cs", value = "N.arraycopy(p0, p1, p2, p3, p4);")
-	@JTranscMethodBody(target = "as3", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "dart", value = "N.arraycopy(p0, p1, p2, p3, p4);")
-	@JTranscMethodBody(target = "php", value = "N::arraycopy($p0, $p1, $p2, $p3, $p4);")
 	@JTranscSync
 	public static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int length) {
 		boolean overlapping = (src == dst && dstPos > srcPos);
@@ -264,13 +259,8 @@ public class System {
 	}
 
 	@JTranscMethodBody(target = "js", value = "return N.str((typeof process != 'undefined') ? process.env[N.istr(p0)] : null);")
-	@JTranscMethodBody(target = "cpp", value = {
-		"auto str = N::istr3(p0);",
-		"return N::str(std::getenv(str.c_str()));"
-	})
-	@JTranscMethodBody(target = "d", value = "return N.str(std.process.environment.get(N.istr2(p0)));")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(std::getenv(N::istr3(p0).c_str()));")
 	@JTranscMethodBody(target = "cs", value = "return N.str(Environment.GetEnvironmentVariable(N.istr(p0)));")
-	@JTranscMethodBody(target = "as3", value = "return N.str(null);")
 	@JTranscMethodBody(target = "dart", value = "return N.str(Platform.environment[N.istr(p0)]);")
 	public static String getenv(String name) {
 		return getenv().get(name);

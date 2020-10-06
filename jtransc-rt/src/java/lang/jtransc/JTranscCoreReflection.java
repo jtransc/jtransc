@@ -178,33 +178,24 @@ public class JTranscCoreReflection {
 
 	@JTranscMethodBody(target = "js", value = "return p0 ? (p0 instanceof JA_0) : false;")
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT(JA_0, p0) != nullptr;")
-	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0) !is null;")
 	@JTranscMethodBody(target = "cs", value = "return p0 is JA_0;")
-	@JTranscMethodBody(target = "as3", value = "return p0 is JA_0;")
 	@JTranscMethodBody(target = "dart", value = "return p0 is JA_0;")
-	@JTranscMethodBody(target = "php", value = "return $p0 instanceof JA_0;")
 	@JTranscSync
 	native public static boolean isArray(Object o);
 
 
 	@JTranscMethodBody(target = "js", value = "return p0 ? N.str(p0.desc) : null;")
 	@JTranscMethodBody(target = "cpp", value = "return N::str(GET_OBJECT(JA_0, p0)->desc);")
-	@JTranscMethodBody(target = "d", value = "return N.str((cast(JA_0)p0).desc);")
 	@JTranscMethodBody(target = "cs", value = "return N.str(((JA_0)p0).desc);")
-	@JTranscMethodBody(target = "as3", value = "return N.str((p0 as JA_0).desc);")
 	@JTranscMethodBody(target = "dart", value = "return N.str((p0 as JA_0).desc);")
-	@JTranscMethodBody(target = "php", value = "return N::str($p0->desc);")
 	@JTranscSync
 	native public static String getArrayDescriptor(Object o);
 
 
 	@JTranscMethodBody(target = "js", value = "return p0.__JT__CLASS_ID;")
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE({% CLASS java.lang.Object %}, p0)->__JT__CLASS_ID;")
-	@JTranscMethodBody(target = "d", value = "return p0.__JT__CLASS_ID;")
 	@JTranscMethodBody(target = "cs", value = "return p0.__JT__CLASS_ID;")
-	@JTranscMethodBody(target = "as3", value = "return p0.__JT__CLASS_ID;")
 	@JTranscMethodBody(target = "dart", value = "return p0.__JT__CLASS_ID;")
-	@JTranscMethodBody(target = "php", value = "return $p0->__JT__CLASS_ID;")
 	@JTranscSync
 	static public int getClassId(Object obj) {
 		return -1;

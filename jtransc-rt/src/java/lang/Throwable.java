@@ -25,11 +25,9 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-@JTranscAddMembersList({
-	@JTranscAddMembers(target = "cs", value = "public Exception csException; System.Diagnostics.StackTrace currentStackTrace;"),
-	@JTranscAddMembers(target = "dart", value = "Error dartError; StackTrace currentStackTrace;"),
-	//@JTranscAddMembers(target = "js", value = "Error error;"),
-})
+@JTranscAddMembers(target = "cs", value = "public Exception csException; System.Diagnostics.StackTrace currentStackTrace;")
+@JTranscAddMembers(target = "dart", value = "Error dartError; StackTrace currentStackTrace;")
+//@JTranscAddMembers(target = "js", value = "Error error;"),
 public class Throwable implements Serializable {
 	//private String detailMessage;
 	//private Throwable cause;

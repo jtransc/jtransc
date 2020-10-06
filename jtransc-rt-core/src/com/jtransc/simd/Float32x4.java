@@ -6,11 +6,9 @@ import com.jtransc.annotation.*;
  * IMMUTABLE FLOAT32 x 4
  */
 @JTranscInvisible
-@JTranscNativeNameList({
-	//@JTranscNativeName(target = "js", value = "SIMD.Float32x4"),
-	@JTranscNativeName(target = "dart", value = "Float32x4"),
-	@JTranscNativeName(target = "cpp", value = "Float32x4", defaultValue = "Float32x4_i(0, 0, 0, 0)"),
-})
+//@JTranscNativeName(target = "js", value = "SIMD.Float32x4")
+@JTranscNativeName(target = "dart", value = "Float32x4")
+@JTranscNativeName(target = "cpp", value = "Float32x4", defaultValue = "Float32x4_i(0, 0, 0, 0)")
 final public class Float32x4 {
 	static {
 		Simd.ref();
@@ -68,50 +66,40 @@ final public class Float32x4 {
 	}
 
 	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.mul(p0, SIMD.Float32x4(p1, p1, p1, p1));")
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "((#0) * (#1))"),
-		@JTranscCallSiteBody(target = "cpp", value = "((#0) * (#1))"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "((#0) * (#1))")
+	@JTranscCallSiteBody(target = "cpp", value = "((#0) * (#1))")
 	@JTranscSync
 	static public Float32x4 mul(Float32x4 l, float r) {
 		return new Float32x4(l.x * r, l.y * r, l.z * r, l.w * r);
 	}
 
 	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.extractLane(p0, 0);")
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "((#0).x)"),
-		@JTranscCallSiteBody(target = "cpp", value = "((#0).x)"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "((#0).x)")
+	@JTranscCallSiteBody(target = "cpp", value = "((#0).x)")
 	@JTranscSync
 	static public float getX(Float32x4 l) {
 		return l.x;
 	}
 
 	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.extractLane(p0, 1);")
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "((#0).y)"),
-		@JTranscCallSiteBody(target = "cpp", value = "((#0).y)"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "((#0).y)")
+	@JTranscCallSiteBody(target = "cpp", value = "((#0).y)")
 	@JTranscSync
 	static public float getY(Float32x4 l) {
 		return l.y;
 	}
 
 	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.extractLane(p0, 2);")
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "((#0).z)"),
-		@JTranscCallSiteBody(target = "cpp", value = "((#0).z)"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "((#0).z)")
+	@JTranscCallSiteBody(target = "cpp", value = "((#0).z)")
 	@JTranscSync
 	static public float getZ(Float32x4 l) {
 		return l.z;
 	}
 
 	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.extractLane(p0, 3);")
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "((#0).w)"),
-		@JTranscCallSiteBody(target = "cpp", value = "((#0).w)"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "((#0).w)")
+	@JTranscCallSiteBody(target = "cpp", value = "((#0).w)")
 	@JTranscSync
 	static public float getW(Float32x4 l) {
 		return l.w;
@@ -169,10 +157,8 @@ final public class Float32x4 {
 		R[3] = add(mul(xxxx(b3), a0), mul(yyyy(b3), a1), mul(zzzz(b3), a2), mul(wwww(b3), a3));
 	}
 
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "{% SMETHOD com.jtransc.simd.Float32x4Utils:toStringInternal %}(#0)"),
-		@JTranscCallSiteBody(target = "cpp", value = "{% SMETHOD com.jtransc.simd.Float32x4Utils:toStringInternal %}(#0)"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "{% SMETHOD com.jtransc.simd.Float32x4Utils:toStringInternal %}(#0)")
+	@JTranscCallSiteBody(target = "cpp", value = "{% SMETHOD com.jtransc.simd.Float32x4Utils:toStringInternal %}(#0)")
 	@JTranscSync
 	static public String toString(Float32x4 v) {
 		return Float32x4Utils.toStringInternal(v);

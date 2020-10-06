@@ -70,15 +70,10 @@ public class JTranscSystem {
 	}
 
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "php", value = "return true;"),
-		@JTranscMethodBody(target = "js", value = "return true;"),
-		@JTranscMethodBody(target = "cpp", value = "return true;"),
-		@JTranscMethodBody(target = "d", value = "return true;"),
-		@JTranscMethodBody(target = "cs", value = "return true;"),
-		@JTranscMethodBody(target = "as3", value = "return true;"),
-		@JTranscMethodBody(target = "dart", value = "return true;"),
-	})
+	@JTranscMethodBody(target = "js", value = "return true;")
+	@JTranscMethodBody(target = "cpp", value = "return true;")
+	@JTranscMethodBody(target = "cs", value = "return true;")
+	@JTranscMethodBody(target = "dart", value = "return true;")
 	@SuppressWarnings("all")
 	@JTranscSync
 	static public boolean usingJTransc() {
@@ -92,10 +87,8 @@ public class JTranscSystem {
 	}
 
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "debugger;"),
-		@JTranscMethodBody(target = "cs", value = "System.Diagnostics.Debugger.Break();"),
-	})
+	@JTranscMethodBody(target = "js", value = "debugger;")
+	@JTranscMethodBody(target = "cs", value = "System.Diagnostics.Debugger.Break();")
 	@JTranscSync
 	static public void debugger() {
 		//System.out.println("debugger");
@@ -103,10 +96,8 @@ public class JTranscSystem {
 	}
 
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "if (!p0) debugger;"),
-		@JTranscMethodBody(target = "cs", value = "if (!p0) System.Diagnostics.Debugger.Break();"),
-	})
+	@JTranscMethodBody(target = "js", value = "if (!p0) debugger;")
+	@JTranscMethodBody(target = "cs", value = "if (!p0) System.Diagnostics.Debugger.Break();")
 	@JTranscSync
 	static public void assert2(boolean trueCond) {
 		if (!trueCond) {
@@ -116,13 +107,9 @@ public class JTranscSystem {
 	}
 
 	@SuppressWarnings("all")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "php", value = "return N::str('php');"),
-		@JTranscMethodBody(target = "js", value = "return N.str(\"js\");"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"cpp\");"),
-		@JTranscMethodBody(target = "d", value = "return N.str(\"d\");"),
-		@JTranscMethodBody(target = "cs", value = "return N.str(\"csharp\");"),
-	})
+	@JTranscMethodBody(target = "js", value = "return N.str(\"js\");")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"cpp\");")
+	@JTranscMethodBody(target = "cs", value = "return N.str(\"csharp\");")
 	@JTranscSync
 	static public String getRuntimeKind() {
 		if (!usingJTransc()) return "java";
@@ -139,11 +126,9 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return false;"),
-		@JTranscMethodBody(target = "cpp", value = "return true;"),
-		@JTranscMethodBody(target = "cs", value = "return true;"),
-	})
+	@JTranscMethodBody(target = "js", value = "return false;")
+	@JTranscMethodBody(target = "cpp", value = "return true;")
+	@JTranscMethodBody(target = "cs", value = "return true;")
 	@JTranscSync
 	public static boolean isSys() {
 		return TRUE;
@@ -201,14 +186,10 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(JT_OS);"),
-		@JTranscMethodBody(target = "d", value = "return N.str(N.getOS());"),
-		@JTranscMethodBody(target = "cs", value = "return N.str(System.Environment.OSVersion.Platform.ToString());"),
-		@JTranscMethodBody(target = "as3", value = "return N.str('as3');"),
-		@JTranscMethodBody(target = "dart", value = "return N.str(Platform.operatingSystem);"),
-	})
+	@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(JT_OS);")
+	@JTranscMethodBody(target = "cs", value = "return N.str(System.Environment.OSVersion.Platform.ToString());")
+	@JTranscMethodBody(target = "dart", value = "return N.str(Platform.operatingSystem);")
 	@JTranscSync
 	static private String getOSRaw() {
 		if (JTranscSystem.isJTransc()) {
@@ -230,10 +211,8 @@ public class JTranscSystem {
 
 	// http://lopica.sourceforge.net/os.html
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return N.str('x86');"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"x86\");"),
-	})
+	@JTranscMethodBody(target = "js", value = "return N.str('x86');")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"x86\");")
 	static public String getArch() {
 		// x86, i386, ppc, sparc, arm
 		if (isJvm()) {
@@ -285,42 +264,29 @@ public class JTranscSystem {
 	}
 
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return true;"),
-		@JTranscMethodBody(target = "d", value = "debug { return true; } return false;"),
-	})
+	@JTranscMethodBody(target = "js", value = "return true;")
 	@JTranscSync
 	public static boolean isDebug() {
 		return FALSE;
 	}
 
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");"),
-		@JTranscMethodBody(target = "d", value = "return N.str(\"jtransc-d\");"),
-	})
+	@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");")
 	@JTranscSync
 	public static String getRuntimeName() {
 		return "java";
 	}
 
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');"),
-		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");"),
-		@JTranscMethodBody(target = "d", value = "return N.str(\"/\");"),
-	})
+	@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');")
+	@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");")
 	@JTranscAsync
 	public static String getJavaHome() {
 		return System.getenv("java.home");
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return true;"),
-		@JTranscMethodBody(target = "php", value = "return true;"),
-		@JTranscMethodBody(target = "as3", value = "return true;"),
-	})
+	@JTranscMethodBody(target = "js", value = "return true;")
 	@JTranscSync
 	public static boolean isEmulatedLong() {
 		return FALSE;

@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-@JTranscAddHeader(target = "as3", value = "import flash.system.System;")
 public class Runtime {
 	private static Runtime current;
 
@@ -46,9 +45,7 @@ public class Runtime {
 
 	@JTranscMethodBody(target = "js", value = "process.exit(p0);")
 	@JTranscMethodBody(target = "cpp", value = "::exit(p0);")
-	@JTranscMethodBody(target = "d", value = "core.stdc.stdlib.exit(p0);")
 	@JTranscMethodBody(target = "dart", value = "exit(p0);")
-	@JTranscMethodBody(target = "php", value = "exit($p0);")
 	@JTranscMethodBody(target = "cs", value = "Environment.Exit(p0);")
 	native public void exit(int status);
 
@@ -123,19 +120,16 @@ public class Runtime {
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return GC_get_free_bytes();")
-	@JTranscMethodBody(target = "php", value = "return N::d2j((float)0.0);")
 	public long freeMemory() {
 		return totalMemory() - _usedMemory();
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return GC_get_total_bytes();")
-	@JTranscMethodBody(target = "php", value = "return N::d2j((float)memory_get_peak_usage());")
 	public long totalMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return GC_get_total_bytes();")
-	@JTranscMethodBody(target = "php", value = "return N::d2j((float)memory_get_usage());")
 	public long maxMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}
@@ -144,9 +138,7 @@ public class Runtime {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
-	@JTranscMethodBody(target = "as3", value = "System.gc();")
 	@JTranscMethodBody(target = "cpp", value = "GC_gcollect();")
-	@JTranscMethodBody(target = "php", value = "gc_collect_cycles();")
 	public void gc() {
 	}
 

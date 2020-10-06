@@ -10,9 +10,7 @@ import com.jtransc.io.JTranscSyncIO;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-@JTranscAddMembersList({
-	@JTranscAddMembers(target = "dart", value = "RandomAccessFile raf;"),
-})
+@JTranscAddMembers(target = "dart", value = "RandomAccessFile raf;")
 public class JTranscAsyncFileStream extends JTranscAsyncStream {
 	JTranscSyncIO.ImplStream syncStream;
 

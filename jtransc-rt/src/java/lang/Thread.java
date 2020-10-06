@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@JTranscAddMembers(target = "d", value = "static {% CLASS java.lang.Thread %} _dCurrentThread; Thread thread;")
 @JTranscAddMembers(target = "cs", value = "System.Threading.Thread _cs_thread;")
 @JTranscAddIncludes(target = "cpp", value = {"thread", "map"})
 @JTranscAddMembers(target = "cpp", value = "std::thread t_;")
@@ -48,12 +47,6 @@ public class Thread implements Runnable {
 		return (out != null) ? out : _mainThread;
 	}
 
-	@JTranscMethodBody(target = "d", value = {
-		"if (_dCurrentThread is null) {",
-		"	_dCurrentThread = new {% CLASS java.lang.Thread %}();",
-		"}",
-		"return _dCurrentThread;",
-	})
 	@JTranscMethodBody(target = "cpp", value = "return _cpp_threads[std::this_thread::get_id()];")
 	@JTranscMethodBody(target = "js", value = {
 		"{% if IS_JC %}return {% SMETHOD #CLASS:getThreadById %}({{ JC_COMMA }}_jc.threadId);{% else %}return {% SMETHOD #CLASS:getDefaultThread %}();{% end %}"
@@ -78,7 +71,6 @@ public class Thread implements Runnable {
 	}
 
 	@SuppressWarnings("unused")
-	@JTranscMethodBody(target = "d", value = "Thread.yield();")
 	//@JTranscMethodBody(target = "cpp", value = "std::this_thread::yield();")
 	public static void yield() {
 		try {
@@ -88,7 +80,6 @@ public class Thread implements Runnable {
 		}
 	}
 
-	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0));")
 	@JTranscMethodBody(target = "cpp", value = "std::this_thread::sleep_for(std::chrono::milliseconds(p0));")
 	//@JTranscMethodBody(target = "js", value = {
 	//	"{% if IS_ASYNC %}return new Promise((resolve, reject) => { setTimeout(resolve, p0); });" +
@@ -100,7 +91,6 @@ public class Thread implements Runnable {
 		JTranscSystem.sleep(millis);
 	}
 
-	@JTranscMethodBody(target = "d", value = "Thread.sleep(dur!(\"msecs\")(p0) + dur!(\"nsecs\")(p1));")
 	@JTranscMethodBody(target = "cpp", value = "std::this_thread::sleep_for(std::chrono::milliseconds(p0));")
 	//FIXME
 	public static void sleep(long millis, int nanos) throws InterruptedException {
@@ -154,11 +144,6 @@ public class Thread implements Runnable {
 		_init();
 	}
 
-	@JTranscMethodBody(target = "d", value = {
-		"this.thread = new Thread(delegate () {",
-		"	{% METHOD java.lang.Thread:runInternal:()V %}();",
-		"});",
-	})
 	private void _init() {
 	}
 
@@ -200,7 +185,6 @@ public class Thread implements Runnable {
 		_start(id);
 	}
 
-	@JTranscMethodBody(target = "d", value = "this.thread.start();")
 	@JTranscMethodBody(target = "cs", value = {
 		"_cs_thread = new System.Threading.Thread(new System.Threading.ThreadStart(delegate() { this{% IMETHOD java.lang.Thread:runInternal:()V %}();  }));",
 		"_cs_thread.Start();",
@@ -248,7 +232,6 @@ public class Thread implements Runnable {
 		}
 	}
 
-	@JTranscMethodBody(target = "d", value = "_dCurrentThread = this;")
 	@JTranscMethodBody(target = "cpp", value = "GC_init_thread(); _cpp_threads[t_.get_id()] = this;")
 	private void runInternalInit() {
 	}
@@ -274,7 +257,6 @@ public class Thread implements Runnable {
 	}
 
 	@Deprecated
-	@JTranscMethodBody(target = "d", value = "this.thread.stop();")
 	native public final void stop();
 
 	@Deprecated
@@ -369,12 +351,10 @@ public class Thread implements Runnable {
 
 	private boolean _isDaemon = false;
 
-	@JTranscMethodBody(target = "d", value = "this.thread.isDaemon = p0;")
 	public final void setDaemon(boolean on) {
 		_isDaemon = on;
 	}
 
-	@JTranscMethodBody(target = "d", value = "return this.thread.isDaemon;")
 	public final boolean isDaemon() {
 		return _isDaemon;
 	}
@@ -411,7 +391,6 @@ public class Thread implements Runnable {
 		return new HashMap<Thread, StackTraceElement[]>();
 	}
 
-	//@JTranscMethodBody(target = "d", value = "return cast(long)this.thread.id;")
 	public long getId() {
 		return id;
 	}
