@@ -69,10 +69,12 @@ allprojects { project ->
 
 def sed = { String file, /* language=RegExp */ String regexp, String replacement ->
 	def f = new File(file)
-	def content = f.getText("UTF-8")
-	def res = content.replaceAll(regexp, replacement)
-	//println(res)
-	f.write(res)
+	if (f.exists()) {
+		def content = f.getText("UTF-8")
+		def res = content.replaceAll(regexp, replacement)
+		//println(res)
+		f.write(res)
+	}
 }
 
 println("Charset.defaultCharset(): " + Charset.defaultCharset())

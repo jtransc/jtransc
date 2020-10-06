@@ -106,8 +106,7 @@ class JsTest : _Base() {
 	//@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = true, log = false, treeShaking = true))
 	@Test fun testIssue100Double() = testClass(Params(clazz = Issue100Double::class.java, minimize = false, log = false, treeShaking = true))
 
-	//@Ignore
-	@Test fun testIssue105() = testClass(Params(clazz = Issue105::class.java, minimize = false, log = false, treeShaking = true))
+	//@Ignore@Test fun testIssue105() = testClass(Params(clazz = Issue105::class.java, minimize = false, log = false, treeShaking = true))
 
 	@Test fun testExtendedCharsets() = testClass(Params(clazz = ExtendedCharsetsTest::class.java, minimize = false, log = false, treeShaking = true))
 

@@ -731,6 +731,9 @@ var __reints = (function() {
 })();
 
 class N {
+	static monitorEnter(v) { }
+	static monitorExit(v) { }
+
 	static preInit() {
 	}
 

@@ -71,7 +71,7 @@ public class AsynchronousSocketChannel implements AsynchronousByteChannel, Netwo
 		"var net = require('net');",
 		"this.client = new net.Socket();",
 		"this.client.on('error', function() {",
-		"	handler{% IMETHOD java.nio.channels.CompletionHandler:failed %}(N.createRuntimeException({{ JC_COMMA }}'error'), attachment);",
+		"	handler{% IMETHOD java.nio.channels.CompletionHandler:failed %}(N.createRuntimeException('error'), attachment);",
 		"});",
 		"this.client.connect(port, address, function() {",
 		"	handler{% IMETHOD java.nio.channels.CompletionHandler:completed %}(null, attachment);",

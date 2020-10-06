@@ -1,7 +1,7 @@
 package com.jtransc;
 
 public class JTranscVersion {
-	static private final String version = "0.6.9-SNAPSHOT";
+	static private final String version = "0.8.0-SNAPSHOT";
 
 	static public String getVersion() {
 		return version;

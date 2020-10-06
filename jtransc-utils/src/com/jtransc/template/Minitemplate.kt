@@ -69,12 +69,14 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 
 	operator fun invoke(args: Any?): String {
 		val str = StringBuilder()
-		val context = Context(Scope(args), config) { str.append(it) }
+		val context = Context(Scope(args), config) {
+			str.append(it)
+		}
 		context.createScope { node.eval(context) }
 		return str.toString()
 	}
 
-	class Context(var scope: Scope, val config: Config, val write: (str: String) -> Unit) {
+	class Context constructor(var scope: Scope, val config: Config, val write: (str: String) -> Unit) {
 		inline fun createScope(callback: () -> Unit) = this.apply {
 			val old = this.scope
 			this.scope = Scope(hashMapOf<Any?, Any?>(), old)
@@ -350,7 +352,9 @@ class Minitemplate(val template: String, val config: Config = Config()) {
 		}
 
 		data class EXPR(val expr: ExprNode) : BlockNode {
-			override fun eval(context: Context) = Unit.apply { context.write(Dynamic.toString(expr.eval(context))) }
+			override fun eval(context: Context) = Unit.apply {
+				context.write(Dynamic.toString(expr.eval(context)))
+			}
 		}
 
 		data class IF(val cond: ExprNode, val trueContent: BlockNode, val falseContent: BlockNode?) : BlockNode {

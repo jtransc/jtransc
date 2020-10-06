@@ -87,8 +87,8 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 	@JTranscMethodBody(target = "js", value = "return N.charArrayToString(p0);")
-	public String(char[] value) {
-		setChars(Arrays.copyOf(value, value.length));
+	public String(char[] chars) {
+		setChars(Arrays.copyOf(chars, chars.length));
 	}
 
 	// Constructor used by static targets (C++, D) to avoid copying or having extra dependencies
@@ -222,7 +222,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	}
 
 
-	@JTranscMethodBody(target = "js", value = "return (this < p0) ? -1 : ((a > b) ? 1 : 0);")
+	@JTranscMethodBody(target = "js", value = "return (this < p0) ? -1 : ((p0 > this) ? 1 : 0);")
 	@JTranscMethodBody(target = "dart", value = "return this._str.compareTo(N.istr(p0));")
 	private int _compareTo(String that) {
 		char v1[] = this.value;
@@ -288,7 +288,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@JTranscMethodBody(target = "js", value = "return this.endsWith(p0);")
 	@JTranscMethodBody(target = "dart", value = "return this._str.substring(this._str.length-p0._str.length) == p0._str;")
 	public boolean endsWith(String suffix) {
-		return this.length() >= suffix.length() && JTranscStrings.equals(this.value, this.value.length - suffix.length(), suffix.value, 0, suffix.length());
+		return this.length() >= suffix.length() && JTranscStrings.equals(this.value, this.length() - suffix.length(), suffix.value, 0, suffix.length());
 	}
 
 	/////////////////////
@@ -346,7 +346,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	/////////////////////
 
 	public String substring(int beginIndex) {
-		return substring(beginIndex, this.value.length);
+		return substring(beginIndex, this.length());
 	}
 
 
@@ -379,7 +379,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@JTranscMethodBody(target = "js", value = "return this.replaceAll(N.ichar(p0), N.ichar(p1));")
 	@JTranscMethodBody(target = "dart", value = "return N.str(N.istr(this).split(N.ichar(p0)).join(N.ichar(p1)));")
 	public String replace(char oldChar, char newChar) {
-		char[] out = Arrays.copyOf(value, value.length);
+		char[] out = Arrays.copyOf(value, length());
 		for (int n = 0; n < out.length; n++) if (out[n] == oldChar) out[n] = newChar;
 		return new String(out);
 	}
@@ -393,7 +393,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@JTranscMethodBody(target = "js", value = "return this.toLowerCase();")
 	@JTranscMethodBody(target = "dart", value = "return N.str(this._str.toLowerCase());")
 	public String toLowerCase() {
-		char[] out = Arrays.copyOf(value, value.length);
+		char[] out = Arrays.copyOf(value, length());
 		for (int n = 0; n < out.length; n++) out[n] = Character.toLowerCase(out[n]);
 		return new String(out);
 	}
@@ -407,7 +407,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@JTranscMethodBody(target = "js", value = "return this.toUpperCase();")
 	@JTranscMethodBody(target = "dart", value = "return N.str(this._str.toUpperCase());")
 	public String toUpperCase() {
-		char[] out = Arrays.copyOf(value, value.length);
+		char[] out = Arrays.copyOf(value, length());
 		for (int n = 0; n < out.length; n++) out[n] = Character.toUpperCase(out[n]);
 		return new String(out);
 	}
@@ -596,7 +596,7 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 	@JTranscMethodBody(target = "js", value = "return N.stringToCharArray(this);")
 	@JTranscMethodBody(target = "dart", value = "if (this._arr == null) this._arr = N.stringToCharArray(this._str); return this._arr;")
 	public char[] toCharArray() {
-		return Arrays.copyOf(this.value, this.value.length);
+		return Arrays.copyOf(this.value, this.length());
 	}
 
 	@JTranscMethodBody(target = "js", value = "return N.stringToCharArray(this);")

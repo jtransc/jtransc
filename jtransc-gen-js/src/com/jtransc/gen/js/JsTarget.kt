@@ -166,7 +166,7 @@ class JsGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("function __main()") {
 				line("__createJavaArrays();")
 				//line("__buildStrings();")
-				line("N.preInit(C);")
+				line("N.preInit();")
 				line(genStaticConstructorsSorted())
 				//line(buildStaticInit(mainClassFq))
 				val mainMethod2 = mainClassClass[AstMethodRef(mainClassFq, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]
