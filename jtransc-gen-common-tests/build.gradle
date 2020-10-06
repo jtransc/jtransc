@@ -16,7 +16,6 @@ dependencies {
 
 	implementation project(':jtransc-core')
 	implementation project(":jtransc-rt-core-kotlin")
-	implementation project(":jtransc-rt-extended-charsets")
 	implementation project(':jtransc-utils')
 }
 
