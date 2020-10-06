@@ -17,7 +17,7 @@
 package java.lang;
 
 import com.jtransc.annotation.*;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 import com.jtransc.io.JTranscConsole;
 
 import java.io.PrintStream;
@@ -185,18 +185,14 @@ public class Throwable implements Serializable {
 		setStackTrace(getStackTraceInternal());
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "this.currentStackTrace = this.dartError.stackTrace;"),
-		@JTranscMethodBody(target = "cs", value = "this.currentStackTrace = new System.Diagnostics.StackTrace(this.csException);"),
-	})
+	@JTranscMethodBody(target = "dart", value = "this.currentStackTrace = this.dartError.stackTrace;")
+	@JTranscMethodBody(target = "cs", value = "this.currentStackTrace = new System.Diagnostics.StackTrace(this.csException);")
 	public void genStackTraceFromError() {
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "this.error = new Error();"),
-		@JTranscMethodBody(target = "dart", value = "this.currentStackTrace = StackTrace.current;"),
-		@JTranscMethodBody(target = "cs", value = "this.currentStackTrace = new System.Diagnostics.StackTrace();"),
-	})
+	@JTranscMethodBody(target = "js", value = "this.error = new Error();")
+	@JTranscMethodBody(target = "dart", value = "this.currentStackTrace = StackTrace.current;")
+	@JTranscMethodBody(target = "cs", value = "this.currentStackTrace = new System.Diagnostics.StackTrace();")
 	public void genStackTrace() {
 	}
 
@@ -211,16 +207,14 @@ public class Throwable implements Serializable {
 		return this;
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "this.error = new Error();"),
-		@JTranscMethodBody(target = "dart", value = "this.dartError = new WrappedThrowable(this);"),
-		@JTranscMethodBody(target = "cs", value = "this.csException = new WrappedThrowable(this);"),
-	})
+	@JTranscMethodBody(target = "js", value = "this.error = new Error();")
+	@JTranscMethodBody(target = "dart", value = "this.dartError = new WrappedThrowable(this);")
+	@JTranscMethodBody(target = "cs", value = "this.csException = new WrappedThrowable(this);")
 	private void init_exception() {
 
 	}
 
-	@HaxeMethodBody("return N.getStackTrace(1);")
+
 	@JTranscMethodBody(target = "js", value = "return N.getStackTrace(this.error, 0);", async = true)
 	@JTranscMethodBody(target = "cs", value = "return N.getStackTrace(this.currentStackTrace, 1);")
 	@JTranscMethodBody(target = "dart", value = "return N.getStackTrace(this.currentStackTrace, 0);")

@@ -1,6 +1,6 @@
 package com.jtransc.annotation;
 
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

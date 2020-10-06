@@ -9,10 +9,8 @@ final public class Simd {
 	static public void ref() {
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return true;"),
-		@JTranscMethodBody(target = "dart", value = "return true;"),
-	})
+	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return true;")
+	@JTranscMethodBody(target = "dart", value = "return true;")
 	@JTranscSync
 	static public boolean supported() {
 		return false;

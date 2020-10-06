@@ -1,6 +1,6 @@
 package java.net;
 
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 
 import java.io.UnsupportedEncodingException;
 import java.util.BitSet;

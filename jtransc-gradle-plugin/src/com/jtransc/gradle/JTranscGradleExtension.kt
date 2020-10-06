@@ -115,14 +115,14 @@ open class JTranscGradleExtension(val project: Project) {
 	import com.jtransc.gradle.tasks.JTranscRunTask
 
 	task distWindows(type: JTranscDistTask) {
-		target = "haxe:windows"
+		target = "cpp"
 		outputFile = "program.exe"
 		minimizedNames = false
 		debug = false
 	}
 
 	task runWindows(type: JTranscRunTask) {
-		target = "haxe:windows"
+		target = "cpp"
 		outputFile = "program.exe"
 		minimizedNames = false
 		debug = true

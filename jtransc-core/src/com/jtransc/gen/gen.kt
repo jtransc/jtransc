@@ -46,10 +46,6 @@ data class TargetName(val name: String) {
 		}
 	}
 
-	fun haxeMatches(pattern: String): Boolean {
-		return (primary == "haxe") && (secondary == pattern || pattern == "")
-	}
-
 	fun matches(pattern: String): Boolean = TargetName.matches(this.name, pattern) || TargetName.matches(this.primary, pattern)
 
 	fun matches(pattern: List<String>): Boolean = pattern.any { matches(it) }

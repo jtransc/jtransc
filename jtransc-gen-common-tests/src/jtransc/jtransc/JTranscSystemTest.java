@@ -1,14 +1,14 @@
 package jtransc.jtransc;
 
 import com.jtransc.annotation.JTranscNativeName;
-import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
+
 import com.jtransc.reflection.JTranscReflection;
 
 import java.util.Arrays;
 import java.util.List;
 
-@HaxeAddFilesTemplate("Simple.hx")
+
 public class JTranscSystemTest {
 	static public void main(String[] args) {
 		List<String> classes = Arrays.asList(JTranscReflection.getAllClasses());
@@ -41,7 +41,7 @@ public class JTranscSystemTest {
 		native public boolean has(int key);
 
 		static public class Utils {
-			@HaxeMethodBody("return new haxe.ds.IntMap<Dynamic>();")
+
 			native static public <T> IntMap<T> create();
 		}
 	}
@@ -51,7 +51,7 @@ public class JTranscSystemTest {
 		native public void flush();
 
 		static public class Utils {
-			@HaxeMethodBody("return new Simple();")
+
 			native static public Simple create();
 		}
 	}

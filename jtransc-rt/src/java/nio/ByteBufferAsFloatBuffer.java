@@ -19,14 +19,14 @@ package java.nio;
 import com.jtransc.JTranscBits;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
+
 import libcore.io.Memory;
 
 import java.nio.internal.ByteBufferAs;
 import java.nio.internal.SizeOf;
 
-@HaxeAddMembers("public var iarray:haxe.io.Int32Array = null; public var farray:haxe.io.Float32Array = null;")
+
 @JTranscAddMembers(target = "dart", value = "Int32List iarray; Float32List farray;")
 @JTranscAddMembers(target = "cpp", value = "int32_t* iarray = nullptr; float32_t* farray = nullptr;")
 @JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
@@ -57,7 +57,7 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 		init(byteBuffer.array());
 	}
 
-	@HaxeMethodBody("this.iarray = haxe.io.Int32Array.fromBytes(p0.data); this.farray = haxe.io.Float32Array.fromBytes(p0.data);")
+
 	@JTranscMethodBody(target = "js", value = "this.iarray = new Int32Array(p0.data.buffer); this.farray = new Float32Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.iarray = new Int32List.view(p0.data.buffer); this.farray = new Float32List.view(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->iarray = (int32_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw()); this->farray = (float32_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw());")
@@ -155,7 +155,7 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 	}
 
 	@Override
-	@HaxeMethodBody("return this.farray.get(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.farray[p0];")
 	@JTranscMethodBody(target = "dart", value = "return this.farray[p0];")
 	@JTranscMethodBody(target = "cpp", value = "return this->farray[p0];")
@@ -166,7 +166,7 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 	}
 
 	@Override
-	@HaxeMethodBody("this.farray.set(p0, p1); return this;")
+
 	@JTranscMethodBody(target = "js", value = "this.farray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.farray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->farray[p0] = p1; return this;")
@@ -176,7 +176,7 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 		return this;
 	}
 
-	@HaxeMethodBody("return this.iarray.get(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.iarray[p0];")
 	@JTranscMethodBody(target = "dart", value = "return this.iarray[p0];")
 	@JTranscMethodBody(target = "cpp", value = "return this->iarray[p0];")
@@ -186,7 +186,7 @@ class ByteBufferAsFloatBuffer extends FloatBuffer implements ByteBufferAs {
 		return Memory.peekAlignedIntLE(bytes, index);
 	}
 
-	@HaxeMethodBody("this.iarray.set(p0, p1); return this;")
+
 	@JTranscMethodBody(target = "js", value = "this.iarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.iarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->iarray[p0] = p1; return this;")

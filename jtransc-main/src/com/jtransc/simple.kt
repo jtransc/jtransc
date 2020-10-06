@@ -10,14 +10,14 @@ fun AllBuildSimple(
 	injector: Injector,
 	entryPoint: String,
 	settings: AstBuildSettings,
-	target: String = "haxe:js",
+	target: String = "js",
 	output: String? = null,
 	targetDirectory: String = System.getProperty("java.io.tmpdir"),
 	initialClasses: List<String> = listOf(),
 	keepClasses: List<String> = listOf()
 ): JTranscBuild {
 	val targetParts = target.split(":")
-	val targetName = targetParts.getOrElse(0) { "haxe" }
+	val targetName = targetParts.getOrElse(0) { "js" }
 	val subtargetName = targetParts.getOrElse(1) { "" }
 	//val actualTarget = AllBuildTargets.locateTargetByName(targetName)
 	val actualOutput = output ?: "program.$subtargetName"

@@ -21,8 +21,8 @@ import com.jtransc.annotation.JTranscAddIncludes;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
+
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,10 +34,6 @@ import java.util.Map;
 @JTranscAddIncludes(target = "cpp", value = {"thread", "map"})
 @JTranscAddMembers(target = "cpp", value = "std::thread t_;")
 @JTranscAddMembers(target = "cpp", value = "static std::map<std::thread::id, {% CLASS java.lang.Thread %}*> ###_cpp_threads;")
-@HaxeAddMembers({
-	"private static var threadsMap = new haxe.ds.ObjectMap<Dynamic, {% CLASS java.lang.Thread %}>();",
-	"#if cpp var _cpp_thread: cpp.vm.Thread; #end",
-})
 public class Thread implements Runnable {
 	public final static int MIN_PRIORITY = 1;
 	public final static int NORM_PRIORITY = 5;
@@ -59,7 +55,6 @@ public class Thread implements Runnable {
 		"return _dCurrentThread;",
 	})
 	@JTranscMethodBody(target = "cpp", value = "return _cpp_threads[std::this_thread::get_id()];")
-	@HaxeMethodBody(target = "cpp", value = "return threadsMap.get(cpp.vm.Thread.current().handle);")
 	@JTranscMethodBody(target = "js", value = {
 		"{% if IS_JC %}return {% SMETHOD #CLASS:getThreadById %}({{ JC_COMMA }}_jc.threadId);{% else %}return {% SMETHOD #CLASS:getDefaultThread %}();{% end %}"
 	})
@@ -213,13 +208,6 @@ public class Thread implements Runnable {
 	@JTranscMethodBody(target = "cpp", value = {
 		"t_ = std::thread(&{% SMETHOD java.lang.Thread:runInternalStatic:(Ljava/lang/Thread;)V %}, this);",
 	})
-	@HaxeMethodBody(target = "cpp", value = "" +
-		"var that = this;" +
-		"cpp.vm.Thread.create(function():Void {" +
-		"	that._cpp_thread = cpp.vm.Thread.current();" +
-		"	that{% IMETHOD java.lang.Thread:runInternal:()V %}();" +
-		"});"
-	)
 	@JTranscMethodBody(target = "js", value = {
 		"{% if IS_JC %}this{% IMETHOD java.lang.Thread:runInternal:()V %}({ threadId: p0, global: _jc.global });{% else %}this{% IMETHOD java.lang.Thread:runInternal:()V %}();{% end %}"
 	}) // NOTE: await missing intentionally
@@ -262,12 +250,10 @@ public class Thread implements Runnable {
 
 	@JTranscMethodBody(target = "d", value = "_dCurrentThread = this;")
 	@JTranscMethodBody(target = "cpp", value = "GC_init_thread(); _cpp_threads[t_.get_id()] = this;")
-	@HaxeMethodBody(target = "cpp", value = "threadsMap.set(_cpp_thread.handle, this);")
 	private void runInternalInit() {
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "_cpp_threads.erase(t_.get_id()); GC_finish_thread();")
-	@HaxeMethodBody(target = "cpp", value = "threadsMap.remove(_cpp_thread.handle);")
 	private void runInternalExit() {
 	}
 

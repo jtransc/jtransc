@@ -17,47 +17,23 @@
 package com.jtransc;
 
 import com.jtransc.annotation.*;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeRemoveField;
+
+
+
 
 import java.nio.*;
 
 // USING ByteBuffer
 @JTranscInvisible
-@HaxeAddMembers({
-	"public var _length:Int;",
-	"public var _data:haxe.io.Bytes;",
-	"public var shortData:haxe.io.UInt16Array;",
-	"public var intData:haxe.io.Int32Array;",
-	"public var floatData:haxe.io.Float32Array;",
-	"public var doubleData:haxe.io.Float64Array;",
-	"public function getBytes():haxe.io.Bytes return _data;"
-})
 @JTranscAddMembers(target = "cpp", value = "void *vptr;")
 final public class FastMemory {
-	//@HaxeRemoveField
 	private int length;
-
-	//@HaxeRemoveField
 	private ByteBuffer data;
-
-	//@HaxeRemoveField
 	private CharBuffer dataChar;
-
-	//@HaxeRemoveField
 	private ShortBuffer dataShort;
-
-	//@HaxeRemoveField
 	private IntBuffer dataInt;
-
-	//@HaxeRemoveField
 	private LongBuffer dataLong;
-
-	//@HaxeRemoveField
 	private FloatBuffer dataFloat;
-
-	//@HaxeRemoveField
 	private DoubleBuffer dataDouble;
 
 	@JTranscSync
@@ -75,14 +51,14 @@ final public class FastMemory {
 		if (JTranscSystem.isCpp()) _createViewsExtra(this.data.array());
 	}
 
-	@HaxeMethodBody("return null;")
+
 	@JTranscMethodBody(target = "js", value = "return null;")
 	@JTranscSync
 	public ByteBuffer getByteBufferOrNull() {
 		return data;
 	}
 
-	@HaxeMethodBody("this._length = p0.length; this._data = p0.getBytes();")
+
 	@JTranscMethodBody(target = "js", value = "this._length = p0.length; this.buffer = p0.data.buffer;")
 	@JTranscSync
 	private void _initWithBytes(byte[] data) {
@@ -90,7 +66,7 @@ final public class FastMemory {
 		this.data = ByteBuffer.wrap(data).order(ByteOrder.nativeOrder());
 	}
 
-	@HaxeMethodBody("this._length = p0; this._data = haxe.io.Bytes.alloc((p0 + 7) & ~7);")
+
 	@JTranscMethodBody(target = "js", value = "this._length = p0; this.buffer = new ArrayBuffer((this._length + 7) & ~7);")
 	@JTranscSync
 	private void _initWithSize(int size) {
@@ -98,12 +74,6 @@ final public class FastMemory {
 		this.data = ByteBuffer.allocateDirect((size + 0xF) & ~0xF).order(ByteOrder.nativeOrder());
 	}
 
-	@HaxeMethodBody("" +
-		"this.shortData = haxe.io.UInt16Array.fromBytes(this._data);\n" +
-		"this.intData = haxe.io.Int32Array.fromBytes(this._data);\n" +
-		"this.floatData = haxe.io.Float32Array.fromBytes(this._data);\n" +
-		"this.doubleData = haxe.io.Float64Array.fromBytes(this._data);\n"
-	)
 	@JTranscMethodBody(target = "js", value = {
 		"this.view   = new DataView(this.buffer);",
 		"this.s8     = new Int8Array(this.buffer);",
@@ -145,7 +115,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this._length;")
+
 	@JTranscMethodBody(target = "js", value = "return this._length;")
 	@JTranscSync
 	final public int getLength() {
@@ -153,7 +123,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this._data.length;")
+
 	@JTranscMethodBody(target = "js", value = "return this.buffer.byteLength;")
 	@JTranscSync
 	final public int getAllocatedLength() {
@@ -162,7 +132,7 @@ final public class FastMemory {
 
 	// Unaligned
 	@JTranscInline
-	@HaxeMethodBody("return this._data.get(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.u8[p0];")
 	@JTranscSync
 	final public int getInt8(int index) {
@@ -170,7 +140,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return (this._data.getUInt16(p0) << 16) >> 16;")
+
 	@JTranscMethodBody(target = "js", value = "return this.view.getUint16(p0, true);")
 	@JTranscSync
 	final public int getInt16(int index) {
@@ -178,7 +148,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this._data.getInt32(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.view.getInt32(p0, true);")
 	@JTranscSync
 	final public int getInt32(int index) {
@@ -186,7 +156,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this._data.getInt64(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Int64.make(this.view.getInt32(p0, true), this.view.getInt32(p0 + 4, true));")
 	@JTranscSync
 	final public long getInt64(int index) {
@@ -194,7 +164,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this._data.getFloat(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.view.getFloat32(p0, true);")
 	@JTranscSync
 	final public float getFloat32(int index) {
@@ -202,7 +172,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this._data.getDouble(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.view.getFloat64(p0, true);")
 	@JTranscSync
 	final public double getFloat64(int index) {
@@ -210,7 +180,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this._data.set(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.u8[p0] = p1;")
 	@JTranscSync
 	final public void setInt8(int index, int value) {
@@ -218,7 +188,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this._data.setUInt16(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.view.setInt16(p0, p1, true);")
 	@JTranscSync
 	final public void setInt16(int index, int value) {
@@ -226,7 +196,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this._data.setInt32(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.view.setInt32(p0, p1, true);")
 	@JTranscSync
 	final public void setInt32(int index, int value) {
@@ -234,7 +204,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this._data.setInt64(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.view.setInt32(p0, p1.high); this.view.setInt32(p0 + 4, p1.low, true);")
 	@JTranscSync
 	final public void setInt64(int index, long value) {
@@ -242,7 +212,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this._data.setFloat(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.view.setFloat32(p0, p1, true);")
 	@JTranscSync
 	final public void setFloat32(int index, float value) {
@@ -250,7 +220,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this._data.setDouble(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.view.setFloat64(p0, p1, true);")
 	@JTranscSync
 	final public void setFloat64(int index, double value) {
@@ -260,7 +230,7 @@ final public class FastMemory {
 	// Aligned
 
 	@JTranscInline
-	@HaxeMethodBody("return this._data.get(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.u8[p0];")
 	@JTranscSync
 	final public int getAlignedInt8(int index) {
@@ -268,7 +238,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return (this.shortData.get(p0) << 16) >> 16;")
+
 	@JTranscMethodBody(target = "js", value = "return this.u16[p0];")
 	@JTranscSync
 	final public int getAlignedInt16(int index2) {
@@ -276,18 +246,16 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this.intData.get(p0);")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return this.s32[p0];"),
-		@JTranscMethodBody(target = "cpp", value = "return ((int *)this->vptr)[p0];"),
-	})
+
+	@JTranscMethodBody(target = "js", value = "return this.s32[p0];")
+	@JTranscMethodBody(target = "cpp", value = "return ((int *)this->vptr)[p0];")
 	@JTranscSync
 	final public int getAlignedInt32(int index4) {
 		return dataInt.get(index4);
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this._data.getInt64(p0 << 3);") // @TODO: Optimize
+	 // @TODO: Optimize
 	@JTranscMethodBody(target = "js", value = "return Int64.make(this.s32[p0 << 1 + 0], this.s32[p0 << 1 +1]);")
 	@JTranscSync
 	final public long getAlignedInt64(int index8) {
@@ -295,7 +263,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this.floatData.get(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.f32[p0];")
 	@JTranscSync
 	final public float getAlignedFloat32(int index4) {
@@ -303,7 +271,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return this.doubleData.get(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.f64[p0];")
 	@JTranscSync
 	final public double getAlignedFloat64(int index8) {
@@ -311,7 +279,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this._data.set(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.u8[p0] = p1;")
 	@JTranscSync
 	final public void setAlignedInt8(int index, int value) {
@@ -319,7 +287,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this.shortData.set(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.u16[p0] = p1;")
 	@JTranscSync
 	final public void setAlignedInt16(int index2, int value) {
@@ -327,7 +295,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this.intData.set(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.s32[p0] = p1;")
 	@JTranscSync
 	final public void setAlignedInt32(int index4, int value) {
@@ -335,7 +303,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this._data.setInt64(p0 << 3, p1);") // @TODO: Optimize
+	 // @TODO: Optimize
 	@JTranscMethodBody(target = "js", value = "this.s32[p0 << 1 + 0] = p1.low; this.s32[p0 << 1 + 1] = p1.high;")
 	@JTranscSync
 	final public void setAlignedInt64(int index8, long value) {
@@ -343,18 +311,16 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this.floatData.set(p0, p1);")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "this.f32[p0] = p1;"),
-		@JTranscMethodBody(target = "cpp", value = "((float *)this->vptr)[p0] = p1;"),
-	})
+
+	@JTranscMethodBody(target = "js", value = "this.f32[p0] = p1;")
+	@JTranscMethodBody(target = "cpp", value = "((float *)this->vptr)[p0] = p1;")
 	@JTranscSync
 	final public void setAlignedFloat32(int index4, float value) {
 		dataFloat.put(index4, value);
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("this.doubleData.set(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "this.f64[p0] = p1;")
 	@JTranscSync
 	final public void setAlignedFloat64(int index8, double value) {
@@ -364,7 +330,7 @@ final public class FastMemory {
 	// UNALIGNED REVERSED
 
 	@JTranscInline
-	@HaxeMethodBody("return this._data.get(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return this.u8[p0];")
 	@JTranscSync
 	final public int getInt8_REV(int index) {
@@ -372,7 +338,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return N.swap16((this._data.getUInt16(p0) << 16) >> 16);")
+
 	@JTranscMethodBody(target = "js", value = "return this.view.getUint16(p0, false);")
 	@JTranscSync
 	final public int getInt16_REV(int index) {
@@ -380,7 +346,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return N.swap32(this._data.getInt32(p0));")
+
 	@JTranscMethodBody(target = "js", value = "return this.view.getInt32(p0, false);")
 	@JTranscSync
 	final public int getInt32_REV(int index) {
@@ -388,7 +354,7 @@ final public class FastMemory {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return N.intBitsToFloat(N.swap32(this._data.getInt32(p0)));")
+
 	@JTranscMethodBody(target = "js", value = "return this.view.getFloat32(p0, false);")
 	@JTranscSync
 	final public float getFloat32_REV(int index) {
@@ -436,25 +402,25 @@ final public class FastMemory {
 		for (int n = 0; n < len; n++) setFloat32(index + n * 4, data[offset + n]);
 	}
 
-	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
+
 	@JTranscSync
 	static public void copy(byte[] from, int fromOffset, byte[] to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to[toOffset + n] = from[fromOffset + n];
 	}
 
-	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
+
 	@JTranscSync
 	static public void copy(FastMemory from, int fromOffset, byte[] to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to[toOffset + n] = (byte) from.getInt8(fromOffset + n);
 	}
 
-	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
+
 	@JTranscSync
 	static public void copy(byte[] from, int fromOffset, FastMemory to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to.setInt8(toOffset + n, from[fromOffset + n]);
 	}
 
-	@HaxeMethodBody("p2.getBytes().blit(p3, p0.getBytes(), p1, p4);")
+
 	@JTranscSync
 	static public void copy(FastMemory from, int fromOffset, FastMemory to, int toOffset, int length) {
 		for (int n = 0; n < length; n++) to.setInt8(toOffset + n, from.getInt8(fromOffset + n));

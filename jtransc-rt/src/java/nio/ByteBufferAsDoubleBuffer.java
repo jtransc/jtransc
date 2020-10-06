@@ -19,14 +19,14 @@ package java.nio;
 import com.jtransc.JTranscBits;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
+
 import libcore.io.Memory;
 
 import java.nio.internal.ByteBufferAs;
 import java.nio.internal.SizeOf;
 
-@HaxeAddMembers("public var tarray:haxe.io.Float64Array = null;")
+
 @JTranscAddMembers(target = "dart", value = "Float64List tarray;")
 @JTranscAddMembers(target = "cpp", value = "float64_t* tarray = nullptr;")
 @JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
@@ -56,7 +56,7 @@ abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBuff
 		init(byteBuffer.array());
 	}
 
-	@HaxeMethodBody("this.tarray = haxe.io.Float64Array.fromBytes(p0.data);")
+
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Float64Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.tarray = new Float64List.view(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray = (float64_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw());")
@@ -156,7 +156,7 @@ abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBuff
 	}
 
 	@Override
-	//@HaxeMethodBody("return this.tarray.get(p0);")
+	//
 	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
 	@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
 	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
@@ -166,7 +166,7 @@ abstract class ByteBufferAsDoubleBuffer extends DoubleBuffer implements ByteBuff
 	}
 
 	@Override
-	//@HaxeMethodBody("this.tarray.set(p0, p1); return this;")
+	//
 	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")

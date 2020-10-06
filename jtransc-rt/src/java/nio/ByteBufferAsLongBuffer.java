@@ -19,15 +19,15 @@ package java.nio;
 import com.jtransc.JTranscBits;
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
+
 import libcore.io.Memory;
 
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
-@HaxeAddMembers("public var tarray:haxe.io.Int32Array = null;")
+
 @JTranscAddMembers(target = "dart", value = "Int32List tarray;")
 @JTranscAddMembers(target = "cpp", value = "int64_t* tarray = nullptr;")
 @JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
@@ -57,7 +57,7 @@ abstract class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs
 		init(byteBuffer.array());
 	}
 
-	@HaxeMethodBody("this.tarray = haxe.io.Int32Array.fromBytes(p0.data);")
+
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Int32Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.tarray = new Int64List.view(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int64_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw());")
@@ -156,7 +156,7 @@ abstract class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs
 	}
 
 	@Override
-	@HaxeMethodBody("var low = this.tarray.get(p0 * 2 + 0); var high = this.tarray.get(p0 * 2 + 1); return N.lnew(high, low);")
+
 	@JTranscMethodBody(target = "js", value = "var low = this.tarray[p0 * 2 + 0]; var high = this.tarray[p0 * 2 + 1]; return N.lnew(high, low);")
 	@JTranscMethodBody(target = "dart", value = "return N.lnew(this.tarray[p0]);")
 	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
@@ -166,7 +166,7 @@ abstract class ByteBufferAsLongBuffer extends LongBuffer implements ByteBufferAs
 	}
 
 	@Override
-	@HaxeMethodBody("this.tarray.set(p0 * 2 + 0, N.llow(p1)); this.tarray.set(p0 * 2 + 1, N.lhigh(p1)); return this;")
+
 	@JTranscMethodBody(target = "js", value = "this.tarray[p0 * 2 + 0] = p1.low; this.tarray[p0 * 2 + 1] = p1.high; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1.toInt(); return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")

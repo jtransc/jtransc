@@ -4,8 +4,8 @@ import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyList;
+
+
 import com.jtransc.io.JTranscConsole;
 import com.jtransc.target.Js;
 import com.jtransc.time.JTranscClock;
@@ -48,32 +48,16 @@ public class JTranscSystem {
 	}
 
 	@JTranscMethodBody(target = "js", value = "")
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(false);"),
-		@HaxeMethodBody(target = "d", value = ""),
-		@HaxeMethodBody(""),
-	})
 	@JTranscMethodBody(target = "cpp", value = "__GC_DISABLE();")
 	static public void gcDisable() {
 	}
 
 	@JTranscMethodBody(target = "js", value = "")
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(""),
-		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.enable(true);"),
-		@HaxeMethodBody(target = "d", value = ""),
-	})
 	@JTranscMethodBody(target = "cpp", value = "__GC_ENABLE();")
 	static public void gcEnable() {
 	}
 
 	@JTranscMethodBody(target = "js", value = "")
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(""),
-		@HaxeMethodBody(target = "cpp", value = "cpp.vm.Gc.compact();"),
-		@HaxeMethodBody(target = "d", value = ""),
-		@HaxeMethodBody(target = "cs", value = "System.GC.Collect()"),
-	})
 	@JTranscMethodBody(target = "cpp", value = "__GC_GC();")
 	static public void gc() {
 		System.gc();
@@ -85,7 +69,7 @@ public class JTranscSystem {
 		JTranscConsole.log("JTranscSystem.gcStats not available");
 	}
 
-	@HaxeMethodBody("return true;")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "return true;"),
 		@JTranscMethodBody(target = "js", value = "return true;"),
@@ -107,7 +91,7 @@ public class JTranscSystem {
 		return usingJTransc();
 	}
 
-	@HaxeMethodBody("N.debugger();")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "debugger;"),
 		@JTranscMethodBody(target = "cs", value = "System.Diagnostics.Debugger.Break();"),
@@ -118,7 +102,7 @@ public class JTranscSystem {
 		//throw new Error("Debugger");
 	}
 
-	@HaxeMethodBody("if (!p0) N.debugger();")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "if (!p0) debugger;"),
 		@JTranscMethodBody(target = "cs", value = "if (!p0) System.Diagnostics.Debugger.Break();"),
@@ -142,29 +126,11 @@ public class JTranscSystem {
 	@JTranscSync
 	static public String getRuntimeKind() {
 		if (!usingJTransc()) return "java";
-		if (isHaxe()) {
-			if (isJs()) return "haxe-js";
-			if (isAs3()) return "haxe-as3";
-			if (isNeko()) return "haxe-neko";
-			if (isCpp()) return "haxe-cpp";
-			return "haxe";
-		}
-		if (isSwf()) return "swf";
 		if (isJvm()) return "java";
 		if (isCsharp()) return "csharp";
-		if (isNeko()) return "neko";
-		if (isPhp()) return "php";
-		if (isPython()) return "python";
-		if (isAs3()) return "as3";
 		if (isDart()) return "dart";
 		if (isCpp()) return "cpp";
 		return "unknown";
-	}
-
-	@HaxeMethodBody("return true;")
-	@JTranscSync
-	public static boolean isHaxe() {
-		return FALSE;
 	}
 
 	@JTranscMethodBody(target = "js", value = "return true;")
@@ -173,10 +139,6 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "sys", value = "return true;"),
-		@HaxeMethodBody("return false;"),
-	})
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return false;"),
 		@JTranscMethodBody(target = "cpp", value = "return true;"),
@@ -193,16 +155,6 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@JTranscMethodBody(target = "d", value = "return true;")
-	@JTranscSync
-	public static boolean isD() {
-		return FALSE;
-	}
-
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "cs", value = "return true;"),
-		@HaxeMethodBody("return false;"),
-	})
 	@JTranscMethodBody(target = "cs", value = "return true;")
 	@JTranscSync
 	public static boolean isCsharp() {
@@ -219,10 +171,6 @@ public class JTranscSystem {
 		return isJvm();
 	}
 
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "js", value = "return true;"),
-		@HaxeMethodBody("return false;"),
-	})
 	@JTranscMethodBody(target = "js", value = "return true;")
 	@JTranscSync
 	public static boolean isJs() {
@@ -247,47 +195,12 @@ public class JTranscSystem {
 		}
 	}
 
-	@HaxeMethodBody(target = "flash", value = "return true;")
-	@JTranscSync
-	public static boolean isSwf() {
-		return FALSE;
-	}
-
-	@HaxeMethodBody(target = "neko", value = "return true;")
-	@JTranscSync
-	public static boolean isNeko() {
-		return FALSE;
-	}
-
-	@HaxeMethodBody(target = "php", value = "return true;")
-	@JTranscSync
-	public static boolean isPhp() {
-		return FALSE;
-	}
-
-	@HaxeMethodBody(target = "python", value = "return true;")
-	@JTranscSync
-	public static boolean isPython() {
-		return FALSE;
-	}
-
-	@JTranscMethodBody(target = "as3", value = "return true;")
-	@JTranscSync
-	public static boolean isAs3() {
-		return FALSE;
-	}
-
 	@JTranscMethodBody(target = "dart", value = "return true;")
 	@JTranscSync
 	public static boolean isDart() {
 		return FALSE;
 	}
 
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "sys", value = "return N.str(Sys.systemName());"),
-		@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof navigator != 'undefined' ? navigator.platform : process.platform)\"));"),
-		@HaxeMethodBody("return N.str('unknown');"),
-	})
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str(typeof navigator != 'undefined' ? navigator.platform : process.platform);"),
 		@JTranscMethodBody(target = "cpp", value = "return N::str(JT_OS);"),
@@ -316,7 +229,7 @@ public class JTranscSystem {
 	}
 
 	// http://lopica.sourceforge.net/os.html
-	@HaxeMethodBody("return N.str('x86');")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str('x86');"),
 		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"x86\");"),
@@ -371,7 +284,7 @@ public class JTranscSystem {
 		return "GMT";
 	}
 
-	@HaxeMethodBody(target = "debug", value = "return true;")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return true;"),
 		@JTranscMethodBody(target = "d", value = "debug { return true; } return false;"),
@@ -381,7 +294,7 @@ public class JTranscSystem {
 		return FALSE;
 	}
 
-	@HaxeMethodBody("return N.str('jtransc-haxe');")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str('jtransc-js');"),
 		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"jtransc-cpp\");"),
@@ -392,7 +305,7 @@ public class JTranscSystem {
 		return "java";
 	}
 
-	@HaxeMethodBody("return N.str('/jtransc-haxe');")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "return N.str('/jtransc-js');"),
 		@JTranscMethodBody(target = "cpp", value = "return N::str(L\"/\");"),
@@ -442,6 +355,6 @@ public class JTranscSystem {
 
 	@JTranscSync
 	static public boolean hasEventLoop() {
-		return isDart() || isJs() || isAs3();
+		return isDart() || isJs();
 	}
 }

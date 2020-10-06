@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package example;
+package com.jtransc.annotation;
 
-public class Test {
-    static public void main(String[] args) {
-        System.out.println("Hello World! From jtransc: " + com.jtransc.JTranscVersion.getVersion());
-    }
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.CLASS)
+@Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
+@Repeatable(value = JTranscRemoveFieldList.class)
+public @interface JTranscRemoveField {
+	String target() default "";
 }

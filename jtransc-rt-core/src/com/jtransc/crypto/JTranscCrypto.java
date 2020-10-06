@@ -4,10 +4,10 @@ import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyList;
-import com.jtransc.annotation.haxe.HaxeMethodBodyPost;
-import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
+
+
+
+
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,36 +47,12 @@ public class JTranscCrypto {
 	};
 
 	static public class SecureRandomProvider {
-		@HaxeMethodBodyPre("" +
-			"var bytes = p0;\n" +
-			"var length = bytes.length;\n" +
-			"\n"
-		)
-		@HaxeMethodBodyList({
-			@HaxeMethodBody(target = "js", value = "" +
-				"try {\n" +
-				"  var _bytes = bytes.data;\n" +
-				"  untyped __js__(\"crypto.getRandomValues(_bytes);\");\n" +
-				"  return;\n" +
-				"} catch (e:Dynamic) {\n" +
-				"\n" +
-				"}\n"
-			),
-			@HaxeMethodBody(""),
-		})
-		@HaxeMethodBodyPost("" +
-			"for (n in 0 ... length) {\n" +
-			"  bytes.set(n, Std.int(Math.random() * 255));\n" +
-			"}"
-		)
-		@JTranscMethodBodyList({
-			@JTranscMethodBody(target = "js", value = "N.fillSecureRandomBytes(p0);"),
-			//@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); provider.Dispose(); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
-			@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
-			@JTranscMethodBody(target = "as3", value = "N.fillSecureRandomBytes(p0.data);"),
-			@JTranscMethodBody(target = "dart", value = "N.fillSecureRandomBytes(p0.data);"),
-			@JTranscMethodBody(target = "php", value = "N::fillSecureRandomBytes($p0->data);"),
-		})
+		@JTranscMethodBody(target = "js", value = "N.fillSecureRandomBytes(p0);")
+		//@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); provider.Dispose(); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];"),
+		@JTranscMethodBody(target = "cs", value = "var len = p0.length; var temp = new byte[len]; var provider = (new System.Security.Cryptography.RNGCryptoServiceProvider()); provider.GetBytes(temp); for (int n = 0; n < len; n++) p0[n] = (sbyte)temp[n];")
+		@JTranscMethodBody(target = "as3", value = "N.fillSecureRandomBytes(p0.data);")
+		@JTranscMethodBody(target = "dart", value = "N.fillSecureRandomBytes(p0.data);")
+		@JTranscMethodBody(target = "php", value = "N::fillSecureRandomBytes($p0->data);")
 		@SuppressWarnings("all")
 		public void fillSecureRandomBytes(byte[] data) {
 			if (!JTranscSystem.isJTransc()) {

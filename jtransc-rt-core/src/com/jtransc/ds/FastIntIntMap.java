@@ -19,26 +19,23 @@ package com.jtransc.ds;
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeRemoveField;
+
+
+
 
 import java.util.HashMap;
 
 @JTranscInvisible
-@HaxeAddMembers("var _map = new Map<Int, Int>();")
+
 public class FastIntIntMap {
-    @HaxeRemoveField
     private HashMap<Integer, Integer> map;
 
-    @HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "this.map = new Map();")
 	@JTranscSync
     public FastIntIntMap() {
         this.map = new HashMap<Integer, Integer>();
     }
 
-    @HaxeMethodBody("return _map.get(p0);")
 	@JTranscMethodBody(target = "js", value = "return this.map.get(p0);")
 	@JTranscSync
     public int get(int key) {
@@ -55,28 +52,25 @@ public class FastIntIntMap {
 		return has(key) ? get(key) : defaultValue;
 	}
 
-    @HaxeMethodBody("_map.set(p0, p1);")
 	@JTranscMethodBody(target = "js", value = "this.map.set(p0, p1);")
 	@JTranscSync
     public void set(int key, int value) {
         this.map.put(key, value);
     }
 
-    @HaxeMethodBody("return _map.exists(p0);")
 	@JTranscMethodBody(target = "js", value = "return this.map.has(p0);")
 	@JTranscSync
     public boolean has(int key) {
         return this.map.containsKey(key);
     }
 
-	@HaxeMethodBody("_map.remove(p0);")
 	@JTranscMethodBody(target = "js", value = "this.map.delete(p0);")
 	@JTranscSync
 	public void remove(int key) {
 		this.map.remove(key);
 	}
 
-	//@HaxeMethodBody("_map.remove(p0);")
+	//
 	//@JTranscMethodBody(target = "js", value = "return this.map.size;")
 	//public int size() {
 	//	return this.map.size();

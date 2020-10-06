@@ -43,8 +43,6 @@ class _ManualTests : _Base() {
 	//		injector = injector,
 	//		target = JsTarget(),
 	//		entryPoint = "com.jtransc.examples.tictactoe.TicTacToeTransc",
-	//		output = "program.haxe.js", subtarget = "js",
-	//		//output = "program.haxe.cpp", subtarget = "cpp",
 	//		targetDirectory = System.getProperty("java.io.tmpdir") + "/jtransc/0_0",
 	//		settings = AstBuildSettings(
 	//			jtranscVersion = JTranscVersion.getVersion(),

@@ -3,7 +3,6 @@ package com.jtransc.ast
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.annotation.JTranscMethodBodyList
-import com.jtransc.annotation.haxe.*
 import com.jtransc.ast.treeshaking.GetClassTemplateReferences
 import com.jtransc.ast.treeshaking.TRefConfig
 import com.jtransc.ast.treeshaking.TRefReason
@@ -42,20 +41,6 @@ object References {
 			out += GetClassTemplateReferences(program, member.value.joinToString("\n"), clazz.name, config).map { AstType.REF(it) }
 		}
 
-		// @TODO: This should be unified!
-		if (targetName.matches("haxe")) {
-			val haxeAddFilesTemplate = this.getTyped<HaxeAddFilesTemplate>()
-			if (haxeAddFilesTemplate != null) {
-				for (file in haxeAddFilesTemplate.value) {
-					val filecontent = program.resourcesVfs[file].readString()
-					out += GetClassTemplateReferences(program, filecontent, clazz.name, config).map { AstType.REF(it) }
-				}
-			}
-			val haxeAddMembers = this.getTyped<HaxeAddMembers>()
-			if (haxeAddMembers != null) {
-				out += GetClassTemplateReferences(program, haxeAddMembers.value.joinToString("\n"), clazz.name, config).map { AstType.REF(it) }
-			}
-		}
 		return out
 	}
 
@@ -71,23 +56,10 @@ object References {
 		val templateRefs = arrayListOf<AstType.REF>()
 		//this.annotationsList.list.filter { it.type.name.simpleName == "JsMethodBody" }
 		val methodBodyList = this.annotationsList.getBodiesForTarget(targetName)
-		val haxeMethodBodyList = this.annotationsList.getTypedList(HaxeMethodBodyList::value).filter { targetName.haxeMatches(it.target) }
-		val refs = if (methodBodyList.isEmpty() && haxeMethodBodyList.isEmpty()) this.body?.getClassReferences() ?: listOf() else listOf()
+		val refs = if (methodBodyList.isEmpty()) this.body?.getClassReferences() ?: listOf() else listOf()
 
 		for (methodBody in methodBodyList) {
 			templateRefs += GetClassTemplateReferences(program, methodBody.value, clazzFqname, config).map { AstType.REF(it) }
-		}
-
-		for (methodBody in haxeMethodBodyList) {
-			templateRefs += GetClassTemplateReferences(program, methodBody.value, clazzFqname, config).map { AstType.REF(it) }
-		}
-
-		if (targetName.haxeMatches("")) {
-			val haxeMethodBodyPre = this.annotationsList.getTyped<HaxeMethodBodyPre>()
-			val haxeMethodBodyPost = this.annotationsList.getTyped<HaxeMethodBodyPost>()
-
-			if (haxeMethodBodyPre != null) templateRefs += GetClassTemplateReferences(program, haxeMethodBodyPre.value, clazzFqname, config).map { AstType.REF(it) }
-			if (haxeMethodBodyPost != null) templateRefs += GetClassTemplateReferences(program, haxeMethodBodyPost.value, clazzFqname, config).map { AstType.REF(it) }
 		}
 
 		return signatureRefs + refs + annotations + parameterAnnotations + templateRefs

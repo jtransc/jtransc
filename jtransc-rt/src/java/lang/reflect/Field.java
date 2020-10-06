@@ -233,10 +233,10 @@ public final class Field extends AccessibleObject implements Member {
 	}
 
 
-	//@HaxeMethodBody("Reflect.setField(p0, this._internalName, N.unbox(p1));")
+	//
 	//native private void _setUnboxed(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException;
 
-	//@HaxeMethodBody("return N.str(this._internalName);")
+	//
 	@JTranscSync
 	native String getInternalName();
 

@@ -10,13 +10,9 @@ dependencies {
 
 	implementation project(':jtransc-core')
 	implementation project(':jtransc-utils')
-	implementation project(':jtransc-gen-haxe')
 	implementation project(':jtransc-gen-js')
 	implementation project(':jtransc-gen-cpp')
-	implementation project(':jtransc-gen-d')
 	implementation project(':jtransc-gen-cs')
-	implementation project(':jtransc-gen-php')
-	implementation project(':jtransc-gen-as3')
 	implementation project(':jtransc-gen-dart')
 	implementation project(":jtransc-asm")
 
@@ -25,7 +21,6 @@ dependencies {
 	//providedCompile project(':jtransc-rt') // Needs to be provided so it doesn't include at runtime
 
 	testImplementation project(":jtransc-rt-core-kotlin")
-	testImplementation project(":jtransc-rt-extended-charsets")
 	testImplementation project(':jtransc-gen-common-tests')
 }
 

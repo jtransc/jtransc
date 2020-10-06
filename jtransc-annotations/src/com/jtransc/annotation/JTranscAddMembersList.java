@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Add members to the generated haxe classes.
+ * Add members to the generated classes.
  * <p>
  * Here you can add fields and methods.
  */

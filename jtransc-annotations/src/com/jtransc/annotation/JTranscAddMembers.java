@@ -3,7 +3,7 @@ package com.jtransc.annotation;
 import java.lang.annotation.*;
 
 /**
- * Add members to the generated haxe classes.
+ * Add members to the generated classes.
  * <p>
  * Here you can add fields and methods.
  */

@@ -21,8 +21,8 @@ import com.jtransc.JTranscSystemProperties;
 import com.jtransc.JTranscVersion;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyPre;
+
+
 import com.jtransc.io.JTranscConsolePrintStream;
 
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class System {
 		return JTranscSystem.nanoTime();
 	}
 
-	@HaxeMethodBody("N.arraycopy(p0, p1, p2, p3, p4);")
+
 	@JTranscMethodBody(target = "js", value = "N.arraycopy(p0, p1, p2, p3, p4);")
 	@JTranscMethodBody(target = "cpp", value = "JA_0::copy((JA_0*)p0, p1, (JA_0*)p2, p3, p4);")
 	@JTranscMethodBody(target = "d", value = "N.arraycopy(p0, p1, p2, p3, p4);")
@@ -238,7 +238,7 @@ public class System {
 			_setProperty("java.specification.version", "1.7");
 			_setProperty("java.vendor", "jtransc");
 			_setProperty("java.vendor.url", "http://github.com/jtransc/jtransc");
-			_setProperty("java.vm.name", "haxe");
+			_setProperty("java.vm.name", "jtransc");
 			_setProperty("java.vm.specification.name", "Jtransc JVM emulator");
 			_setProperty("java.vm.specification.vendor", "jtransc");
 			_setProperty("java.vm.specification.version", JTranscVersion.getVersion());
@@ -263,10 +263,6 @@ public class System {
 		return old;
 	}
 
-	@HaxeMethodBodyPre("var key = N.istr(p0);")
-	@HaxeMethodBody(target = "sys", value = "return N.str(Sys.getEnv(key));")
-	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__(\"(typeof process != 'undefined') ? process.env[N.istr(p0)] : null\"));")
-	@HaxeMethodBody("return N.str(null);")
 	@JTranscMethodBody(target = "js", value = "return N.str((typeof process != 'undefined') ? process.env[N.istr(p0)] : null);")
 	@JTranscMethodBody(target = "cpp", value = {
 		"auto str = N::istr3(p0);",
@@ -280,9 +276,6 @@ public class System {
 		return getenv().get(name);
 	}
 
-	@HaxeMethodBody(target = "sys", value = "return N.hashMap(Sys.environment());")
-	@HaxeMethodBody(target = "js", value = "return N.hashMap(untyped __js__(\"(typeof process != 'undefined') ? process.env : {}\"));")
-	@HaxeMethodBody("return N.hashMap({});")
 	public static java.util.Map<String, String> getenv() {
 		return new HashMap<>();
 	}

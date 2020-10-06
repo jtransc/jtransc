@@ -112,7 +112,7 @@ open class AbstractJTranscGradleTask : DefaultTask() {
 
 		val default = AstBuildSettings.DEFAULT
 
-		val rtarget = target ?: extension.target ?: "haxe:js"
+		val rtarget = target ?: extension.target ?: "js"
 
 		val settings = AstBuildSettings(
 			jtranscVersion = JTranscVersion.getVersion(),

@@ -17,29 +17,15 @@
 package java.lang;
 
 import com.jtransc.annotation.*;
-import com.jtransc.annotation.haxe.HaxeAddFilesTemplate;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeAddSubtarget;
+
+
+
 
 import java.lang.jtransc.JTranscCoreReflection;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-@HaxeAddFilesTemplate(base = "hx", value = {
-	"hx/MyStringBuf.hx",
-	"hx/N.hx", "hx/Float32.hx", "hx/Float64.hx",
-	"hx/JA_0.hx", "hx/JA_B.hx", "hx/JA_C.hx", "hx/JA_D.hx", "hx/JA_F.hx", "hx/JA_I.hx", "hx/JA_J.hx", "hx/JA_L.hx", "hx/JA_S.hx", "hx/JA_Z.hx",
-	"hx/HaxePolyfills.hx", "hx/HaxeDynamicLoad.hx", "hx/HaxeIO.hx", "hx/HaxeNativeWrapper.hx",
-})
-@HaxeAddSubtarget(name = "js", alias = {"default", "javascript"}, cmdSwitch = "-js", singleFile = true, interpreter = "node", extension = "js")
-@HaxeAddSubtarget(name = "cpp", alias = {"c", "c++"}, cmdSwitch = "-cpp", singleFile = true, interpreter = "", extension = "exe")
-@HaxeAddSubtarget(name = "swf", alias = {"flash", "as3"}, cmdSwitch = "-swf", singleFile = true, interpreter = "", extension = "swf")
-@HaxeAddSubtarget(name = "neko", cmdSwitch = "-neko", singleFile = true, interpreter = "neko", extension = "n")
-@HaxeAddSubtarget(name = "php", cmdSwitch = "-php", singleFile = false, interpreter = "php", extension = "php", interpreterSuffix = "/index.php")
-@HaxeAddSubtarget(name = "cs", cmdSwitch = "-cs", singleFile = true, interpreter = "", extension = "exe")
-@HaxeAddSubtarget(name = "java", cmdSwitch = "-java", singleFile = true, interpreter = "java -jar", extension = "jar")
-@HaxeAddSubtarget(name = "python", cmdSwitch = "-python", singleFile = true, interpreter = "python", extension = "py")
 @JTranscAddFile(target = "js", priority = -1, process = true, prependAppend = "js/Base.js")
 @JTranscAddFile(target = "d", priority = -1, process = true, prependAppend = "d/Base.d")
 @JTranscAddFile(target = "cs", priority = -1, process = true, prependAppend = "cs/Base.cs")
@@ -70,9 +56,6 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "as3", priority = -1, process = true, src = "as3/Main.xml", dst = "Main.xml")
 @JTranscAddMembers(target = "d", value = "core.sync.mutex.Mutex __d_mutex = null;")
 @JTranscAddMembers(target = "cs", value = "public int __id = 0;")
-@HaxeAddMembers({
-	"#if cpp public var _hx_mutex: cpp.vm.Mutex = null; #end",
-})
 public class Object {
 	@JTranscSync
 	public Object() {

@@ -15,18 +15,14 @@
 /jtransc-rt/target
 /jtransc-rt-js/target
 /jtransc-rt-as3/target
-/jtransc-rt-haxe/target
-/jtransc-rt-haxe-lime/target
 /jtransc-rt-core/target
 /jtransc-gen-js/target
-/jtransc-gen-haxe/target
 /jtransc-gen-as3/target
 /jtransc-libgdx/target
 /jtransc-ast/target
 /jtransc-gen/target
 /jtransc-debugger/target
 /jtransc-gen-as3/target
-/jtransc-gen-haxe/target
 /jtransc-main/target
 /jtransc-main/program.swf.xml
 /jtransc-utils/target
@@ -50,8 +46,6 @@ jtransc-intellij-plugin/jtransc-intellij-plugin.zip
 *.neko
 jtransc-main-run/example/program.swf
 jtransc-main-run/example/program.js
-jtransc-main/program.haxe.js
-jtransc-main/program.haxe.noanalyzer.js
 *.properties-e
 *.xml-e
 /benchmark/program.exe

@@ -20,7 +20,7 @@ import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 
 @SuppressWarnings({"unchecked", "WeakerAccess", "UnnecessaryBoxing", "PointlessArithmeticExpression"})
 public final class Character implements java.io.Serializable, Comparable<Character> {
@@ -367,7 +367,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return (char)toUpperCase((int)ch);
 	}
 
-	@HaxeMethodBody("return N.ichar(p0).toLowerCase().charCodeAt(0);")
+
 	@JTranscMethodBody(target = "js", value = "return N.ichar(p0).toLowerCase().charCodeAt(0);")
 	@JTranscSync
 	public static int toLowerCase(int codePoint) {
@@ -375,7 +375,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 		return codePoint;
 	}
 
-	@HaxeMethodBody("return N.ichar(p0).toUpperCase().charCodeAt(0);")
+
 	@JTranscMethodBody(target = "js", value = "return N.ichar(p0).toUpperCase().charCodeAt(0);")
 	@JTranscSync
 	public static int toUpperCase(int codePoint) {
@@ -552,7 +552,7 @@ public final class Character implements java.io.Serializable, Comparable<Charact
 	public static final int SIZE = 16;
 	public static final int BYTES = SIZE / Byte.SIZE;
 
-	@HaxeMethodBody("return N.swap16(p0) & 0xFFFF;")
+
 	@JTranscMethodBody(target = "cpp", value = "return N::bswap16(p0);")
 	@JTranscSync
 	public static char reverseBytes(char ch) {

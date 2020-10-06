@@ -461,7 +461,7 @@ public class MiscTest {
 		System.out.println("testCrypto:");
 
 		//System.out.println("[1]");
-		if (JTranscSystem.isCpp() || JTranscSystem.isD()) {
+		if (JTranscSystem.isCpp()) {
 			JTranscCrypto.secureRandomProvider = new JTranscCrypto.SecureRandomProvider() {
 				@Override
 				public void fillSecureRandomBytes(byte[] data) {

@@ -16,9 +16,7 @@ public class JTranscAsyncFileSystem {
 		return _instance;
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.completeFuture(p0, () async { var length = new File(N.istr(p0)).length(); return N.boxLong(N.lnew(len)); });"),
-	})
+	@JTranscMethodBody(target = "dart", value = "N.completeFuture(p0, () async { var length = new File(N.istr(p0)).length(); return N.boxLong(N.lnew(len)); });")
 	public void getLength(String path, JTranscAsyncHandler<Long> handler) {
 		try {
 			handler.complete(JTranscSyncIO.impl.getLength(path), null);
@@ -42,9 +40,7 @@ public class JTranscAsyncFileSystem {
 		}
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "dart", value = "N.completeFuture(p0, () async { new Directory(N.istr(p0)).create(recursive: false); return N.boxBool(true); });"),
-	})
+	@JTranscMethodBody(target = "dart", value = "N.completeFuture(p0, () async { new Directory(N.istr(p0)).create(recursive: false); return N.boxBool(true); });")
 	public void mkdir(String path, JTranscAsyncHandler<Boolean> handler) {
 		try {
 			handler.complete(JTranscSyncIO.impl.createDirectory(path), null);

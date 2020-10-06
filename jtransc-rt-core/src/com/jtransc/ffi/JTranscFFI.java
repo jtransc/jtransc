@@ -2,10 +2,10 @@ package com.jtransc.ffi;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMeta;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyList;
+
+
+
+
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -30,18 +30,9 @@ public class JTranscFFI {
 		throw new RuntimeException("Not running on jtransc! TODO: Use JNA instead");
 	}
 
-	@HaxeMethodBody("" +
-		//"trace('loadCppLibrary[0]');\n" +
-		"var instance = N.newInstance(Type.getClassName(p1._hxFfiClass));\n" +
-		//"trace('loadCppLibrary[1]');\n" +
-		//"Reflect.callMethod(instance, Reflect.field(instance, '_ffi__load'), [p0._str]);\n" +
-		"cast(instance, HaxeFfiLibrary)._ffi__load(p0._str);\n" +
-		//"trace('loadCppLibrary[2]');\n" +
-		"return instance;\n"
-	)
 	static native private <T> T loadCppLibrary(String lib, Class<T> clazz);
 
-	@HaxeAddMembers("public var lib:Dynamic;")
+
 	static public class NodeFFI_Library {
 		static private String getTypeString(Type type) {
 			if (type == Boolean.TYPE) return "uint";
@@ -121,44 +112,25 @@ public class JTranscFFI {
 			}
 		}
 
-		@HaxeMethodBodyList({
-			@HaxeMethodBody(target = "js", value = "" +
-				"var ffi:Dynamic = untyped __js__(\"require('ffi')\");\n" +
-				"var obj:Dynamic = {};\n" +
-				"for (item in p1.toArray()) {\n" +
-				"  Reflect.setField(obj, item.name, [N.toNativeString(item.retval), N.toNativeStrArray(item.args)]);\n" +
-				"}\n" +
-				"this.lib = ffi.Library(p0._str, obj);\n"
-			),
-			@HaxeMethodBody(""),
-		})
 		public NodeFFI_Library(String name, Function[] functions) {
 		}
 
-		@HaxeMethodBodyList({
-			@HaxeMethodBody(target = "js", value = "" +
-				"var name = N.toNativeString(p0);\n" +
-				"var args = N.toNativeUnboxedArray(p1);\n" +
-				"return N.box(Reflect.callMethod(this.lib, Reflect.field(this.lib, name), args));"
-			),
-			@HaxeMethodBody("return null;"),
-		})
 		public native Object invoke(String name, Object... args);
 	}
 
 	static public class Loader {
-		@HaxeMeta("@:noStack")
-		@HaxeMethodBody("return HaxeDynamicLoad.dlopen(p0._str);")
+
+
 		@JTranscMethodBody(target = "cpp", value = "return dlopen(N::istr3(p0));")
 		static native public long dlopen(String name);
 
-		@HaxeMeta("@:noStack")
-		@HaxeMethodBody("return HaxeDynamicLoad.dlsym(p0, p1._str);")
+
+
 		@JTranscMethodBody(target = "cpp", value = "return dlsym(p0, N::istr3(p1));")
 		static native public long dlsym(long handle, String name);
 
-		@HaxeMeta("@:noStack")
-		@HaxeMethodBody("return HaxeDynamicLoad.dlclose(p0);")
+
+
 		@JTranscMethodBody(target = "cpp", value = "return dlclose(p0);")
 		static native public int dlclose(long handle);
 	}

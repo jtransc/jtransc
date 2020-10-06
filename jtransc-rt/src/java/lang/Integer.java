@@ -20,7 +20,7 @@ import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 import com.jtransc.internal.JTranscCType;
 
 @SuppressWarnings({"WeakerAccess", "unused", "NullableProblems"})
@@ -50,7 +50,6 @@ public final class Integer extends Number implements Comparable<Integer> {
 		this.value = parseInt(s, 10);
 	}
 
-	@HaxeMethodBody(target = "js", value = "return N.str(untyped __js__('p0.toString(p1)'));")
 	@JTranscMethodBody(target = "js", value = "return N.str((p0|0).toString(p1));")
 	@JTranscMethodBody(target = "as3", value = "return N.str((p0|0).toString(p1));")
 	//@JTranscMethodBody(target = "cpp", value = "wchar_t temp[64] = {0}; ::_itow_s(p0, temp, sizeof(temp), p1); return N::str(std::wstring(temp));")
@@ -402,7 +401,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 		return (value >> 31) | (-value >>> 31);
 	}
 
-	@HaxeMethodBody("return N.swap32(p0);")
+
 	@JTranscMethodBody(target = "cpp", value = "return N::bswap32(p0);")
 	@JTranscSync
 	public static int reverseBytes(int value) {

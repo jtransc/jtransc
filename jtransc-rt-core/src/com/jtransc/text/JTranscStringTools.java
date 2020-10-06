@@ -3,7 +3,7 @@ package com.jtransc.text;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 
 @SuppressWarnings("IndexOfReplaceableByContains")
 public class JTranscStringTools {
@@ -62,14 +62,12 @@ public class JTranscStringTools {
 		return hasSymbols ? out : (out + ".0");
 	}
 
-	@HaxeMethodBody("return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "php", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
-		@JTranscMethodBody(target = "cpp", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
-		@JTranscMethodBody(target = "js", value   = "return {% SMETHOD java.lang.String:_replace %}({{ JC_COMMA }}p0, p1, p2);"),
-		@JTranscMethodBody(target = "as3", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);"),
-		@JTranscMethodBody(target = "dart", value = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
-	})
+
+	@JTranscMethodBody(target = "php", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
+	@JTranscMethodBody(target = "cpp", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
+	@JTranscMethodBody(target = "js", value   = "return {% SMETHOD java.lang.String:_replace %}({{ JC_COMMA }}p0, p1, p2);")
+	@JTranscMethodBody(target = "as3", value  = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
+	@JTranscMethodBody(target = "dart", value = "return {% SMETHOD java.lang.String:_replace %}(p0, p1, p2);")
 	@JTranscSync
 	native static public String replace(String base, String s, String t);
 
@@ -79,16 +77,14 @@ public class JTranscStringTools {
 	////@JTranscMethodBody(target = "js", value = "return N.str(Number(p0).toPrecision(2));")
 	//native static public String _toString(float v);
 
-	@HaxeMethodBody("return N.str(N.isNegativeZero(p0) ? '-0' : '$p0');")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "php", value = "return N::str(\"$p0\");"),
-		@JTranscMethodBody(target = "js", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +p0));"),
-		@JTranscMethodBody(target = "cpp", value = "wchar_t temp[32] = {0}; swprintf(temp, sizeof(temp), L\"%.16g\", p0); return N::str(temp);"),
-		@JTranscMethodBody(target = "d", value = "return N.str(format(\"%.16g\", p0));"),
-		@JTranscMethodBody(target = "cs", value = "return N.str(Convert.ToString(p0, System.Globalization.CultureInfo.InvariantCulture));"),
-		@JTranscMethodBody(target = "as3", value = "return N.str('' + p0);"),
-		@JTranscMethodBody(target = "dart", value = "return N.str(p0.toString());"),
-	})
+
+	@JTranscMethodBody(target = "php", value = "return N::str(\"$p0\");")
+	@JTranscMethodBody(target = "js", value = "return N.str(String(N.isNegativeZero(+p0) ? '-0' : +p0));")
+	@JTranscMethodBody(target = "cpp", value = "wchar_t temp[32] = {0}; swprintf(temp, sizeof(temp), L\"%.16g\", p0); return N::str(temp);")
+	@JTranscMethodBody(target = "d", value = "return N.str(format(\"%.16g\", p0));")
+	@JTranscMethodBody(target = "cs", value = "return N.str(Convert.ToString(p0, System.Globalization.CultureInfo.InvariantCulture));")
+	@JTranscMethodBody(target = "as3", value = "return N.str('' + p0);")
+	@JTranscMethodBody(target = "dart", value = "return N.str(p0.toString());")
 	@JTranscSync
 	native static public String _toString(double v);
 }

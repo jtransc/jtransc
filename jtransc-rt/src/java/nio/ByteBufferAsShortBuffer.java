@@ -18,15 +18,15 @@ package java.nio;
 
 import com.jtransc.annotation.JTranscAddMembers;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
+
 import libcore.io.Memory;
 
 import java.nio.internal.SizeOf;
 
 import java.nio.internal.ByteBufferAs;
 
-@HaxeAddMembers("public var tarray:haxe.io.UInt16Array = null;")
+
 @JTranscAddMembers(target = "dart", value = "Int16List tarray;")
 @JTranscAddMembers(target = "cpp", value = "int16_t* tarray = nullptr;")
 @JTranscAddMembers(target = "cs", value = "public byte[] tarray;")
@@ -56,7 +56,7 @@ class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
         init(byteBuffer.array());
     }
 
-	@HaxeMethodBody("this.tarray = haxe.io.UInt16Array.fromBytes(p0.data);")
+
 	@JTranscMethodBody(target = "js", value = "this.tarray = new Int16Array(p0.data.buffer);")
 	@JTranscMethodBody(target = "dart", value = "this.tarray = new Int16List.view(p0.data.buffer);")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray = (int16_t *)(GET_OBJECT(JA_B, p0)->getStartPtrRaw());")
@@ -153,7 +153,7 @@ class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
 	}
 
 	@Override
-	@HaxeMethodBody("return N.i2s(this.tarray.get(p0));")
+
 	@JTranscMethodBody(target = "js", value = "return this.tarray[p0];")
 	@JTranscMethodBody(target = "dart", value = "return this.tarray[p0];")
 	@JTranscMethodBody(target = "cpp", value = "return this->tarray[p0];")
@@ -163,7 +163,7 @@ class ByteBufferAsShortBuffer extends ShortBuffer implements ByteBufferAs {
 	}
 
 	@Override
-	@HaxeMethodBody("this.tarray.set(p0, p1); return this;")
+
 	@JTranscMethodBody(target = "js", value = "this.tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "dart", value = "this.tarray[p0] = p1; return this;")
 	@JTranscMethodBody(target = "cpp", value = "this->tarray[p0] = p1; return this;")

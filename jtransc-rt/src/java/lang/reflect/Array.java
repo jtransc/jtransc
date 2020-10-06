@@ -18,7 +18,7 @@ package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public final class Array {
@@ -26,7 +26,6 @@ public final class Array {
 	private Array() {
 	}
 
-	@HaxeMethodBody("return new JA_L(p0, p1._str);")
 	@JTranscMethodBody(target = "js", value = "return new JA_L(p0, N.istr(p1));")
 	@JTranscMethodBody(target = "cpp", value = "return new JA_L(p0, N::istr2(p1));")
 	@JTranscMethodBody(target = "d", value = "return new JA_L(p0, N.istr(p1));")
@@ -63,7 +62,6 @@ public final class Array {
 		}
 	}
 
-    @HaxeMethodBody("return cast(p0, JA_0).length;")
 	@JTranscMethodBody(target = "js", value = "return p0.length;")
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_0, p0)->length;")
 	@JTranscMethodBody(target = "d", value = "return (cast(JA_0)p0).length;")
@@ -74,7 +72,6 @@ public final class Array {
 	@JTranscSync
 	native public static int getLength(Object array) throws IllegalArgumentException;
 
-	@HaxeMethodBody("return cast(p0, JA_L).getDynamic(p1);")
 	@JTranscMethodBody(target = "js", value = "return p0.get(p1);")
 	@JTranscMethodBody(target = "cpp", value = "return GET_OBJECT_NPE(JA_L, p0)->get(p1);")
 	@JTranscMethodBody(target = "d", value = "return (cast(JA_L)p0)[p1];")
@@ -142,7 +139,6 @@ public final class Array {
 	}
 
 
-	@HaxeMethodBody("cast(p0, JA_L).setDynamic(p1, p2);")
 	@JTranscMethodBody(target = "js", value = "p0.set(p1, p2);")
 	@JTranscMethodBody(target = "cpp", value = "GET_OBJECT_NPE(JA_L, p0)->set(p1, p2);")
 	@JTranscMethodBody(target = "d", value = "(cast(JA_L)p0)[p1] = p2;")

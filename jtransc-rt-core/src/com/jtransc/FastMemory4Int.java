@@ -19,7 +19,7 @@ package com.jtransc;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscInvisible;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 
 @JTranscInvisible
 final public class FastMemory4Int {
@@ -31,21 +31,21 @@ final public class FastMemory4Int {
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return N.idiv(this{% IFIELD com.jtransc.FastMemory4Int:mem %}._length, 4);")
+
 	@JTranscSync
 	final public int getLength() {
 		return mem.getLength() / 4;
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("return this{% IFIELD com.jtransc.FastMemory4Int:mem %}.intData.get(p0);")
+
 	@JTranscSync
 	final public int get(int index) {
 		return mem.getAlignedInt32(index);
 	}
 
 	@JTranscInline
-    @HaxeMethodBody("this{% IFIELD com.jtransc.FastMemory4Int:mem %}.intData.set(p0, p1);")
+
 	@JTranscSync
 	final public void set(int index, int value) {
 		mem.setAlignedInt32(index, value);

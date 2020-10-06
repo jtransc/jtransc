@@ -2,29 +2,20 @@ package com.jtransc.io;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.*;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyList;
+
+
+
 
 import java.io.ObjectInputStream;
 import java.util.Objects;
 
-@HaxeAddMembers({"" +
-	"static public function _log(p0:Dynamic) {\n" +
-	"  var msg = '' + p0;\n" +
-	"  #if js var _msg = msg; untyped __js__(\"console.log(_msg);\");\n" +
-	"  #elseif sys Sys.stdout().writeString(msg + \"\\n\");\n" +
-	"  #else trace(msg);\n" +
-	"  #end\n" +
-	"}\n"
-})
 public class JTranscConsole {
 	@JTranscSync
 	static public void log(char[] v) {
 		logString(new String(v));
 	}
 
-	@HaxeMethodBody("_log(p0);")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo ($p0 !== null) ? \"$p0\" : 'null', \"\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log(N.istr(p0));"),
@@ -40,7 +31,7 @@ public class JTranscConsole {
 		System.out.println(v);
 	}
 
-	//@HaxeMethodBody("_log(p0);")
+	//
 	//@JTranscMethodBodyList({
 	//	@JTranscMethodBody(target = "php", value = "echo ($p0 !== null) ? \"$p0\" : 'null', \"\\n\";"),
 	//	@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));"),
@@ -69,7 +60,7 @@ public class JTranscConsole {
 		log(v);
 	}
 
-	@HaxeMethodBody("_log(p0);")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo ($p0 ? 'true' : 'false') . \"\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));"),
@@ -82,7 +73,7 @@ public class JTranscConsole {
 		log(Boolean.toString(v));
 	}
 
-	@HaxeMethodBody("_log(p0);")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));"),
@@ -96,7 +87,7 @@ public class JTranscConsole {
 		log(Byte.toString(v));
 	}
 
-	@HaxeMethodBody("_log(p0);")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));"),
@@ -110,7 +101,7 @@ public class JTranscConsole {
 		log(Short.toString(v));
 	}
 
-	@HaxeMethodBody("_log(N.ichar(p0));")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo chr($p0), \"\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log(N.ichar(p0));"),
@@ -124,7 +115,7 @@ public class JTranscConsole {
 		log(Character.toString(v));
 	}
 
-	@HaxeMethodBody("_log(p0);")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));"),
@@ -139,7 +130,7 @@ public class JTranscConsole {
 	}
 
 	@SuppressWarnings("PointlessBitwiseExpression")
-	@HaxeMethodBody("_log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "js", value = "console.log('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');"),
 		@JTranscMethodBody(target = "as3", value = "trace('Int64(' + N.lhigh(p0) + ',' + N.llow(p0) + ')');"),
@@ -152,7 +143,7 @@ public class JTranscConsole {
 		log("Int64(" + high + "," + low + ")");
 	}
 
-	@HaxeMethodBody("_log(p0);")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));"),
@@ -165,7 +156,7 @@ public class JTranscConsole {
 		System.out.println(v);
 	}
 
-	@HaxeMethodBody("_log(p0);")
+
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.log({{ AWAIT }} N.asyncAsyncStr({{ JC_COMMA }}p0));"),
@@ -178,11 +169,6 @@ public class JTranscConsole {
 		System.out.println(v);
 	}
 
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "js", value = "var _msg = '' + p0; untyped __js__(\"console.error(_msg);\");"),
-		@HaxeMethodBody(target = "sys", value = "var msg = '' + p0; Sys.stderr().writeString(msg + \"\\n\");"),
-		@HaxeMethodBody("trace('' + p0);"),
-	})
 	@JTranscMethodBodyList({
 		@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 		@JTranscMethodBody(target = "js", value = "console.error(N.istr(p0));"),
@@ -201,11 +187,6 @@ public class JTranscConsole {
 		errorString(msg);
 	}
 
-	//@HaxeMethodBodyList({
-	//	@HaxeMethodBody(target = "js", value = "var _msg = '' + p0; untyped __js__(\"console.error(_msg);\");"),
-	//	@HaxeMethodBody(target = "sys", value = "var msg = '' + p0; Sys.stderr().writeString(msg + \"\\n\");"),
-	//	@HaxeMethodBody("trace('' + p0);"),
-	//})
 	//@JTranscMethodBodyList({
 	//	@JTranscMethodBody(target = "php", value = "echo \"$p0\\n\";"),
 	//	@JTranscMethodBody(target = "js", value = "console.error('' + p0);"),
@@ -236,11 +217,11 @@ public class JTranscConsole {
 /*
 new PrintStream(new OutputStream() {
 		@Override
-		@HaxeMethodBody("N.outputChar(p0);")
+
 		native public void write(int b) throws IOException;
 	});new PrintStream(new OutputStream() {
 		@Override
-		@HaxeMethodBody("N.outputErrorChar(p0);")
+
 		native public void write(int b) throws IOException;
 	});
  */

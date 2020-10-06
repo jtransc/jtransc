@@ -17,7 +17,7 @@
 package java.lang.reflect;
 
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 import com.jtransc.reflection.JTranscReflection;
 import j.ProgramReflection;
 

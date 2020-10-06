@@ -18,7 +18,7 @@ package java.lang;
 
 import com.jtransc.annotation.JTranscAddHeader;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 import com.jtransc.io.JTranscConsole;
 
 import java.io.File;
@@ -44,9 +44,6 @@ public class Runtime {
 	private Runtime() {
 	}
 
-	@HaxeMethodBody(target = "sys", value = "Sys.exit(p0);")
-	@HaxeMethodBody(target = "js", value = "untyped __js__(\"if (typeof process != 'undefined') process.exit(p0);\");")
-	@HaxeMethodBody("throw 'EXIT!';")
 	@JTranscMethodBody(target = "js", value = "process.exit(p0);")
 	@JTranscMethodBody(target = "cpp", value = "::exit(p0);")
 	@JTranscMethodBody(target = "d", value = "core.stdc.stdlib.exit(p0);")
@@ -133,19 +130,16 @@ public class Runtime {
 
 	@JTranscMethodBody(target = "cpp", value = "return GC_get_total_bytes();")
 	@JTranscMethodBody(target = "php", value = "return N::d2j((float)memory_get_peak_usage());")
-	@HaxeMethodBody(target = "cpp", value = "return cpp.vm.Gc.memInfo(1);")
 	public long totalMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
 	@JTranscMethodBody(target = "cpp", value = "return GC_get_total_bytes();")
 	@JTranscMethodBody(target = "php", value = "return N::d2j((float)memory_get_usage());")
-	@HaxeMethodBody(target = "cpp", value = "return cpp.vm.Gc.memInfo(1);")
 	public long maxMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}
 
-	@HaxeMethodBody(target = "cpp", value = "return cpp.vm.Gc.memInfo(2);")
 	private static long _usedMemory() {
 		return 8 * 1024 * 1024 * 1024L;
 	}

@@ -1,7 +1,6 @@
 package com.jtransc.plugin.reflection
 
 import com.jtransc.annotation.JTranscInvisibleExternal
-import com.jtransc.annotation.haxe.HaxeRemoveField
 import com.jtransc.ast.*
 import com.jtransc.plugin.JTranscPlugin
 import com.jtransc.reflection.JTranscInternalNames
@@ -24,7 +23,7 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 
 	fun AstMethod.mustReflect(): Boolean = this.visible
 
-	fun AstField.mustReflect(): Boolean = this.visible && !this.annotationsList.contains<HaxeRemoveField>()
+	fun AstField.mustReflect(): Boolean = this.visible && this.annotationsList.getRemoveFieldForTarget(targetName) == null
 
 	override fun processAfterTreeShaking(program: AstProgram) {
 		// Do not generate if ProgramReflection class is not referenced!

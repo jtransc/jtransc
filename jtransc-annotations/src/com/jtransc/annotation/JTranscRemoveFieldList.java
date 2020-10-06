@@ -1,4 +1,4 @@
-package com.jtransc.annotation.haxe;
+package com.jtransc.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface HaxeAddFilesRaw {
-    String[] value();
+public @interface JTranscRemoveFieldList {
+	JTranscRemoveField[] value() default {};
 }
+

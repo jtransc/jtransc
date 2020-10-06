@@ -29,37 +29,25 @@ final public class Float32x4 {
 		this.w = w;
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4(+0, +0, +0, +0);"),
-	})
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "new Float32x4(0, 0, 0, 0)"),
-		@JTranscCallSiteBody(target = "cpp", value = "Float32x4_i(0, 0, 0, 0)"),
-	})
+	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4(+0, +0, +0, +0);")
+	@JTranscCallSiteBody(target = "dart", value = "new Float32x4(0, 0, 0, 0)")
+	@JTranscCallSiteBody(target = "cpp", value = "Float32x4_i(0, 0, 0, 0)")
 	@JTranscSync
 	static public Float32x4 create() {
 		return new Float32x4(0f, 0f, 0f, 0f);
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4(+p0, +p1, +p2, +p3);"),
-	})
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "new Float32x4(#0, #1, #2, #3)"),
-		@JTranscCallSiteBody(target = "cpp", value = "Float32x4_i(#0, #1, #2, #3)"),
-	})
+	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4(+p0, +p1, +p2, +p3);")
+	@JTranscCallSiteBody(target = "dart", value = "new Float32x4(#0, #1, #2, #3)")
+	@JTranscCallSiteBody(target = "cpp", value = "Float32x4_i(#0, #1, #2, #3)")
 	@JTranscSync
 	static public Float32x4 create(float x, float y, float z, float w) {
 		return new Float32x4(x, y, z, w);
 	}
 
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.add(p0, p1);"),
-	})
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "((#0) + (#1))"),
-		@JTranscCallSiteBody(target = "cpp", value = "((#0) + (#1))"),
-	})
+	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.add(p0, p1);")
+	@JTranscCallSiteBody(target = "dart", value = "((#0) + (#1))")
+	@JTranscCallSiteBody(target = "cpp", value = "((#0) + (#1))")
 	@JTranscSync
 	static public Float32x4 add(Float32x4 l, Float32x4 r) {
 		return new Float32x4(l.x + r.x, l.y + r.y, l.z + r.z, l.w + r.w);
@@ -72,10 +60,8 @@ final public class Float32x4 {
 	}
 
 	@JTranscMethodBody(target = "js", cond = "hasSIMD", value = "return SIMD.Float32x4.mul(p0, p1);")
-	@JTranscCallSiteBodyList({
-		@JTranscCallSiteBody(target = "dart", value = "((#0) * (#1))"),
-		@JTranscCallSiteBody(target = "cpp", value = "((#0) * (#1))"),
-	})
+	@JTranscCallSiteBody(target = "dart", value = "((#0) * (#1))")
+	@JTranscCallSiteBody(target = "cpp", value = "((#0) * (#1))")
 	@JTranscSync
 	static public Float32x4 mul(Float32x4 l, Float32x4 r) {
 		return new Float32x4(l.x * r.x, l.y * r.y, l.z * r.z, l.w * r.w);

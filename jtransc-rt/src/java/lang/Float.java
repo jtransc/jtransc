@@ -19,7 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 import com.jtransc.text.JTranscStringTools;
 
 public final class Float extends Number implements Comparable<Float> {
@@ -166,7 +166,7 @@ public final class Float extends Number implements Comparable<Float> {
 		return (obj instanceof Float) && (floatToIntBits(((Float) obj).value) == floatToIntBits(value));
 	}
 
-	@HaxeMethodBody("return N.floatToIntBits(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(int *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(int *)&p0;")
@@ -177,7 +177,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscSync
 	native public static int floatToIntBits(float value);
 
-	@HaxeMethodBody("return N.floatToIntBits(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return N.floatToIntBits(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(int *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(int *)&p0;")
@@ -188,7 +188,7 @@ public final class Float extends Number implements Comparable<Float> {
 	@JTranscSync
 	native public static int floatToRawIntBits(float value);
 
-	@HaxeMethodBody("return N.intBitsToFloat(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return N.intBitsToFloat(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return *(float *)&p0;")
 	@JTranscMethodBody(target = "d", value = "return *cast(float *)&p0;")

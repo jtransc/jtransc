@@ -17,8 +17,8 @@
 package com.jtransc;
 
 import com.jtransc.annotation.*;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeMethodBodyList;
+
+
 
 import java.nio.ByteBuffer;
 
@@ -542,29 +542,18 @@ public class JTranscBits {
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend1(p0);"),
-	})
 	@JTranscSync
 	static public int sxi1(int value) {
 		return (value << 31) >> 31;
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend8(p0);"),
-		@HaxeMethodBody("return N.i2b(p0);"),
-	})
 	@JTranscSync
 	static public int sxi8(int value) {
 		return (value << 24) >> 24;
 	}
 
 	@JTranscInline
-	@HaxeMethodBodyList({
-		@HaxeMethodBody(target = "flash", value = "return flash.Memory.signExtend16(p0);"),
-		@HaxeMethodBody("return N.i2s(p0);"),
-	})
 	@JTranscSync
 	static public int sxi16(int value) {
 		return (value << 16) >> 16;

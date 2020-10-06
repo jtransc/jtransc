@@ -19,7 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscInline;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 import com.jtransc.lang.DoubleInfo;
 import com.jtransc.lang.FloatInfo;
 
@@ -35,7 +35,7 @@ public final class Math {
 	public static final double PI = 3.14159265358979323846;
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.sin(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.sin(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::sin(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.sin(p0);")
@@ -47,7 +47,7 @@ public final class Math {
 	native public static double sin(double a);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.cos(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.cos(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::cos(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.cos(p0);")
@@ -59,7 +59,7 @@ public final class Math {
 	native public static double cos(double a);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.tan(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.tan(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::tan(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.tan(p0);")
@@ -73,7 +73,7 @@ public final class Math {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.asin(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.asin(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::asin(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.asin(p0);")
@@ -85,7 +85,7 @@ public final class Math {
 	native public static double asin(double a);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.acos(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.acos(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::acos(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.acos(p0);")
@@ -97,7 +97,7 @@ public final class Math {
 	native public static double acos(double a);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.atan(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.atan(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::atan(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.atan(p0);")
@@ -119,7 +119,7 @@ public final class Math {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.exp(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.exp(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::exp(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.exp(p0);")
@@ -132,7 +132,7 @@ public final class Math {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.log(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.log(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::log(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.log(p0);")
@@ -143,7 +143,7 @@ public final class Math {
 	@JTranscSync
 	native public static double log(double a);
 
-	@HaxeMethodBody("return Math.log(p0) / Math.log(10);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.log10(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::log10(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.log10(p0);")
@@ -155,7 +155,7 @@ public final class Math {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.sqrt(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.sqrt(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::sqrt(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.sqrt(p0);")
@@ -174,12 +174,12 @@ public final class Math {
 		return (x < 0) ? -y : y;
 	}
 
-	//@HaxeMethodBody("return Math.IEEEremainder(p0, p1);")
+	//
 	@JTranscSync
 	native public static double IEEEremainder(double f1, double f2);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.ceil(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.ceil(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::ceil(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.ceil(p0);")
@@ -191,7 +191,7 @@ public final class Math {
 	native public static double ceil(double a);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.floor(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.floor(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return ::floor(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.floor(p0);")
@@ -202,7 +202,7 @@ public final class Math {
 	@JTranscSync
 	native public static double floor(double a);
 
-	//@HaxeMethodBody("return Math.rint(p0);")
+	//
 	@JTranscSync
 	public static double rint(double a) {
 		double r = (double) (int) a;
@@ -211,7 +211,7 @@ public final class Math {
 	}
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.atan2(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.atan2(p0, p1);")
 	@JTranscMethodBody(target = "cpp", value = "return ::atan2(p0, p1);")
 	@JTranscMethodBody(target = "d", value = "return std.math.atan2(p0, p1);")
@@ -223,7 +223,7 @@ public final class Math {
 	native public static double atan2(double y, double x);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.pow(p0, p1);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.pow(p0, p1);")
 	@JTranscMethodBody(target = "cpp", value = "return ::pow(p0, p1);")
 	@JTranscMethodBody(target = "d", value = "return std.math.pow(p0, p1);")
@@ -235,7 +235,7 @@ public final class Math {
 	native public static double pow(double a, double b);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.round(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.round(p0);")
 	@JTranscMethodBody(target = "cpp", value = "return (int32_t)::lround(p0);")
 	@JTranscMethodBody(target = "d", value = "return cast(int)std.math.round(p0);")
@@ -247,7 +247,7 @@ public final class Math {
 	native public static int round(float a);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.round(p0);")
+
 	@JTranscMethodBody(target = "js", value = "return N.lnewFloat(Math.round(p0));")
 	@JTranscMethodBody(target = "cpp", value = "return (int64_t)::llround(p0);")
 	@JTranscMethodBody(target = "d", value = "return cast(long)std.math.round(p0);")
@@ -259,7 +259,7 @@ public final class Math {
 	native public static long round(double a);
 
 	@JTranscInline
-	@HaxeMethodBody("return Math.random();")
+
 	@JTranscMethodBody(target = "js", value = "return Math.random();")
 	@JTranscMethodBody(target = "d", value = "return std.random.uniform(0.0, 1.0);")
 	@JTranscMethodBody(target = "as3", value = "return Math.random();")
@@ -395,7 +395,7 @@ public final class Math {
 	@JTranscSync
 	native public static float ulp(float f);
 
-	@HaxeMethodBody("return (p0 == 0) ? 0 : ((p0 < 0) ? -1 : 1);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.sign(p0);")
 	@JTranscMethodBody(target = "cs", value = "return (double)Math.Sign(p0);")
 	@JTranscSync
@@ -405,7 +405,7 @@ public final class Math {
 		return 0;
 	}
 
-	@HaxeMethodBody("return (p0 == 0) ? 0 : ((p0 < 0) ? -1 : 1);")
+
 	@JTranscMethodBody(target = "js", value = "return Math.sign(p0);")
 	@JTranscMethodBody(target = "cs", value = "return (float)Math.Sign(p0);")
 	@JTranscSync
@@ -415,7 +415,7 @@ public final class Math {
 		return 0;
 	}
 
-	//@HaxeMethodBody("return Math.sinh(p0);")
+	//
 	@JTranscMethodBody(target = "cpp", value = "return ::sinh(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.sinh(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Sinh(p0);")
@@ -424,7 +424,7 @@ public final class Math {
 		return (Math.pow(Math.E, x) - Math.pow(Math.E, -x)) / 2.0;
 	}
 
-	//@HaxeMethodBody("return Math.cosh(p0);")
+	//
 	@JTranscMethodBody(target = "cpp", value = "return ::cosh(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.cosh(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Cosh(p0);")
@@ -433,7 +433,7 @@ public final class Math {
 		return (Math.pow(Math.E, x) + Math.pow(Math.E, -x)) / 2.0;
 	}
 
-	//@HaxeMethodBody("return Math.tanh(p0);")
+	//
 	@JTranscMethodBody(target = "cpp", value = "return ::tanh(p0);")
 	@JTranscMethodBody(target = "d", value = "return std.math.tanh(p0);")
 	@JTranscMethodBody(target = "cs", value = "return Math.Tanh(p0);")
@@ -442,7 +442,7 @@ public final class Math {
 		return sinh(x) / cosh(x);
 	}
 
-	@HaxeMethodBody("return Math.sqrt((p0 * p0) + (p1 * p1));")
+
 	@JTranscMethodBody(target = "js", value = "return Math.hypot(p0, p1);")
 	@JTranscMethodBody(target = "cpp", value = "return ::hypot(p0, p1);")
 	@JTranscMethodBody(target = "d", value = "return std.math.hypot(p0, p1);")
@@ -499,13 +499,13 @@ public final class Math {
 	@JTranscSync
 	native public static float nextDown(float f);
 
-	//@HaxeMethodBody("return Math.scalab(p0, p1);")
+	//
 	@JTranscSync
 	public static double scalb(double d, int scaleFactor) {
 		return d * Math.pow(2, scaleFactor);
 	}
 
-	//@HaxeMethodBody("return Math.scalab(p0, p1);")
+	//
 	@JTranscSync
 	public static float scalb(float f, int scaleFactor) {
 		return (float) (f * Math.pow(2, scaleFactor));

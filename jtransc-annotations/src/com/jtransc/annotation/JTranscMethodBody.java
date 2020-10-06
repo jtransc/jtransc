@@ -1,6 +1,6 @@
 package com.jtransc.annotation;
 
-import com.jtransc.annotation.haxe.HaxeMethodBodyList;
+
 
 import java.lang.annotation.*;
 

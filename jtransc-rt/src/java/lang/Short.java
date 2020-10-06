@@ -19,7 +19,7 @@ package java.lang;
 import com.jtransc.annotation.JTranscKeep;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 
 @SuppressWarnings({"UnnecessaryUnboxing", "unchecked", "WeakerAccess", "unused", "UnnecessaryBoxing"})
 public final class Short extends Number implements Comparable<Short> {
@@ -147,7 +147,7 @@ public final class Short extends Number implements Comparable<Short> {
 		return x - y;
 	}
 
-	@HaxeMethodBody("return N.swap16(p0);")
+
 	@JTranscMethodBody(target = "cpp", value = "return N::bswap16(p0);")
 	@JTranscSync
 	public static short reverseBytes(short value) {

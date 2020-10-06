@@ -19,16 +19,12 @@ package java.util;
 import com.jtransc.annotation.JTranscAsync;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscSync;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
 
 @SuppressWarnings("unchecked")
-@HaxeAddMembers("var _data:Array<Dynamic> = [];")
 public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
 	private Object[] buffer;
 	private int length;
 
-	@HaxeMethodBody("this._data = [];")
 	@JTranscMethodBody(target = "js", value = "this._data = [];")
 	@JTranscSync
 	public ArrayList(int initialCapacity) {
@@ -47,14 +43,12 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		addAll(c);
 	}
 
-	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
 	@JTranscSync
 	public void trimToSize() {
 		buffer = Arrays.copyOf(buffer, length);
 	}
 
-	@HaxeMethodBody("")
 	@JTranscMethodBody(target = "js", value = "")
 	@JTranscSync
 	private void ensure(int minimumCapacity) {
@@ -68,28 +62,24 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		ensure(minCapacity);
 	}
 
-	@HaxeMethodBody("return _data.length;")
 	@JTranscMethodBody(target = "js", value = "return this._data.length;")
 	@JTranscSync
 	public int size() {
 		return length;
 	}
 
-	@HaxeMethodBody("return _data[p0];")
 	@JTranscMethodBody(target = "js", value = "return this._data[p0];")
 	@JTranscSync
 	private E _get(int index) {
 		return (E)buffer[index];
 	}
 
-	@HaxeMethodBody("_data[p0] = p1;")
 	@JTranscMethodBody(target = "js", value = "this._data[p0] = p1;")
 	@JTranscSync
 	private void _set(int index, E element) {
 		buffer[index] = element;
 	}
 
-	@HaxeMethodBody("_data = _data.slice(0, p0);")
 	@JTranscMethodBody(target = "js", value = "this._data.length = p0;")
 	@JTranscSync
 	private void _setLength(int length) {
@@ -97,7 +87,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		this.length = length;
 	}
 
-	@HaxeMethodBody("_data.push(p0);")
 	@JTranscMethodBody(target = "js", value = "this._data.push(p0);")
 	@JTranscSync
 	private void _add(E element) {
@@ -112,7 +101,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		length += count;
 	}
 
-	@HaxeMethodBody("N.arrayInsert(_data, p0, p1);")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 0, p1);")
 	@JTranscSync
 	private void _insert(int index, E element) {
@@ -120,7 +108,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		buffer[index] = element;
 	}
 
-	@HaxeMethodBody("_data = _data.slice(0, p0).concat(p1.toArray()).concat(_data.slice(p0));")
 	@JTranscMethodBody(target = "js", value = "this._data.splice.apply(this._data, [p0, 0].concat(p1.toArray()));")
 	@JTranscSync
 	private void _insert(int index, Object[] elements) {
@@ -128,7 +115,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		System.arraycopy(elements, 0, buffer, index, elements.length);
 	}
 
-	@HaxeMethodBody("_data = _data.slice(0, p0).concat(_data.slice(p0));")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, p1 - p0);")
 	@JTranscSync
 	private void _remove(int from, int to) {
@@ -137,7 +123,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		length -= count;
 	}
 
-	@HaxeMethodBody("_data.splice(p0, 1);")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 1);")
 	@JTranscSync
 	private void _remove(int index) {
@@ -149,7 +134,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		_setLength(0);
 	}
 
-	@HaxeMethodBody("p0._data = p1._data.slice(0);")
 	@JTranscMethodBody(target = "js", value = "p0._data = p1._data.slice(0);")
 	@JTranscSync
 	static private <T> void _copy(ArrayList<T> dst, ArrayList<T> src) {
@@ -346,7 +330,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 
 /*
 @SuppressWarnings("unchecked")
-@HaxeAddMembers("var _data:Array<Dynamic> = [];")
 public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
 	private E[] buffer;
 	private int length;
@@ -380,32 +363,27 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		ensure(minCapacity);
 	}
 
-	@HaxeMethodBody("return _data.length;")
 	@JTranscMethodBody(target = "js", value = "return this._data.length;")
 	public int size() {
 		return length;
 	}
 
-	@HaxeMethodBody("return _data[p0];")
 	@JTranscMethodBody(target = "js", value = "return this._data[p0];")
 	private E _get(int index) {
 		return buffer[index];
 	}
 
-	@HaxeMethodBody("_data[p0] = p1;")
 	@JTranscMethodBody(target = "js", value = "this._data[p0] = p1;")
 	private void _set(int index, E element) {
 		buffer[index] = element;
 	}
 
-	@HaxeMethodBody("_data = _data.slice(0, p0);")
 	@JTranscMethodBody(target = "js", value = "this._data.length = p0;")
 	private void _setLength(int length) {
 		ensure(length);
 		this.length = length;
 	}
 
-	@HaxeMethodBody("_data.push(p0);")
 	@JTranscMethodBody(target = "js", value = "this._data.push(p0);")
 	private void _add(E element) {
 		ensure(length + 1);
@@ -418,21 +396,18 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		length += count;
 	}
 
-	@HaxeMethodBody("N.arrayInsert(_data, p0, p1);")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 0, p1);")
 	private void _insert(int index, E element) {
 		makeHole(index, 1);
 		buffer[index] = element;
 	}
 
-	@HaxeMethodBody("_data = _data.slice(0, p0).concat(p1.toArray()).concat(_data.slice(p0));")
 	@JTranscMethodBody(target = "js", value = "this._data.splice.apply(this._data, [p0, 0].concat(p1.toArray()));")
 	private void _insert(int index, Object[] elements) {
 		makeHole(index, elements.length);
 		System.arraycopy(elements, 0, buffer, index, elements.length);
 	}
 
-	@HaxeMethodBody("_data = _data.slice(0, p0).concat(_data.slice(p0));")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, p1 - p0);")
 	private void _remove(int from, int to) {
 		int count = to - from;
@@ -440,7 +415,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		length -= count;
 	}
 
-	@HaxeMethodBody("_data.splice(p0, 1);")
 	@JTranscMethodBody(target = "js", value = "this._data.splice(p0, 1);")
 	private void _remove(int index) {
 		_remove(index, index + 1);
@@ -450,7 +424,6 @@ public class ArrayList<E> extends AbstractList<E> implements List<E>, RandomAcce
 		_setLength(0);
 	}
 
-	@HaxeMethodBody("p0._data = p1._data.slice(0);")
 	@JTranscMethodBody(target = "js", value = "p0._data = p1._data.slice(0);")
 	static private <T> void _copy(ArrayList<T> dst, ArrayList<T> src) {
 		dst.buffer = Arrays.copyOf(src.buffer, src.length);

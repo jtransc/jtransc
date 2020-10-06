@@ -17,67 +17,55 @@
 package com.jtransc.ds;
 
 import com.jtransc.annotation.*;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
-import com.jtransc.annotation.haxe.HaxeRemoveField;
+
+
+
 
 import java.util.HashMap;
 import java.util.Set;
 
 @JTranscInvisible
-@HaxeAddMembers({"var _map = new Map<String, Dynamic>();"})
 @JTranscAddMembersList({
 	@JTranscAddMembers(target = "php", value = "public $data = null;"),
 })
 public class FastStringMap<T> {
-    @HaxeRemoveField
 	private HashMap<String, T> map;
 
-    @HaxeMethodBody("")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "this.data = new Map();"),
-		@JTranscMethodBody(target = "php", value = "$this->data = [];"),
-	})
+
+	@JTranscMethodBody(target = "js", value = "this.data = new Map();")
+	@JTranscMethodBody(target = "php", value = "$this->data = [];")
 	@JTranscSync
 	public FastStringMap() {
 		this.map = new HashMap<String, T>();
 	}
 
-	@HaxeMethodBody("return _map.get(p0._str);")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return this.data.get(N.istr(p0));"),
-		@JTranscMethodBody(target = "php", value = "return $this->data[N::istr($p0)];"),
-	})
+
+	@JTranscMethodBody(target = "js", value = "return this.data.get(N.istr(p0));")
+	@JTranscMethodBody(target = "php", value = "return $this->data[N::istr($p0)];")
 	@JTranscSync
     public T get(String key) {
 		return this.map.get(key);
 	}
 
-    @HaxeMethodBody("_map.set(p0._str, p1);")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "this.data.set(N.istr(p0), p1);"),
-		@JTranscMethodBody(target = "php", value = "$this->data[N::istr($p0)] = $p1;"),
-	})
+
+	@JTranscMethodBody(target = "js", value = "this.data.set(N.istr(p0), p1);")
+	@JTranscMethodBody(target = "php", value = "$this->data[N::istr($p0)] = $p1;")
 	@JTranscSync
 	public void set(String key, T value) {
 		this.map.put(key, value);
 	}
 
-    @HaxeMethodBody("return _map.exists(p0._str);")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return this.data.has(N.istr(p0));"),
-		@JTranscMethodBody(target = "php", value = "return isset($this->data[N::istr($p0)]);"),
-	})
+
+	@JTranscMethodBody(target = "js", value = "return this.data.has(N.istr(p0));")
+	@JTranscMethodBody(target = "php", value = "return isset($this->data[N::istr($p0)]);")
 	@JTranscSync
 	public boolean has(String key) {
 		return this.map.containsKey(key);
 	}
 
-	@HaxeMethodBody("return N.haxeStringArrayToJavaArray(N.haxeIteratorToArray(_map.keys()));")
-	@JTranscMethodBodyList({
-		@JTranscMethodBody(target = "js", value = "return JA_L.fromArray1(Array.from(this.data.keys()).map(function(it) { return N.str(it); }), 'Ljava/lang/String;');"),
-		@JTranscMethodBody(target = "php", value = "return N::strArray(array_keys($this->data));"),
-	})
+
+	@JTranscMethodBody(target = "js", value = "return JA_L.fromArray1(Array.from(this.data.keys()).map(function(it) { return N.str(it); }), 'Ljava/lang/String;');")
+	@JTranscMethodBody(target = "php", value = "return N::strArray(array_keys($this->data));")
 	@JTranscSync
 	public String[] getKeys() {
 		String[] out = new String[map.size()];

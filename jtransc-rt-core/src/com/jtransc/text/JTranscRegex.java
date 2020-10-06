@@ -2,8 +2,8 @@ package com.jtransc.text;
 
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
-import com.jtransc.annotation.haxe.HaxeAddMembers;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
+
 
 import java.util.ArrayList;
 
@@ -117,31 +117,6 @@ public class JTranscRegex {
 		}
 	}
 
-	@HaxeAddMembers({
-		"public var _pattern:String;",
-		"public var _opts:String;",
-		"public var _text:String;",
-		"public var _ereg:EReg;",
-		"public var _matches:Bool;",
-		"public var _offset:Int = 0;",
-		"public var _matchPos:Int = 0;",
-		"public var _matchLen:Int = 0;",
-		"" +
-			"public function _find() {\n" +
-			"\tvar r = this._ereg;\n" +
-			"\tthis._matches = r.matchSub(this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:text:Ljava/lang/String; %}._str, this._offset);\n" +
-			"\tif (this._matches) {\n" +
-			"\t\tvar rpos = r.matchedPos();\n" +
-			"\t\tthis._matchPos = rpos.pos;\n" +
-			"\t\tthis._matchLen = rpos.len;\n" +
-			"\t\tthis._offset = rpos.pos + rpos.len;\n" +
-			"\t} else {\n" +
-			"\t\tthis._matchPos = 0;\n" +
-			"\t\tthis._matchLen = 0;\n" +
-			"\t}\n" +
-			"\treturn this._matches;\n" +
-			"}"
-	})
 	static public final class Matcher {
 		private Pattern parent;
 		private String pattern;
@@ -165,20 +140,6 @@ public class JTranscRegex {
 			_init();
 		}
 
-		@HaxeMethodBody("" +
-			"var opts = '';\n" +
-			"var flags = this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:flags %};\n" +
-			"var pattern = this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:pattern %};\n" +
-			"var text = this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:text %};\n" +
-			"if ((flags & 0x02) != 0) opts += 'i';\n" +
-			"if ((flags & 0x08) != 0) opts += 'm';\n" +
-			//"if ((this.flags & 0x20) != 0) opts += 's';\n" + // dotall default on javascript
-			"this._pattern = pattern._str;\n" +
-			"this._opts = opts;\n" +
-			"this._text = text._str;\n" +
-			"this._ereg = new EReg(pattern._str, opts);\n" +
-			"this._matches = (new EReg('^' + pattern._str + '$', opts)).match(text._str);"
-		)
 		@JTranscMethodBody(target = "js", value = {
 			"this._ereg = new RegExp(N.istr(this._pattern), N.istr(this._flagsString + 'g'));",
 			"var flags = this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:flags %};",
@@ -194,7 +155,7 @@ public class JTranscRegex {
 			return this.parent;
 		}
 
-		@HaxeMethodBody("return this._matchPos;")
+
 		public int start() {
 			return this.matchStart;
 		}
@@ -205,7 +166,7 @@ public class JTranscRegex {
 			throw new Error("No implemented Matcher.start(int group) with group != 0");
 		}
 
-		@HaxeMethodBody("return this._matchPos + this._matchLen;")
+
 		public int end() {
 			return this.matchEnd;
 		}
@@ -216,25 +177,25 @@ public class JTranscRegex {
 			throw new Error("No implemented Matcher.end(int group) with group != 0");
 		}
 
-		@HaxeMethodBody("return N.str(this._ereg.matched(0));")
+
 		public String group() {
 			return group(0);
 		}
 
-		@HaxeMethodBody("return N.str(this._ereg.matched(p0));")
+
 		@JTranscMethodBody(target = "js", value = "return N.str(this._groups[p0]);")
 		native public String group(int group);
 
-		@HaxeMethodBody("return this._matches;")
+
 		@JTranscMethodBody(target = "js", value = "return (new RegExp('^' + N.istr(this._pattern) + '$', opts)).test(N.istr(this._text));")
 		native public boolean matches();
 
-		@HaxeMethodBody("return _find();")
+
 		public boolean find() {
 			return _find();
 		}
 
-		@HaxeMethodBody("this._offset = p0; return _find();")
+
 		public boolean find(int start) {
 			this.subtext = text.substring(start);
 			return _find();
@@ -256,7 +217,7 @@ public class JTranscRegex {
 			return replaceFirstAll(replacement, false);
 		}
 
-		@HaxeMethodBody("return N.str(new EReg(this._pattern, p1 ? (this._opts + 'g') : (this._opts)).replace(this._text, p0._str));")
+
 		@JTranscMethodBody(target = "js", value = {
 			"var opts = p1 ? (this._opts + 'g') : (this._opts);",
 			"var text = N.istr(this{% IFIELD com.jtransc.text.JTranscRegex$Matcher:text %});",

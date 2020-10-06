@@ -18,7 +18,6 @@ package com.jtransc.ast
 
 import com.jtransc.*
 import com.jtransc.annotation.*
-import com.jtransc.annotation.haxe.HaxeMethodBodyList
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.ast.optimize.AstOptimizer
 import com.jtransc.ds.cast
@@ -808,15 +807,6 @@ class AstMethod constructor(
 
 	fun hasDependenciesInBody(targetName: TargetName): Boolean {
 		var dependenciesInBody = true
-
-		if (targetName.matches("haxe")) {
-			for (methodBody in annotationsList.getTypedList(HaxeMethodBodyList::value)) {
-				if (targetName.haxeMatches(methodBody.target)) {
-					//addTemplateReferences(methodBody.value, "methodBody=$newmethod")
-					dependenciesInBody = false
-				}
-			}
-		}
 
 		for (methodBody in annotationsList.getBodiesForTarget(targetName)) {
 			//addTemplateReferences(methodBody.value.joinToString("\n"), "methodBody=$newmethod")

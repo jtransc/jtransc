@@ -1,6 +1,6 @@
 package com.jtransc
 
-import com.jtransc.annotation.haxe.HaxeMethodBody
+import com.jtransc.annotation.*
 import com.jtransc.ast.*
 import com.jtransc.backend.toAst
 import com.jtransc.ds.diff
@@ -66,7 +66,9 @@ class JTranscRtReport {
 						if (method.invisibleAnnotations != null) {
 							!AstAnnotationList(
 								AstMethodRef(FqName.fromInternal(clazz.name), method.name, types.demangleMethod(method.desc)),
-								method.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst(types) }).contains<HaxeMethodBody>()
+								method.invisibleAnnotations.filterIsInstance<AnnotationNode>().map { it.toAst(types) })
+									//.contains<Hax>()
+									.contains<JTranscMethodBody>()
 						} else {
 							true
 						}

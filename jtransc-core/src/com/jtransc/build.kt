@@ -237,9 +237,7 @@ class JTranscBuild(
 				}
 			}
 
-			// Add synthetic methods to abstracts to simulate in haxe
-			// @TODO: Maybe we could generate those methods in haxe generator since the requirement for this
-			// @TODO: is target dependant
+			// @TODO: Maybe we could generate those methods in hax generator since the requirement for this is target dependant
 			for (clazz in program.classes.filter { it.isAbstract }) {
 				for (method in clazz.allMethodsToImplement.filter { clazz.getMethodInAncestors(it) == null }) {
 					clazz.add(program.generateDummyMethod(clazz, method.name, method.type, false, AstVisibility.PUBLIC))

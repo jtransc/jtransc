@@ -139,8 +139,8 @@ clean.doFirst {
 idea {
 	module {
 		excludeDirs = [
-			file(".gradle"), file(".idea"),
-			file("docs"), file("benchmark"),
+			file(".gradle"), file(".idea"), file(".github"), file("build"),
+			file("docs"), file("benchmark"), file("benchmark_kotlin_mpp"),
 			file("examples"), file("extra"),
 			file("gradle"), file("inception"),
 			file("jtransc-intellij-plugin"), file("jtransc-main-run")
@@ -295,7 +295,7 @@ subprojects {
 					pom.project {
 						name "${project.name}"
 						packaging 'jar'
-						description 'JVM AOT compiler currently generating JavaScript, C++, Haxe, with initial focus on Kotlin and games.'
+						description 'JVM AOT compiler currently generating JavaScript, C++, C# and Dart, with initial focus on Kotlin and games.'
 						url 'https://github.com/jtransc/jtransc/'
 						inceptionYear '2015'
 

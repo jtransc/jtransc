@@ -3,7 +3,7 @@ package com.jtransc.time;
 import com.jtransc.JTranscSystem;
 import com.jtransc.annotation.JTranscMethodBody;
 import com.jtransc.annotation.JTranscMethodBodyList;
-import com.jtransc.annotation.haxe.HaxeMethodBody;
+
 import com.jtransc.io.JTranscConsole;
 
 public class JTranscClock {
@@ -17,15 +17,13 @@ public class JTranscClock {
 			this.parent = parent;
 		}
 
-		@HaxeMethodBody("return N.getTime();")
-		@JTranscMethodBodyList({
-			@JTranscMethodBody(target = "php", value = "return N::getTime();"),
-			@JTranscMethodBody(target = "js", value = "return N.getTime();"),
-			@JTranscMethodBody(target = "cpp", value = "return N::getTime();"),
-			@JTranscMethodBody(target = "cs", value = "return N.getTime();"),
-			@JTranscMethodBody(target = "as3", value = "return new Date().time;"), // Optimize this to avoid allocations (using just one new Date().time + getTimer())!
-			@JTranscMethodBody(target = "dart", value = "return new DateTime.now().millisecondsSinceEpoch.toDouble();"),
-		})
+
+		@JTranscMethodBody(target = "php", value = "return N::getTime();")
+		@JTranscMethodBody(target = "js", value = "return N.getTime();")
+		@JTranscMethodBody(target = "cpp", value = "return N::getTime();")
+		@JTranscMethodBody(target = "cs", value = "return N.getTime();")
+		@JTranscMethodBody(target = "as3", value = "return new Date().time;") // Optimize this to avoid allocations (using just one new Date().time + getTimer())!
+		@JTranscMethodBody(target = "dart", value = "return new DateTime.now().millisecondsSinceEpoch.toDouble();")
 		public double fastTime() {
 			if (parent != null) {
 				return parent.fastTime();
@@ -40,11 +38,9 @@ public class JTranscClock {
 
 		//performance.now()
 		//process.hrtime()[1] / 1000000000.0
-		@JTranscMethodBodyList({
-			@JTranscMethodBody(target = "js", value = "return N.hrtime();"),
-			@JTranscMethodBody(target = "cpp", value = "return N::nanoTime();"),
-			@JTranscMethodBody(target = "php", value = "return N::nanoTime();"),
-		})
+		@JTranscMethodBody(target = "js", value = "return N.hrtime();")
+		@JTranscMethodBody(target = "cpp", value = "return N::nanoTime();")
+		@JTranscMethodBody(target = "php", value = "return N::nanoTime();")
 		public long nanoTime() {
 			if (JTranscSystem.isJTransc()) {
 				//return (long) hrtime();
@@ -54,12 +50,9 @@ public class JTranscClock {
 			}
 		}
 
-		@HaxeMethodBody(target = "sys", value = "Sys.sleep(p0 / 1000.0);")
-		@JTranscMethodBodyList({
-			@JTranscMethodBody(target = "cs", value = "System.Threading.Thread.Sleep((int)p0);"),
-			@JTranscMethodBody(target = "dart", value = "sleep(new Duration(milliseconds: p0.toInt()));"),
-			@JTranscMethodBody(target = "php", value = "usleep($p0 * 1000);"),
-		})
+		@JTranscMethodBody(target = "cs", value = "System.Threading.Thread.Sleep((int)p0);")
+		@JTranscMethodBody(target = "dart", value = "sleep(new Duration(milliseconds: p0.toInt()));")
+		@JTranscMethodBody(target = "php", value = "usleep($p0 * 1000);")
 		public void sleep(double ms) {
 			if (parent != null) {
 				parent.sleep(ms);

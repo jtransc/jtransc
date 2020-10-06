@@ -51,7 +51,6 @@ open class _Base(val enabled: Boolean = true) {
 		const val ANALYZER = false
 		const val DEBUG = false
 		const val OPTIMIZE = true
-		//val DEFAULT_TARGET = HaxeTarget
 	}
 
 	class Config<T>(
@@ -202,7 +201,6 @@ open class _Base(val enabled: Boolean = true) {
 				entryPoint = params.clazz.name,
 				output = "program.${params.lang}",
 				subtarget = params.lang ?: "js",
-				//output = "program.haxe.cpp", subtarget = "cpp",
 				targetDirectory = System.getProperty("java.io.tmpdir") + "/jtransc",
 				settings = AstBuildSettings(
 					jtranscVersion = JTranscVersion.getVersion(),

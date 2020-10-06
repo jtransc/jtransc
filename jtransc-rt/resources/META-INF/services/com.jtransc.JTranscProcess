@@ -1,2 +1,1 @@
 com.jtransc.cs.JTranscProcessCSharp # <target=cs>
-com.jtransc.mix.JTranscProcessMulti # <target=js,d,haxe,dart>
