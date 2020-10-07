@@ -442,7 +442,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("catch (std::wstring s)") {
 				line("""std::wcout << L"ERROR std::wstring: '" << s << L"'\n";""")
 			}
-			line("catch (java_lang_Throwable *s)") {
+			line("catch (java_lang_Object *s)") {
 				line("""std::wcout << L"${"java.lang.Throwable".fqname.targetName}:" << N::istr2(s) << L"\n";""")
 			}
 			//}

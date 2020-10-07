@@ -25,7 +25,8 @@ public final class Array {
 	}
 
 	@JTranscMethodBody(target = "js", value = "return new JA_L(p0, N.istr(p1));")
-	@JTranscMethodBody(target = "cpp", value = "return new JA_L(p0, N::istr2(p1));")
+	//@JTranscMethodBody(target = "cpp", value = "return new JA_L(p0, N::istr2(p1));")
+	@JTranscMethodBody(target = "cpp", value = "return new JA_L(p0, L\"[Ljava/lang/Object;\");")
 	@JTranscMethodBody(target = "cs", value = "return new JA_L(p0, N.istr(p1));")
 	@JTranscMethodBody(target = "dart", value = "return new JA_L(p0, N.istr(p1));")
 	native private static Object newObjectInstance(int length, String desc) throws NegativeArraySizeException;

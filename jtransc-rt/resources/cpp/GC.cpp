@@ -22,6 +22,7 @@
 #define ENABLE_GC 1
 
 #define __GC_ALIGNMENT_SIZE 32
+#define MAX_FAST_FREE_BLOCKS_BY_SIZES 16
 
 struct __GCVisitor;
 struct __GCHeap;
@@ -156,8 +157,6 @@ struct __GCAllocResult {
 	int size;
 };
 
-#define MAX_FAST_FREE_BLOCKS_BY_SIZES 16
-
 struct __GCArrayMemory {
 	std::vector<__GCMemoryBlock*> blocks;
 	__GCMemoryBlock* lastBlock = nullptr;
@@ -222,7 +221,6 @@ struct __GCMemoryBlocks {
 	__GCMemoryBlock* lastBlock = nullptr;
 	std::vector<__GCMemoryBlock*> blocks;
 	std::vector<__GC*> freeBlocksBySizes[MAX_FAST_FREE_BLOCKS_BY_SIZES];
-	std::unordered_map<int, std::vector<__GC*>> freeBlocksBySize;
 	int allocCount = 0;
 	int allocMemory = 0;
 	int totalMemory = 0;
@@ -236,7 +234,7 @@ struct __GCMemoryBlocks {
 			return &freeBlocksBySizes[index];
 		}
 		//std::cout << allocSize << "\n";
-		return &freeBlocksBySize[allocSize];
+		return nullptr;
 	}
 
 	__GCAllocResult Alloc(int size) {
@@ -244,6 +242,7 @@ struct __GCMemoryBlocks {
 		allocMemory += allocSize;
 		allocCount++;
 		auto fblocks = getFreeBlocksBySizeArray(allocSize);
+		if (fblocks == nullptr) return { malloc(allocSize), allocSize };
 		if (!fblocks->empty()) {
 			auto v = fblocks->back();
 			fblocks->pop_back();
@@ -271,7 +270,12 @@ struct __GCMemoryBlocks {
 		int allocSize = ptr->__GC_objsize * __GC_ALIGNMENT_SIZE;
 		allocCount--;
 		allocMemory -= allocSize;
-		getFreeBlocksBySizeArray(allocSize)->push_back(ptr);
+		auto fblocks = getFreeBlocksBySizeArray(allocSize);
+		if (fblocks != nullptr) {
+			fblocks->push_back(ptr);
+		} else {
+			free(ptr);
+		}
 	}
 
 	inline bool PreContainsPointerFast(void *ptr) {

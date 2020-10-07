@@ -247,7 +247,7 @@ struct N {
 
 	template<typename T> inline static bool is(T* obj, int32_t type) { return is((JAVA_OBJECT)obj, type); }
 	static JT_BOOL isArray(JAVA_OBJECT obj);
-	static JT_BOOL isArray(JAVA_OBJECT obj, std::wstring desc);
+	static JT_BOOL isArray(JAVA_OBJECT obj, wchar_t *desc);
 	static JT_BOOL isUnknown(std::shared_ptr<{% CLASS java.lang.Object %}> obj, const char *error);
 	static int cmp(double a, double b);
 	static int cmpl(double a, double b);
@@ -406,13 +406,13 @@ struct JA_0 : public java_lang_Object {
 	void *_data;
 	int32_t length;
 	int8_t elementSize;
-	std::wstring desc;
+	const wchar_t *desc;
 	bool allocated;
 	#ifdef INLINE_ARRAYS
-		int __inline_data;
+		void *__inline_data;
 	#endif
 
-	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, std::wstring d) {
+	JA_0(JT_BOOL pointers, int32_t len, int8_t esize, const wchar_t *d) {
 		this->__JT__CLASS_ID = 1;
 		this->length = len;
 		this->elementSize = esize;
@@ -425,12 +425,13 @@ struct JA_0 : public java_lang_Object {
 		#endif
 	}
 
-	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, std::wstring d) : length(len), elementSize(esize), desc(d) {
+	JA_0(JT_BOOL pointers, void* data, int32_t len, int8_t esize, const wchar_t *d) : length(len), elementSize(esize), desc(d) {
 		this->__JT__CLASS_ID = 1;
 		this->_data = data;
 		this->allocated = false;
 		#ifdef INLINE_ARRAYS
 			std::cout << "ERROR: With INLINE_ARRAYS. Array from data won't work\n";
+			abort();
 		#endif
 	}
 
@@ -457,7 +458,7 @@ struct JA_0 : public java_lang_Object {
 	std::wstring __GC_Name() { return L"JA_0"; }
 
 	#ifdef INLINE_ARRAYS
-		inline void *getStartPtrRaw() { return ((char *)&__inline_data) + INLINE_ARRAYS_OFFSET; }
+		inline void *getStartPtrRaw() { return ((char *)(void *)&__inline_data) + INLINE_ARRAYS_OFFSET; }
 	#else
 		inline void *getStartPtrRaw() { return _data; }
 	#endif
@@ -480,9 +481,9 @@ struct JA_0 : public java_lang_Object {
 
 template <class T>
 struct JA_Base : JA_0 {
-	JA_Base(JT_BOOL pointers, int32_t size, std::wstring desc) : JA_0(pointers, size, sizeof(T), desc) {
+	JA_Base(JT_BOOL pointers, int32_t size, const wchar_t *desc) : JA_0(pointers, size, sizeof(T), desc) {
 	};
-	JA_Base(JT_BOOL pointers, void* data, int32_t size, std::wstring desc) : JA_0(pointers, data, size, sizeof(T), desc) {
+	JA_Base(JT_BOOL pointers, void* data, int32_t size, const wchar_t *desc) : JA_0(pointers, data, size, sizeof(T), desc) {
 	};
 
 	std::wstring __GC_Name() { return L"JA_Base"; }
@@ -571,8 +572,8 @@ struct JA_B : JA_Base<int8_t> {
 	std::wstring __GC_Name() { return L"JA_B"; }
 	
 
-	JA_B(int32_t size, std::wstring desc = L"[B") : JA_Base(false, size, desc) { };
-	JA_B(void* data, int32_t size, std::wstring desc = L"[B") : JA_Base(false, data, size, desc) { };
+	JA_B(int32_t size, const wchar_t *desc = L"[B") : JA_Base(false, size, desc) { };
+	JA_B(void* data, int32_t size, const wchar_t *desc = L"[B") : JA_Base(false, data, size, desc) { };
 
 	void fill(int32_t from, int32_t to, int8_t v) {
 		checkBoundsThrowing(from, length);
@@ -580,7 +581,7 @@ struct JA_B : JA_Base<int8_t> {
 		::memset((void *)(&((int8_t *)getStartPtr())[from]), v, (to - from));
 	}
 
-	static JA_B* fromArray(std::wstring desc, std::vector<int8_t> array) {
+	static JA_B* fromArray(const wchar_t *desc, std::vector<int8_t> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_B>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -591,10 +592,10 @@ struct JA_Z : public JA_B {
 	std::wstring __GC_Name() { return L"JA_Z"; }
 	
 
-	JA_Z(int32_t size, std::wstring desc = L"[Z") : JA_B(size, desc) { };
-	JA_Z(void* data, int32_t size, std::wstring desc = L"[Z") : JA_B(data, size, desc) { };
+	JA_Z(int32_t size, const wchar_t *desc = L"[Z") : JA_B(size, desc) { };
+	JA_Z(void* data, int32_t size, const wchar_t *desc = L"[Z") : JA_B(data, size, desc) { };
 
-	static JA_Z* fromArray(std::wstring desc, std::vector<int8_t> array) {
+	static JA_Z* fromArray(const wchar_t *desc, std::vector<int8_t> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_Z>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -605,10 +606,10 @@ struct JA_S : JA_Base<int16_t> {
 	std::wstring __GC_Name() { return L"JA_S"; }
 	
 
-	JA_S(int32_t size, std::wstring desc = L"[S") : JA_Base(false, size, desc) { };
-	JA_S(void* data, int32_t size, std::wstring desc = L"[S") : JA_Base(false, data, size, desc) { };
+	JA_S(int32_t size, const wchar_t *desc = L"[S") : JA_Base(false, size, desc) { };
+	JA_S(void* data, int32_t size, const wchar_t *desc = L"[S") : JA_Base(false, data, size, desc) { };
 
-	static JA_S* fromArray(std::wstring desc, std::vector<int16_t> array) {
+	static JA_S* fromArray(const wchar_t *desc, std::vector<int16_t> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_S>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -619,10 +620,10 @@ struct JA_C : JA_Base<uint16_t> {
 	std::wstring __GC_Name() { return L"JA_C"; }
 	
 
-	JA_C(int32_t size, std::wstring desc = L"[C") : JA_Base(false, size, desc) { };
-	JA_C(void* data, int32_t size, std::wstring desc = L"[C") : JA_Base(false, data, size, desc) { };
+	JA_C(int32_t size, const wchar_t *desc = L"[C") : JA_Base(false, size, desc) { };
+	JA_C(void* data, int32_t size, const wchar_t *desc = L"[C") : JA_Base(false, data, size, desc) { };
 
-	static JA_C* fromArray(std::wstring desc, std::vector<uint16_t> array) {
+	static JA_C* fromArray(const wchar_t *desc, std::vector<uint16_t> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_C>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -633,8 +634,8 @@ struct JA_I : JA_Base<int32_t> {
 	std::wstring __GC_Name() { return L"JA_I"; }
 	
 
-	JA_I(int32_t size, std::wstring desc = L"[I") : JA_Base(false, size, desc) { };
-	JA_I(void* data, int32_t size, std::wstring desc = L"[I") : JA_Base(false, data, size, desc) { };
+	JA_I(int32_t size, const wchar_t *desc = L"[I") : JA_Base(false, size, desc) { };
+	JA_I(void* data, int32_t size, const wchar_t *desc = L"[I") : JA_Base(false, data, size, desc) { };
 
 	// @TODO: Try to move to JA_Base
 	static JA_I *fromVector(int32_t *data, int32_t count) {
@@ -647,7 +648,7 @@ struct JA_I : JA_Base<int32_t> {
 	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2) { return (JA_I * )(__GC_ALLOC<JA_I>(3))->init(0, a0)->init(1, a1)->init(2, a2); };
 	static JA_I *fromArgValues(int32_t a0, int32_t a1, int32_t a2, int32_t a3) { return (JA_I * )(__GC_ALLOC<JA_I>(4))->init(0, a0)->init(1, a1)->init(2, a2)->init(3, a3); };
 
-	static JA_I* fromArray(std::wstring desc, std::vector<int32_t> array) {
+	static JA_I* fromArray(const wchar_t *desc, std::vector<int32_t> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_I>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -658,10 +659,10 @@ struct JA_J : JA_Base<int64_t> {
 	std::wstring __GC_Name() { return L"JA_J"; }
 	
 
-	JA_J(int32_t size, std::wstring desc = L"[J") : JA_Base(false, size, desc) { };
-	JA_J(void* data, int32_t size, std::wstring desc = L"[J") : JA_Base(false, data, size, desc) { };
+	JA_J(int32_t size, const wchar_t *desc = L"[J") : JA_Base(false, size, desc) { };
+	JA_J(void* data, int32_t size, const wchar_t *desc = L"[J") : JA_Base(false, data, size, desc) { };
 
-	static JA_J* fromArray(std::wstring desc, std::vector<int64_t> array) {
+	static JA_J* fromArray(const wchar_t *desc, std::vector<int64_t> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_J>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -672,10 +673,10 @@ struct JA_F : JA_Base<float> {
 	std::wstring __GC_Name() { return L"JA_F"; }
 	
 
-	JA_F(int32_t size, std::wstring desc = L"[F") : JA_Base(false, size, desc) { };
-	JA_F(void* data, int32_t size, std::wstring desc = L"[F") : JA_Base(false, data, size, desc) { };
+	JA_F(int32_t size, const wchar_t *desc = L"[F") : JA_Base(false, size, desc) { };
+	JA_F(void* data, int32_t size, const wchar_t *desc = L"[F") : JA_Base(false, data, size, desc) { };
 
-	static JA_F* fromArray(std::wstring desc, std::vector<float> array) {
+	static JA_F* fromArray(wchar_t *desc, std::vector<float> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_F>(len);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -686,10 +687,10 @@ struct JA_D : JA_Base<double> {
 	std::wstring __GC_Name() { return L"JA_D"; }
 	
 
-	JA_D(int32_t size, std::wstring desc = L"[D") : JA_Base(false, size, desc) { };
-	JA_D(void* data, int32_t size, std::wstring desc = L"[D") : JA_Base(false, data, size, desc) { };
+	JA_D(int32_t size, const wchar_t *desc = L"[D") : JA_Base(false, size, desc) { };
+	JA_D(void* data, int32_t size, const wchar_t *desc = L"[D") : JA_Base(false, data, size, desc) { };
 
-	static JA_D* fromArray(std::wstring desc, std::vector<double> array) {
+	static JA_D* fromArray(wchar_t *desc, std::vector<double> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_D>(len);
 		for (int n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -697,8 +698,8 @@ struct JA_D : JA_Base<double> {
 	}
 };
 struct JA_L : JA_Base<JAVA_OBJECT> {
-	JA_L(int32_t size, std::wstring desc) : JA_Base(true, size, desc) { };
-	JA_L(void* data, int32_t size, std::wstring desc) : JA_Base(true, data, size, desc) { };
+	JA_L(int32_t size, const wchar_t *desc) : JA_Base(true, size, desc) { };
+	JA_L(void* data, int32_t size, const wchar_t *desc) : JA_Base(true, data, size, desc) { };
 
 	std::vector<JAVA_OBJECT> getVector() {
 		int32_t len = this->length;
@@ -717,7 +718,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
     	}
     }
 
-	static JA_0* createMultiSure(std::wstring desc, std::vector<int32_t> sizes) {
+	static JA_0* createMultiSure(wchar_t *desc, std::vector<int32_t> sizes) {
 		if (sizes.size() == 0) throw L"Multiarray with zero sizes";
 
 		int32_t size = sizes[0];
@@ -738,7 +739,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 
 
 		auto out = __GC_ALLOC<JA_L>(size, desc);
-		auto subdesc = desc.substr(1);
+		auto subdesc = &desc[1];
 		auto subsizes = std::vector<int32_t>(sizes.begin() + 1, sizes.end());
 		for (int32_t n = 0; n < size; n++) {
 			out->set(n, createMultiSure(subdesc, subsizes));
@@ -746,7 +747,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 		return out;
 	}
 
-	static JA_L* fromArray(std::wstring desc, std::vector<JAVA_OBJECT> array) {
+	static JA_L* fromArray(wchar_t *desc, std::vector<JAVA_OBJECT> array) {
 		auto len = (int32_t)array.size();
 		auto out = __GC_ALLOC<JA_L>(len, desc);
 		for (int32_t n = 0; n < len; n++) out->fastSet(n, array[n]);
@@ -772,7 +773,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 	JA_J *__GC_ALLOC_JA_J(int size) { return __gcHeap.AllocCustomSize<JA_J>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_J) + size * sizeof(int64_t), size); }
 	JA_F *__GC_ALLOC_JA_F(int size) { return __gcHeap.AllocCustomSize<JA_F>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_F) + size * sizeof(float32_t), size); }
 	JA_D *__GC_ALLOC_JA_D(int size) { return __gcHeap.AllocCustomSize<JA_D>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_D) + size * sizeof(float64_t), size); }
-	JA_L *__GC_ALLOC_JA_L(int size, std::wstring desc) { return __gcHeap.AllocCustomSize<JA_L>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_L) + size * sizeof(void *), size, desc); }
+	JA_L *__GC_ALLOC_JA_L(int size, const wchar_t *desc) { return __gcHeap.AllocCustomSize<JA_L>(16 + INLINE_ARRAYS_OFFSET + sizeof(JA_L) + size * sizeof(void *), size,  (wchar_t *)desc); }
 #else
 	JA_Z *__GC_ALLOC_JA_Z(int size) { return __gcHeap.Alloc<JA_Z>(size); }
 	JA_B *__GC_ALLOC_JA_B(int size) { return __gcHeap.Alloc<JA_B>(size); }
@@ -782,7 +783,7 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 	JA_J *__GC_ALLOC_JA_J(int size) { return __gcHeap.Alloc<JA_J>(size); }
 	JA_F *__GC_ALLOC_JA_F(int size) { return __gcHeap.Alloc<JA_F>(size); }
 	JA_D *__GC_ALLOC_JA_D(int size) { return __gcHeap.Alloc<JA_D>(size); }
-	JA_L *__GC_ALLOC_JA_L(int size, std::wstring desc) { return __gcHeap.Alloc<JA_L>(size, desc); }
+	JA_L *__GC_ALLOC_JA_L(int size, const wchar_t *desc) { return __gcHeap.Alloc<JA_L>(size, (wchar_t *)desc); }
 #endif
 
 
@@ -885,11 +886,11 @@ JT_BOOL N::isFast(JAVA_OBJECT obj, int32_t t0, int32_t t1, int32_t t2, int32_t t
 };
 
 JT_BOOL N::isArray(JAVA_OBJECT obj) { return GET_OBJECT(JA_0, obj) != nullptr; };
-JT_BOOL N::isArray(JAVA_OBJECT obj, std::wstring desc) {
+JT_BOOL N::isArray(JAVA_OBJECT obj, wchar_t *desc) {
 	JA_0* ptr = GET_OBJECT(JA_0, obj);
 	JT_BOOL result = (ptr != nullptr) && (ptr->desc == desc);
 	if (!result) {
-		if (desc.substr(0, 2) == L"[L") {
+		if (desc[0] == L'[' && desc[1] == L'L') {
 			return GET_OBJECT(JA_L, obj) != nullptr;
 		}
 	}
@@ -1147,7 +1148,8 @@ const char16_t* N::getStrDataPtr(JAVA_OBJECT obj) {
 
 std::u16string N::istr(JAVA_OBJECT obj) {
 	if (obj == nullptr) return u"null";
-	auto chars = N::strGetCharsFast(obj);
+	auto str = obj->M__toString__Ljava_lang_String_();
+	auto chars = N::strGetCharsFast(str);
 	if (chars == nullptr) return u"null";
 	std::u16string o;
 	o.reserve((int)chars->length);
@@ -1158,7 +1160,8 @@ std::u16string N::istr(JAVA_OBJECT obj) {
 // @TODO: Can we make this faster?
 std::wstring N::istr2(JAVA_OBJECT obj) {
 	if (obj == nullptr) return L"null";
-	auto chars = N::strGetCharsFast(obj);
+	auto str = obj->M__toString__Ljava_lang_String_();
+	auto chars = N::strGetCharsFast(str);
 	auto len = chars->length;
 	auto ptr = (const uint16_t *)chars->getOffsetPtr(0);
 	std::wstring o;
@@ -1169,7 +1172,8 @@ std::wstring N::istr2(JAVA_OBJECT obj) {
 
 std::string N::istr3(JAVA_OBJECT obj) {
 	if (obj == nullptr) return "null";
-	auto chars = N::strGetCharsFast(obj);
+	auto str = obj->M__toString__Ljava_lang_String_();
+	auto chars = N::strGetCharsFast(str);
 	auto len = chars->length;
 	auto ptr = (const uint16_t *)chars->getOffsetPtr(0);
 	std::string s;
