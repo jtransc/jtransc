@@ -363,9 +363,9 @@ struct N {
 	static double getTime();
 	static int64_t nanoTime();
 	static void startup();
-
+	static void startupThread();
 	static void initStringPool();
-
+	static void staticInit();
 
 	static JAVA_OBJECT newBoolArray();
 	static JAVA_OBJECT newByteArray();
@@ -3249,20 +3249,20 @@ const struct JNINativeInterface_ jni = {
 
 thread_local Env N::env;
 
-void N_startup2() {
+void N::startupThread() {
 	N::env.jni.functions = &jni;
+	__GC_DISABLE();
+	N::initStringPool();
+	__GC_ENABLE();
+	N::staticInit();
+};
+
+void N::startup() {
 	setvbuf(stdout, nullptr, _IONBF, 0);
 	setvbuf(stderr, nullptr, _IONBF, 0);
 	std::signal(SIGSEGV, SIGSEGV_handler);
 	std::signal(SIGFPE, SIGFPE_handler);
-
-	__GC_DISABLE();
-	N::initStringPool();
-	__GC_ENABLE();
-}
-
-void N::startup() {
-	N_startup2();
+	N::startupThread();
 };
 
 // Type Table Footer

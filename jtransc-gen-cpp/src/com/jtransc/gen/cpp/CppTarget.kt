@@ -276,6 +276,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		}
 	}
 
+	val StringInPool.cppName get() = "STRINGLIT[$id]"
+
 	override fun writeClasses(output: SyncVfsFile) {
 		val arrayTypes = listOf(
 			"JA_B" to "int8_t",
@@ -364,12 +366,13 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val STRINGS = Indenter {
 			val globalStrings = getGlobalStrings()
-			line("static void* STRINGS_START = nullptr;")
-			line("static ${JAVA_LANG_STRING_FQ.targetNameRef} ${globalStrings.map { "${it.name} = nullptr" }.joinToString(", ")};")
-			line("static void* STRINGS_END = nullptr;")
+			val maxGlobalStrings = globalStrings.map { it.id }.max()?.plus(1) ?: 0
+			line("thread_local static void* STRINGS_START = nullptr;")
+			line("thread_local static ${JAVA_LANG_STRING_FQ.targetNameRef} STRINGLIT[$maxGlobalStrings] = {0};")
+			line("thread_local static void* STRINGS_END = nullptr;")
 			line("void N::initStringPool()", after2 = ";") {
 				for (gs in globalStrings) {
-					line("""N_ADD_STRING(${gs.name}, L${gs.str.uquote()}, ${gs.str.length});""")
+					line("""N_ADD_STRING(${gs.cppName}, L${gs.str.uquote()}, ${gs.str.length});""")
 				}
 			}
 		}
@@ -418,12 +421,14 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	val AstType.REF.cppName: String get() = this.name.targetName
 
 	fun writeMain(): Indenter = Indenter {
+		line("void N::staticInit()") {
+			line(genStaticConstructorsSorted())
+		}
 		line("int main(int argc, char *argv[])") {
 			line("""TRACE_REGISTER("::main");""")
 			line("__GC_REGISTER_THREAD();")
 			line("try") {
 				line("N::startup();")
-				line(genStaticConstructorsSorted())
 				val callMain = buildMethod(program[AstMethodRef(program.entrypoint, "main", AstType.METHOD(AstType.VOID, listOf(ARRAY(AstType.STRING))))]!!, static = true)
 
 				line("$callMain(N::strArray(argc, argv));")
@@ -437,9 +442,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			line("catch (std::wstring s)") {
 				line("""std::wcout << L"ERROR std::wstring: '" << s << L"'\n";""")
 			}
-			//line("catch (java_lang_Throwable *s)") {
-			//	line("""std::wcout  << L"${"java.lang.Throwable".fqname.targetName}:" << L"\n";""")
-			//	line("""printf("Exception: %p\n", (void*)s);""")
+			line("catch (java_lang_Throwable *s)") {
+				line("""std::wcout << L"${"java.lang.Throwable".fqname.targetName}:" << N::istr2(s) << L"\n";""")
+			}
 			//}
 			//line("catch (p_java_lang_Object s)") {
 			//	val toStringMethod = program["java.lang.Object".fqname].getMethodWithoutOverrides("toString")!!.targetName
@@ -506,7 +511,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
-				val normalStatic = if (field.isStatic) "static " else ""
+				val normalStatic = if (field.isStatic) "thread_local static " else ""
 				val add = ""
 				val btype = field.type.targetNameRef
 				val type = if (btype == "SOBJ" && field.isWeak) "WOBJ" else btype
@@ -639,7 +644,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	fun writeField(field: AstField): Indenter = Indenter {
 		val clazz = field.containingClass
 		if (field.isStatic) {
-			line("${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = ${field.type.nativeDefaultString};")
+			line("thread_local ${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = ${field.type.nativeDefaultString};")
 		}
 	}
 
@@ -1141,7 +1146,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override val FloatPositiveInfinityString = "N::INFINITY_FLOAT"
 	override val FloatNanString = "N::NAN_FLOAT"
 
-	override val String.escapeString: String get() = "STRINGLIT_${allocString(currentClass, this)}${this.toCommentString()}"
+	override val String.escapeString: String get() = "STRINGLIT[${allocString(currentClass, this)}]${this.toCommentString()}"
 	override val AstType.escapeType: String get() = N_func("resolveClass", "L${this.mangle().uquote()}")
 
 	override fun pquote(str: String): String = "L" + str.uquote()
