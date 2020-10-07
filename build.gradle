@@ -151,7 +151,7 @@ idea {
 }
 
 subprojects {
-	def hasKotlin = project.name != "jtransc-annotations"
+	def hasKotlin = project.name != "jtransc-annotations" && project.name != "jtransc-rt" && project.name != "jtransc-rt-core"
 
 	apply plugin: 'maven-publish'
 	apply plugin: 'com.jfrog.bintray'
