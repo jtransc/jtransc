@@ -6,7 +6,6 @@
 
 //#define _JTRANSC_USE_DYNAMIC_LIB 1
 //#define INLINE_ARRAYS 1
-//#define ENABLE_SYNCHRONIZED 1
 //#define TRACING 1
 
 #ifdef _WIN32
@@ -33,8 +32,6 @@
 #define jlong_to_ptr(a) ((void *)(uintptr_t)(a))
 #define ptr_to_jlong(a) ((jlong)(uintptr_t)(a))
 
-
-
 #include <memory>
 #include <vector>
 #include <string>
@@ -42,11 +39,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
-//#include <clocale>
 #include <csignal>
-//#include <chrono>
-#include <thread>
-#include <mutex>
 #include "jni.h"
 
 
@@ -383,20 +376,9 @@ struct N {
 };
 
 struct java_lang_ObjectBase : public __GC {
-	#ifdef ENABLE_SYNCHRONIZED
-		std::recursive_mutex mtx;
-	#endif
-
-	//std::mutex mtx;
 	void __monitorEnter__() {
-		#ifdef ENABLE_SYNCHRONIZED
-			mtx.lock();
-		#endif
 	}
 	void __monitorExit__() {
-		#ifdef ENABLE_SYNCHRONIZED
-			mtx.unlock();
-		#endif
 	}
 };
 
