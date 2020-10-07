@@ -1,7 +1,6 @@
 *.iws
 *.ipr
 *.iml
-*.jar
 *.versionsBackup
 *.java-e
 .DS_Store
@@ -34,7 +33,6 @@
 /example-as3/tempsrc
 /outas3
 /program.swf
-out.jar
 out_java
 *.map
 jtransc-intellij-plugin/jtransc-intellij-plugin.zip
