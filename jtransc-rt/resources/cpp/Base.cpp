@@ -224,7 +224,7 @@ template <typename TTo> TTo CC_CHECK_CAST1(void* i, int typeId, const char *from
 //}
 
 struct N {
-	static Env env;
+	thread_local static Env env;
 
 	static int64_t NAN_LONG;
 	static double NAN_DOUBLE;
@@ -1055,59 +1055,31 @@ inline double  N::j2d(int64_t v) { return (double)v; }
 inline int32_t N::j2i(int64_t v) { return (int32_t)v; }
 
 int64_t N::f2j(float v) {
-	if (std::isfinite(v)) {
-		return (int64_t)v;
-	} else {
-		if (std::isnan(v)) {
-			return 0;
-		} else if (v >= 0) {
-			return MAX_INT64;
-		} else {
-			return MIN_INT64;
-		}
-	}
+	if (std::isfinite(v)) return (int64_t)v;
+	if (std::isnan(v)) return 0;
+	if (v >= 0) return MAX_INT64;
+	return MIN_INT64;
 }
 int64_t N::d2j(double v) {
-	if (std::isfinite(v)) {
-		return (int64_t)v;
-	} else {
-		if (std::isnan(v)) {
-			return 0;
-		} else if (v >= 0) {
-			return MAX_INT64;
-		} else {
-			return MIN_INT64;
-		}
-	}
+	if (std::isfinite(v)) return (int64_t)v;
+	if (std::isnan(v)) return 0;
+	if (v >= 0) return MAX_INT64;
+	return MIN_INT64;
 }
 
 // TODO: templatize d2i and f2i to write just once
 int32_t N::d2i(double v) {
-	if (std::isfinite(v)) {
-		return (int32_t)v;
-	} else {
-		if (std::isnan(v)) {
-			return 0;
-		} else if (v >= 0) {
-			return MAX_INT32;
-		} else {
-			return MIN_INT32;
-		}
-	}
+	if (std::isfinite(v)) return (int32_t)v;
+	if (std::isnan(v)) return 0;
+	if (v >= 0) return MAX_INT32;
+	return MIN_INT32;
 }
 
 int32_t N::f2i(float v) {
-	if (std::isfinite(v)) {
-		return (int32_t)v;
-	} else {
-		if (std::isnan(v)) {
-			return 0;
-		} else if (v >= 0) {
-			return MAX_INT32;
-		} else {
-			return MIN_INT32;
-		}
-	}
+	if (std::isfinite(v)) return (int32_t)v;
+	if (std::isnan(v)) return 0;
+	if (v >= 0) return MAX_INT32;
+	return MIN_INT32;
 }
 
 {% if ENABLE_TYPING %}p_java_lang_String{% else %}JAVA_OBJECT{% end %}
@@ -3299,28 +3271,9 @@ const struct JNINativeInterface_ jni = {
 	nullptr
 };
 
-
-
-
-
-
-
-Env N::env;
+thread_local Env N::env;
 
 void N_startup2() {
-	/*
-	GC_clear_roots();
-	GC_add_roots(&STRINGS_START, &STRINGS_END);
-	{% for ptr in CPP_GLOBAL_POINTERS %}
-	GC_ADD_ROOT_SINGLE({{ ptr }});
-	{% end %}
-	*/
-
-	//GC_set_finalize_on_demand(0);
-
-	//std::setlocale(LC_COLLATE, "en_US.UTF-8");
-	//std::setlocale(LC_CTYPE, "en_US.UTF-8");
-
 	N::env.jni.functions = &jni;
 	setvbuf(stdout, nullptr, _IONBF, 0);
 	setvbuf(stderr, nullptr, _IONBF, 0);
@@ -3333,12 +3286,6 @@ void N_startup2() {
 }
 
 void N::startup() {
-	/*
-	GC_set_no_dls(0);
-	GC_set_dont_precollect(1);
-	*/
-
-	//GC_set_all_interior_pointers(0);
 	N_startup2();
 };
 

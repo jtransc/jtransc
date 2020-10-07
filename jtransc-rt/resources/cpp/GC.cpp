@@ -101,11 +101,6 @@ struct __GCVisitor {
 
 struct __GCStack {
     void **start = nullptr;
-    std::mutex mutex;
-    std::mutex mutex2;
-    std::condition_variable cv;
-    std::condition_variable cv2;
-    std::promise<int> locked;
     __GCStack(void **start) : start(start) { }
 };
 
@@ -249,8 +244,6 @@ struct __GCHeap {
     __GC* head_gen2 = nullptr;
     __GC* head_delete = nullptr;
     __GCVisitor visitor;
-    //std::atomic<bool> sweepingStop;
-    bool sweepingStop = false;
     //int gcCountThresold = 100000;
     //int gcCountThresold = 10000;
     int gcCountThresold = 1000;
@@ -309,17 +302,6 @@ struct __GCHeap {
         threads_to_stacks.erase(current_thread_id);
     }
 
-    // Call at some points to perform a stop-the-world
-    void CheckCurrentThread() {
-        if (sweepingStop) {
-            auto stack = threads_to_stacks[std::this_thread::get_id()];
-            stack->cv.notify_all();
-            std::unique_lock<std::mutex> lk(stack->mutex2);
-            stack->cv2.wait(lk);
-            //stack->cv.wait(stack->mutex);
-        }
-    }
-
     void RegisterThreadInternal(__GCStack *stack) {
         auto current_thread_id = std::this_thread::get_id();
         #if __TRACE_GC
@@ -348,30 +330,6 @@ struct __GCHeap {
         for (auto tstack : threads_to_stacks) {
             CheckStack(tstack.second);
         }
-    }
-
-    void SweepStart() {
-		sweepingStop = true;
-		auto currentThreadId = std::this_thread::get_id();
-		for (auto tstack : threads_to_stacks) {
-			if (tstack.first != currentThreadId) {
-				std::unique_lock<std::mutex> lk(tstack.second->mutex);
-				if (tstack.second->cv.wait_for(lk, std::chrono::seconds(10)) == std::cv_status::timeout) {
-					std::cout << "Thread was locked for too much time. Aborting.\n";
-					abort();
-				}
-			}
-		}
-    }
-
-    void SweepEnd() {
-		auto currentThreadId = std::this_thread::get_id();
-		sweepingStop = false;
-		for (auto tstack : threads_to_stacks) {
-			if (tstack.first != currentThreadId) {
-				tstack.second->cv2.notify_all();
-			}
-		}
     }
 
     __GCSweepResult SweepList(__GC* &head, __GC** next_head) {
@@ -445,17 +403,13 @@ struct __GCHeap {
     }
 
     __GCSweepResult SweepPartial() {
-		SweepStart();
 		auto results = SweepList(head_gen1, &head_gen2);
-        SweepEnd();
         return results;
     }
 
     __GCSweepResult SweepFull() {
-		SweepStart();
 		auto results1 = SweepList(head_gen1, &head_gen2);
 		auto results2 = SweepList(head_gen2, nullptr);
-		SweepEnd();
 		return { results1.explored + results2.explored, results1.deleted + results2.deleted };
 	}
 
@@ -540,9 +494,6 @@ struct __GCHeap {
 	template <typename T, typename... Args>
 	T* AllocCustomSize(int size, Args&&... args) {
     	#ifdef ENABLE_GC
-		if (sweepingStop) {
-			CheckCurrentThread();
-		}
 		if (enabled) {
 			if (memory.allocCount >= gcCountThresold) {
 				GC(false);
@@ -579,7 +530,7 @@ struct __GCHeap {
     };
 };
 
-__GCHeap __gcHeap;
+thread_local __GCHeap __gcHeap;
 
 struct __GCThread {
     __GCThread(void **ptr) {
