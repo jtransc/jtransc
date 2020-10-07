@@ -937,7 +937,8 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override fun genBody2WithFeatures(method: AstMethod, body: AstBody): Indenter = Indenter {
 		if (method.isSynchronized) {
-			line("SynchronizedMethodLocker __locker(" + getMonitorLockedObjectExpr(method).genExpr() + ");")
+			//line("SynchronizedMethodLocker __locker(" + getMonitorLockedObjectExpr(method).genExpr() + ");")
+			line("" + getMonitorLockedObjectExpr(method).genExpr() + ";")
 		}
 		line(genBody2WithFeatures2(method, body))
 	}

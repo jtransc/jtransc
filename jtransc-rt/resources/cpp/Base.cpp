@@ -382,22 +382,6 @@ struct java_lang_ObjectBase : public __GC {
 	}
 };
 
-/* Used for synchronized methods.*/
-struct SynchronizedMethodLocker {
-    java_lang_ObjectBase *obj;
-	SynchronizedMethodLocker(java_lang_ObjectBase *obj) {
-	    this->obj = obj;
-	    if (obj != nullptr) {
-	    	obj->__monitorEnter__();
-	    }
-	}
-	~SynchronizedMethodLocker() {
-	    if (obj != nullptr) {
-	    	obj->__monitorExit__();
-	    }
-	}
-};
-
 struct DYN {
 	static void* openDynamicLib(const char*);
 	static void closeDynamicLib(void*);
