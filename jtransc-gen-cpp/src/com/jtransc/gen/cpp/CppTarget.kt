@@ -29,8 +29,6 @@ import java.util.*
 const val CHECK_ARRAYS = true
 const val TRACING = false
 const val TRACING_JUST_ENTER = false
-//const val ENABLE_TYPING = true
-const val ENABLE_TYPING = false
 
 data class ConfigCppOutput(val cppOutput: SyncVfsFile)
 
@@ -291,7 +289,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			"JA_L" to "p_java_lang_Object"
 		)
 
-		this.params["ENABLE_TYPING"] = ENABLE_TYPING
 		this.params["CPP_LIB_FOLDERS"] = Libs.libFolders
 		this.params["CPP_INCLUDE_FOLDERS"] = Libs.includeFolders
 		this.params["CPP_LIBS"] = allTargetLibraries
@@ -843,11 +840,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	private fun doArgCast(target: AstType, expr: String, from: AstType? = null): String {
-		if (ENABLE_TYPING) {
-			return doCast(target, expr, from, npe = false)
-		} else {
-			return "((${target.targetNameRef})($expr))"
-		}
+		return "((${target.targetNameRef})($expr))"
 	}
 
 	private fun getPtr(clazz: AstClass, objStr: String, npe: Boolean = true): String {
@@ -912,21 +905,17 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 	override val AstType.targetNameRef: String
 		get() {
-			if (ENABLE_TYPING) {
-				return getTypeTargetName(this, ref = true)
-			} else {
-				if (this is AstType.Reference) {
-					if (this is AstType.REF) {
-						val clazz = program[this]!!
-						val nativeName = clazz.nativeName
-						if (nativeName != null) {
-							return nativeName
-						}
+			if (this is AstType.Reference) {
+				if (this is AstType.REF) {
+					val clazz = program[this]!!
+					val nativeName = clazz.nativeName
+					if (nativeName != null) {
+						return nativeName
 					}
-					return "p_java_lang_Object"
-				} else {
-					return getTypeTargetName(this, ref = true)
 				}
+				return "p_java_lang_Object"
+			} else {
+				return getTypeTargetName(this, ref = true)
 			}
 		}
 
