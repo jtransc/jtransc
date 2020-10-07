@@ -19,6 +19,9 @@
 
 //#define __TRACE_GC 1
 
+#define __GC_thread_local thread_local
+//#define __GC_thread_local
+
 #define ENABLE_GC 1
 
 #define __GC_ALIGNMENT_SIZE 32

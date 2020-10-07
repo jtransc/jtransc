@@ -217,7 +217,7 @@ template <typename TTo> TTo CC_CHECK_CAST1(void* i, int typeId, const char *from
 //}
 
 struct N {
-	thread_local static Env env;
+	__GC_thread_local static Env env;
 
 	static int64_t NAN_LONG;
 	static double NAN_DOUBLE;
@@ -3218,7 +3218,7 @@ const struct JNINativeInterface_ jni = {
 	nullptr
 };
 
-thread_local Env N::env;
+__GC_thread_local Env N::env;
 
 void N::startupThread() {
 	N::env.jni.functions = &jni;

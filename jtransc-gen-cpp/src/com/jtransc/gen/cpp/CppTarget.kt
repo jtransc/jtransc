@@ -92,7 +92,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		"operator", "or", "or_eq", "private", "protected", "public",
 		"register", "reinterpret_cast", "requires", "return",
 		"short", "signed", "sizeof", "static", "static_assert", "static_cast", "struct", "switch", "synchronized",
-		"template", "this", "thread_local", "throw", "true", "try", "typedef", "typeid", "typename",
+		"template", "this", "thread_local", "__GC_thread_local", "throw", "true", "try", "typedef", "typeid", "typename",
 		"union", "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "while",
 		"xor", "xor_eq", "override", "final", "transaction_safe", "transaction_safe_dynamic",
 		// Macro
@@ -367,9 +367,9 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val STRINGS = Indenter {
 			val globalStrings = getGlobalStrings()
 			val maxGlobalStrings = globalStrings.map { it.id }.max()?.plus(1) ?: 0
-			line("thread_local static void* STRINGS_START = nullptr;")
-			line("thread_local static ${JAVA_LANG_STRING_FQ.targetNameRef} STRINGLIT[$maxGlobalStrings] = {0};")
-			line("thread_local static void* STRINGS_END = nullptr;")
+			line("__GC_thread_local static void* STRINGS_START = nullptr;")
+			line("__GC_thread_local static ${JAVA_LANG_STRING_FQ.targetNameRef} STRINGLIT[$maxGlobalStrings] = {0};")
+			line("__GC_thread_local static void* STRINGS_END = nullptr;")
 			line("void N::initStringPool()", after2 = ";") {
 				for (gs in globalStrings) {
 					line("""N_ADD_STRING(${gs.cppName}, L${gs.str.uquote()}, ${gs.str.length});""")
@@ -511,7 +511,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 				//line("SOBJ sptr() { return shared_from_this(); };")
 			}
 			for (field in clazz.fields) {
-				val normalStatic = if (field.isStatic) "thread_local static " else ""
+				val normalStatic = if (field.isStatic) "__GC_thread_local static " else ""
 				val add = ""
 				val btype = field.type.targetNameRef
 				val type = if (btype == "SOBJ" && field.isWeak) "WOBJ" else btype
@@ -644,7 +644,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	fun writeField(field: AstField): Indenter = Indenter {
 		val clazz = field.containingClass
 		if (field.isStatic) {
-			line("thread_local ${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = ${field.type.nativeDefaultString};")
+			line("__GC_thread_local ${field.type.targetNameRef} ${clazz.cppName}::${field.targetName} = ${field.type.nativeDefaultString};")
 		}
 	}
 
