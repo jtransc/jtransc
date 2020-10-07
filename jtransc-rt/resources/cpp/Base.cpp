@@ -440,9 +440,18 @@ struct JA_0 : public java_lang_Object {
     }
 
     virtual void __GC_Dispose(__GCHeap *heap) {
+    	int blength = bytesLength();
+    	if (allocated) __gcHeap.arrays.Free(_data, blength);
     	java_lang_Object::__GC_Dispose(heap);
-		heap->allocatedArraySize -= bytesLength();
-		if (allocated) ::jtfree(_data);
+		heap->allocatedArraySize -= blength;
+	}
+
+	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
+		void * result = nullptr;
+		int64_t bytesSize = esize * (len + 1);
+		result = (void*)__gcHeap.arrays.Alloc(bytesSize);
+		::memset(result, 0, bytesSize);
+		return result;
 	}
 
 	std::wstring __GC_Name() { return L"JA_0"; }
@@ -452,14 +461,6 @@ struct JA_0 : public java_lang_Object {
 	#else
 		inline void *getStartPtrRaw() { return _data; }
 	#endif
-
-	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
-		void * result = nullptr;
-		int64_t bytesSize = esize * (len + 1);
-		result = (void*)jtalloc(bytesSize);
-		::memset(result, 0, bytesSize);
-		return result;
-	}
 
 	void *getOffsetPtr(int32_t offset) { return (void*)&(((char *)getStartPtrRaw())[offset * elementSize]); }
 	//void *getStartPtr() { return getOffsetPtr(0); }

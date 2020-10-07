@@ -33,9 +33,6 @@ template <typename T> T GC_roundUp(T numToRound, T multiple) {
 	return numToRound + multiple - remainder;
 }
 
-void *jtalloc(size_t size) { return malloc(size); }
-void jtfree(void *ptr) { free(ptr); }
-
 const unsigned char GC_OBJECT_CONSTANT = 0xF1;
 
 struct __GC {
@@ -126,14 +123,14 @@ struct __GCMemoryBlock {
 	int sizeTotal;
 	int sizeUsed;
 	__GCMemoryBlock(int size) {
-		this->__ptr = jtalloc(size);
+		this->__ptr = malloc(size);
 		this->start = (void *)GC_roundUp((uintptr_t)this->__ptr, (uintptr_t)__GC_ALIGNMENT_SIZE);
 		this->sizeTotal = size;
 		this->end = ((char *)this->start) + size;
 		this->sizeUsed = 0;
 	}
 	~__GCMemoryBlock() {
-		jtfree(this->__ptr);
+		free(this->__ptr);
 		this->__ptr = nullptr;
 		this->start = nullptr;
 		this->end = nullptr;
@@ -160,6 +157,64 @@ struct __GCAllocResult {
 };
 
 #define MAX_FAST_FREE_BLOCKS_BY_SIZES 16
+
+struct __GCArrayMemory {
+	std::vector<__GCMemoryBlock*> blocks;
+	__GCMemoryBlock* lastBlock = nullptr;
+	std::vector<void*> freeBlocksBySizes[MAX_FAST_FREE_BLOCKS_BY_SIZES];
+	int allocCount = 0;
+	int allocMemory = 0;
+	int totalMemory = 0;
+
+	std::vector<void*> *getFreeBlocksBySizeArray(int allocSize) {
+		int index = allocSize / __GC_ALIGNMENT_SIZE;
+		if (index < MAX_FAST_FREE_BLOCKS_BY_SIZES) {
+			return &freeBlocksBySizes[index];
+		}
+		return nullptr;
+	}
+
+	void *Alloc(int size) {
+		int allocSize = GC_roundUp(size, __GC_ALIGNMENT_SIZE);
+		auto fblocks = getFreeBlocksBySizeArray(allocSize);
+		if (fblocks != nullptr) {
+			allocMemory += allocSize;
+			allocCount++;
+			if (!fblocks->empty()) {
+				auto v = fblocks->back();
+				fblocks->pop_back();
+				return v;
+			}
+			if (lastBlock != nullptr) {
+				auto ptr = lastBlock->Alloc(allocSize);
+				if (ptr != nullptr) return ptr;
+			}
+			for (auto block : blocks) {
+				auto ptr = block->Alloc(allocSize);
+				if (ptr != nullptr) return ptr;
+			}
+			int blockSize = std::max((int)allocSize, (int)((1 + blocks.size()) * 1024 * 1024));
+			auto block = new __GCMemoryBlock(blockSize);
+			totalMemory += blockSize;
+			lastBlock = block;
+			blocks.push_back(block);
+			return block->Alloc(allocSize);
+		} else {
+			return malloc(allocSize);
+		}
+	}
+	void Free(void *ptr, int size) {
+		int allocSize = GC_roundUp(size, __GC_ALIGNMENT_SIZE);
+		int index = allocSize / __GC_ALIGNMENT_SIZE;
+		if (index < MAX_FAST_FREE_BLOCKS_BY_SIZES) {
+			freeBlocksBySizes[index].push_back(ptr);
+		} else {
+			free(ptr);
+		}
+	}
+};
+
+thread_local __GCArrayMemory __gcArrayMemory;
 
 struct __GCMemoryBlocks {
 	void *minptr = nullptr;
@@ -237,6 +292,7 @@ struct __GCMemoryBlocks {
 struct __GCHeap {
     int allocatedArraySize = 0;
     __GCMemoryBlocks memory;
+	__GCArrayMemory arrays;
     //std::list<__GC*> allocated_gen1;
     std::unordered_set<__GCRootInfo*> roots;
     std::unordered_map<std::thread::id, __GCStack*> threads_to_stacks;
