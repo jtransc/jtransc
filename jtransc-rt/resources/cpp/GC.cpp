@@ -22,6 +22,9 @@
 #define __GC_thread_local thread_local
 //#define __GC_thread_local
 
+// @TODO: This should allow to new objects to be stored in a separate array, then scan only the stack to remove them
+//#define ENABLE_STACK_OPTIMIZATION 1
+
 #define ENABLE_GC 1
 
 #define __GC_ALIGNMENT_SIZE 32
@@ -44,12 +47,22 @@ struct __GC {
     uint32_t __GC_objsize : 14;
     uint32_t _gcallocated : 1;
     uint32_t liveCount : 3;
+    #ifdef ENABLE_STACK_OPTIMIZATION
+    uint32_t __GC_onHeap : 1;
+    #endif
 
     __GC() {
 		markVersion = 0;
 		liveCount = 0;
 		_gcallocated = GC_OBJECT_CONSTANT;
+    	#ifdef ENABLE_STACK_OPTIMIZATION
+		__GC_onHeap = 0;
+		#endif
     }
+
+	#ifdef ENABLE_STACK_OPTIMIZATION
+    void __GC_setOnHeap();
+    #endif
 
     void __GC_objsize_set(int value) {
     	__GC_objsize = value / __GC_ALIGNMENT_SIZE;
@@ -97,13 +110,16 @@ struct __GCWeakMember : public __GCBaseMember<T> {
 };
 
 struct __GCVisitor {
-    int version = 1;
-
     template <typename T>
     void Trace(const __GCMember<T>& member) {
         Trace((__GC *)(T *)member);
     }
 
+    virtual void Trace(__GC *obj) = 0;
+};
+
+struct __GCVisitorVersion : __GCVisitor {
+    int version = 1;
     virtual void Trace(__GC *obj) {
         if (obj == nullptr) return;
         if (obj->markVersion == version) return;
@@ -337,10 +353,11 @@ struct __GCHeap {
     //std::list<__GC*> allocated_gen1;
     std::unordered_set<__GCRootInfo*> roots;
     std::unordered_map<std::thread::id, __GCStack*> threads_to_stacks;
+    //std::vector<__GC*> stackgen;
     std::vector<__GC*> gen1;
     std::vector<__GC*> gen2;
     std::vector<__GC*> gen3;
-    __GCVisitor visitor;
+    __GCVisitorVersion visitorVersion;
     //int gcCountThresold = 100000;
     //int gcCountThresold = 10000;
     int gcCountThresold = 1000;
@@ -412,14 +429,14 @@ struct __GCHeap {
 		#if __TRACE_GC
 		std::cout << "__GCHeap.Mark(): roots=" << roots.size() << ", stacks=" << threads_to_stacks.size() << "\n";
 		#endif
-        visitor.version++;
+        visitorVersion.version++;
         for (auto rootInfo : roots)  {
             auto rootPtr = rootInfo->root;
         	auto root = *rootPtr;
 			#if __TRACE_GC
 			std::cout << "rootName=" << rootInfo->name << ", rootPtr=" << rootPtr << ", root=" << root << "\n";
 			#endif
-            visitor.Trace(root);
+            visitorVersion.Trace(root);
         }
         #if __TRACE_GC
         std::cout << "threads_to_stacks.size(): " << threads_to_stacks.size() << "\n";
@@ -432,7 +449,7 @@ struct __GCHeap {
     __GCSweepResult SweepList(std::vector<__GC*> &vector, std::vector<__GC*> *vector2) {
     	int exploreCount = 0;
 		int deleteCount = 0;
-		int version = visitor.version;
+		int version = visitorVersion.version;
 		bool reset = version >= 1000;
 		__GC *current = nullptr;
 
@@ -498,7 +515,7 @@ struct __GCHeap {
 			bool isptr = memory.ContainsPointer(v);
 			bool isobj = isptr && v->_gcallocated == GC_OBJECT_CONSTANT;
 			if (isobj) {
-				visitor.Trace(v);
+				visitorVersion.Trace(v);
 			}
 			#if __TRACE_GC
 			std::cout << "  - " << ptr << ": " << value << ": isptr=" << isptr << ", isobj=" << isobj << "\n";
@@ -598,6 +615,25 @@ struct __GCHeap {
 
 thread_local __GCHeap __gcHeap;
 
+#ifdef ENABLE_STACK_OPTIMIZATION
+struct __GCVisitorStack : public __GCVisitor {
+    virtual void Trace(__GC *obj) {
+        if (obj == nullptr) return;
+        if (obj->__GC_onHeap) return;
+        obj->__GC_onHeap = 1;
+        obj->__GC_Trace(this);
+    }
+};
+__GCVisitorStack visitorStack;
+
+void __GC::__GC_setOnHeap() {
+	if (!__GC_onHeap) {
+		__GC_onHeap = 1;
+		this->__GC_Trace(&visitorStack);
+	}
+}
+#endif
+
 struct __GCThread {
     __GCThread(void **ptr) {
         __gcHeap.RegisterCurrentThread(ptr);
@@ -612,6 +648,38 @@ struct __GCThread {
         #endif
     }
 };
+
+template<class T>
+inline void __GC_SET_FIELD(T &lvalue, T value) {
+	lvalue = value;
+}
+
+template<class T>
+inline void __GC_SET_FIELD_OBJ(T &lvalue, T value) {
+	lvalue = value;
+	#ifdef ENABLE_STACK_OPTIMIZATION
+	if (value != nullptr) {
+		((__GC *)value)->__GC_setOnHeap();
+	}
+	#endif
+}
+
+template<class T>
+inline void __GC_SET_FIELD(__GC *container, T &lvalue, T value) {
+	lvalue = value;
+}
+
+template<class T>
+inline void __GC_SET_FIELD_OBJ(__GC *container, T &lvalue, T value) {
+	lvalue = value;
+	#ifdef ENABLE_STACK_OPTIMIZATION
+	if (value != nullptr) {
+		if (container != nullptr && container->__GC_onHeap) {
+			((__GC *)value)->__GC_setOnHeap();
+		}
+	}
+	#endif
+}
 
 #define __GC_REGISTER_THREAD() void *__current_gc_thread_base = nullptr; __GCThread __current_gc_thread(&__current_gc_thread_base);
 #define __GC_GC __gcHeap.GC

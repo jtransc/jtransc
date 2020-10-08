@@ -2,8 +2,7 @@ package com.jtransc.gen.cpp
 
 import com.jtransc.ConfigOutputFile
 import com.jtransc.ConfigTargetDirectory
-import com.jtransc.annotation.JTranscAddFileList
-import com.jtransc.annotation.JTranscAddHeaderList
+import com.jtransc.annotation.*
 import com.jtransc.ast.*
 import com.jtransc.ast.feature.method.*
 import com.jtransc.error.invalidOp
@@ -995,7 +994,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	override fun N_obj_ne(l: String, r: String) = "(($l) != ($r))"
 
 	override fun genStmSetFieldStaticActual(stm: AstStm.SET_FIELD_STATIC, left: String, field: AstFieldRef, right: String): Indenter = indent {
-		line("$left = (${field.type.targetNameRef})($right);")
+		line("${__GC_SET_FIELD_ANY(stm.field.type)}($left, (${field.type.targetNameRef})($right));")
 	}
 
 	override fun genStmReturnVoid(stm: AstStm.RETURN_VOID, last: Boolean): Indenter = Indenter {
@@ -1030,16 +1029,24 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override fun actualSetField(stm: AstStm.SET_FIELD_INSTANCE, left: String, right: String): String {
-		val left2 = if (stm.left.value is AstExpr.THIS) {
-			buildInstanceField("this", fixField(stm.field))
+		val left1 = if (stm.left.value is AstExpr.THIS) {
+			"this"
 		} else {
-
-			buildInstanceField(doCast(stm.field.containingTypeRef, stm.left.genNotNull()), fixField(stm.field))
+			doCast(stm.field.containingTypeRef, stm.left.genNotNull())
 		}
+		val left2 = buildInstanceField(left1, fixField(stm.field))
 		val right2 = "(${stm.field.type.targetNameRef})((${stm.field.type.targetNameRef})(" + stm.expr.genExpr() + "))"
 
-		return "$left2 = $right2;"
+		return "${__GC_SET_FIELD_ANY(stm.field.type)}((__GC*)($left1), $left2, $right2);"
 	}
+
+	fun __GC_SET_FIELD_ANY(type: AstType): String {
+		if (type is AstType.REF) {
+			if (program[type]!!.nativeNameInfo != null) return "__GC_SET_FIELD"
+		}
+		return if (type.isPrimitive()) "__GC_SET_FIELD" else "__GC_SET_FIELD_OBJ"
+	}
+	//fun __GC_SET_FIELD_ANY(type: AstType): String = "__GC_SET_FIELD"
 
 	override fun actualSetLocal(stm: AstStm.SET_LOCAL, localName: String, exprStr: String): String {
 		return "$localName = (${stm.local.type.targetNameRef})($exprStr);"
