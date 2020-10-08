@@ -37,14 +37,20 @@ template <typename T> T GC_roundUp(T numToRound, T multiple) {
 	return numToRound + multiple - remainder;
 }
 
-const unsigned char GC_OBJECT_CONSTANT = 0xF1;
+const unsigned char GC_OBJECT_CONSTANT = 1;
 
 struct __GC {
     __GC *next = nullptr;
-    unsigned short markVersion = 0;
-    unsigned short __GC_objsize;
-    unsigned char _gcallocated = GC_OBJECT_CONSTANT;
-    unsigned char liveCount = 0;
+    uint32_t markVersion : 10;
+    uint32_t __GC_objsize : 14;
+    uint32_t _gcallocated : 1;
+    uint32_t liveCount : 3;
+
+    __GC() {
+		markVersion = 0;
+		liveCount = 0;
+		_gcallocated = GC_OBJECT_CONSTANT;
+    }
 
     void __GC_objsize_set(int value) {
     	__GC_objsize = value / __GC_ALIGNMENT_SIZE;
@@ -172,9 +178,6 @@ struct __GCArrayMemory {
 	std::vector<__GCMemoryBlock*> blocks;
 	__GCMemoryBlock* lastBlock = nullptr;
 	std::vector<void*> freeBlocksBySizes[MAX_FAST_FREE_BLOCKS_BY_SIZES];
-	int allocCount = 0;
-	int allocMemory = 0;
-	int totalMemory = 0;
 
 	std::vector<void*> *getFreeBlocksBySizeArray(int allocSize) {
 		int index = allocSize / __GC_ALIGNMENT_SIZE;
@@ -188,8 +191,6 @@ struct __GCArrayMemory {
 		int allocSize = GC_roundUp(size, __GC_ALIGNMENT_SIZE);
 		auto fblocks = getFreeBlocksBySizeArray(allocSize);
 		if (fblocks != nullptr) {
-			allocMemory += allocSize;
-			allocCount++;
 			if (!fblocks->empty()) {
 				auto v = fblocks->back();
 				fblocks->pop_back();
@@ -205,7 +206,6 @@ struct __GCArrayMemory {
 			}
 			int blockSize = std::max((int)allocSize, (int)((1 + blocks.size()) * 1024 * 1024));
 			auto block = new __GCMemoryBlock(blockSize);
-			totalMemory += blockSize;
 			lastBlock = block;
 			blocks.push_back(block);
 			return block->Alloc(allocSize);
@@ -428,7 +428,7 @@ struct __GCHeap {
     	int exploreCount = 0;
 		int deleteCount = 0;
 		int version = visitor.version;
-		bool reset = version >= 1000000000;
+		bool reset = version >= 1000;
 		__GC* prev = nullptr;
 		__GC* current = head;
 		while (current != nullptr) {
@@ -460,9 +460,9 @@ struct __GCHeap {
 				if (reset) {
 				   current->markVersion = 0;
 				}
-				if (current->liveCount < 10) {
+				if (current->liveCount < 7) {
 					current->liveCount++;
-					if (current->liveCount >= 10) {
+					if (current->liveCount >= 7) {
 						if (next_head != nullptr) {
 							auto tomove = current;
 							if (prev != nullptr) {
@@ -608,7 +608,6 @@ struct __GCHeap {
     	#ifdef ENABLE_GC
 		newobj->__GC_Init(this);
     	newobj->__GC_objsize_set(objsize);
-    	newobj->_gcallocated = GC_OBJECT_CONSTANT;
         //allocated_gen1.push_back(newobj);
 		newobj->next = (__GC*)this->head_gen1;
 		this->head_gen1 = newobj;
