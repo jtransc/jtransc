@@ -30,6 +30,7 @@ import java.lang.reflect.Field;
 @JTranscAddFile(target = "dart", priority = -1, process = true, prependAppend = "dart/Base.dart")
 @JTranscAddFile(target = "dart", priority = -1, process = true, src = "dart/pubspec.yaml", dst = "pubspec.yaml")
 @JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/GC.cpp", dst = "GC.cpp")
+@JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/JNI.cpp", dst = "JNI.cpp")
 @JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/CMakeLists.txt", dst = "CMakeLists.txt")
 @JTranscAddFile(target = "cpp", priority = -1, process = true, src = "cpp/combined_jni.h", dst = "jni.h")
 @JTranscAddFile(target = "cs", priority = -1, process = true, prependAppend = "cs/Base.cs")

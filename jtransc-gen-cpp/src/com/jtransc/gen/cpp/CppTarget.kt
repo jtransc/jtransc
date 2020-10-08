@@ -302,23 +302,6 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		entryPointClass = FqName(mainClassFq.fqname)
 		entryPointFilePath = entryPointClass.targetFilePath
 
-		val HEADER = Indenter {
-			// {{ HEADER }}
-			val resourcesVfs = program.resourcesVfs
-
-			for (clazz in program.classes) {
-				for (includes in clazz.annotationsList.getTypedList(JTranscAddHeaderList::value).filter { it.target == "cpp" }) {
-					condWrapper(includes.cond) {
-						for (header in includes.value) line(header)
-					}
-				}
-				for (files in clazz.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "cpp" }.filter { it.prepend.isNotEmpty() }) {
-					line(gen(resourcesVfs[files.prepend].readString(), process = files.process))
-				}
-			}
-		}
-
-
 		val CLASS_REFERENCES = Indenter {
 			// {{ CLASS_REFERENCES }}
 			for (clazz in ordereredClassesMustGenerate) {
@@ -382,6 +365,35 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 		val TYPE_TABLE_FOOTER = Indenter { line(generateTypeTableFooter()) }
 		val MAIN = Indenter { line(writeMain()) }
 
+		this.params["CLASS_REFERENCES"] = CLASS_REFERENCES.toString()
+		this.params["TYPE_TABLE_HEADERS"] = TYPE_TABLE_HEADERS.toString()
+		this.params["ARRAY_TYPES"] = ARRAY_TYPES.toString()
+		this.params["ARRAY_HEADERS_PRE"] = ARRAY_HEADERS_PRE.toString()
+		this.params["ARRAY_HEADERS_POST"] = ARRAY_HEADERS_POST.toString()
+		this.params["CLASSES_IMPL"] = CLASSES_IMPL.toString()
+		this.params["CPP_CTOR_MAP"] = CPP_CTOR_MAP.toString()
+		this.params["STRINGS"] = STRINGS.toString()
+		this.params["TYPE_TABLE_FOOTER"] = TYPE_TABLE_FOOTER.toString()
+		this.params["MAIN"] = MAIN.toString()
+
+		val HEADER = Indenter {
+			// {{ HEADER }}
+			val resourcesVfs = program.resourcesVfs
+
+			for (clazz in program.classes) {
+				for (includes in clazz.annotationsList.getTypedList(JTranscAddHeaderList::value).filter { it.target == "cpp" }) {
+					condWrapper(includes.cond) {
+						for (header in includes.value) line(header)
+					}
+				}
+				for (files in clazz.annotationsList.getTypedList(JTranscAddFileList::value).filter { it.target == "cpp" }.filter { it.prepend.isNotEmpty() }) {
+					line(gen(resourcesVfs[files.prepend].readString(), process = files.process))
+				}
+			}
+		}
+
+		this.params["HEADER"] = HEADER.toString()
+
 		val classesIndenter = Indenter {
 			if (settings.debug) {
 				line("#define DEBUG 1")
@@ -390,19 +402,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 			}
 			if (TRACING_JUST_ENTER) line("#define TRACING_JUST_ENTER")
 			if (TRACING) line("#define TRACING")
-			line(gen(program.resourcesVfs["cpp/Base.cpp"].readString(), extra = hashMapOf(
-				"HEADER" to HEADER.toString(),
-				"CLASS_REFERENCES" to CLASS_REFERENCES.toString(),
-				"TYPE_TABLE_HEADERS" to TYPE_TABLE_HEADERS.toString(),
-				"ARRAY_TYPES" to ARRAY_TYPES.toString(),
-				"ARRAY_HEADERS_PRE" to ARRAY_HEADERS_PRE.toString(),
-				"ARRAY_HEADERS_POST" to ARRAY_HEADERS_POST.toString(),
-				"CLASSES_IMPL" to CLASSES_IMPL.toString(),
-				"CPP_CTOR_MAP" to CPP_CTOR_MAP.toString(),
-				"STRINGS" to STRINGS.toString(),
-				"TYPE_TABLE_FOOTER" to TYPE_TABLE_FOOTER.toString(),
-				"MAIN" to MAIN.toString()
-			)))
+			line(gen(program.resourcesVfs["cpp/Base.cpp"].readString(), extra = this@CppGenerator.params))
 		}
 
 
