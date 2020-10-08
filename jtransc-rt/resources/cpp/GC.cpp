@@ -46,6 +46,14 @@ struct __GC {
     unsigned char _gcallocated = GC_OBJECT_CONSTANT;
     unsigned char liveCount = 0;
 
+    void __GC_objsize_set(int value) {
+    	__GC_objsize = value / __GC_ALIGNMENT_SIZE;
+    }
+
+    int __GC_objsize_get() {
+    	return __GC_objsize * __GC_ALIGNMENT_SIZE;
+    }
+
 	virtual std::wstring __GC_Name() { return L"__GC"; }
     virtual void __GC_Trace(__GCVisitor* visitor) {}
 
@@ -224,6 +232,8 @@ struct __GCMemoryBlocks {
 	__GCMemoryBlock* lastBlock = nullptr;
 	std::vector<__GCMemoryBlock*> blocks;
 	std::vector<__GC*> freeBlocksBySizes[MAX_FAST_FREE_BLOCKS_BY_SIZES];
+	std::unordered_map<int, std::vector<__GC*>> freeBlocksBySize;
+	//std::unordered_set<__GC*> big_ranges;
 	int allocCount = 0;
 	int allocMemory = 0;
 	int totalMemory = 0;
@@ -237,7 +247,16 @@ struct __GCMemoryBlocks {
 			return &freeBlocksBySizes[index];
 		}
 		//std::cout << allocSize << "\n";
-		return nullptr;
+		//return nullptr;
+		return &freeBlocksBySize[index];
+	}
+
+	void countRange() {
+	}
+
+	void minMaxRange(void *start, void *end) {
+		minptr = (minptr != nullptr) ? std::min(minptr, start) : start;
+		maxptr = (maxptr != nullptr) ? std::max(maxptr, end) : end;
 	}
 
 	__GCAllocResult Alloc(int size) {
@@ -245,7 +264,12 @@ struct __GCMemoryBlocks {
 		allocMemory += allocSize;
 		allocCount++;
 		auto fblocks = getFreeBlocksBySizeArray(allocSize);
-		if (fblocks == nullptr) return { malloc(allocSize), allocSize };
+		//if (fblocks == nullptr) {
+		//	auto ptr = malloc(allocSize);
+		//	big_ranges.insert((__GC *)ptr);
+		//	minMaxRange(ptr, (char *)ptr + allocSize);
+		//	return { ptr, allocSize };
+		//}
 		if (!fblocks->empty()) {
 			auto v = fblocks->back();
 			fblocks->pop_back();
@@ -261,8 +285,7 @@ struct __GCMemoryBlocks {
 		}
 		int blockSize = std::max((int)allocSize, (int)((1 + blocks.size()) * 1024 * 1024));
 		auto block = new __GCMemoryBlock(blockSize);
-		minptr = (minptr != nullptr) ? std::min(minptr, block->start) : block->start;
-		maxptr = (maxptr != nullptr) ? std::max(maxptr, block->end) : block->end;
+		minMaxRange(block->start, block->end);
 		totalMemory += blockSize;
 		lastBlock = block;
 		blocks.push_back(block);
@@ -270,19 +293,21 @@ struct __GCMemoryBlocks {
 	}
 
 	void Free(__GC *ptr) {
-		int allocSize = ptr->__GC_objsize * __GC_ALIGNMENT_SIZE;
+		int allocSize = ptr->__GC_objsize_get();
 		allocCount--;
 		allocMemory -= allocSize;
 		auto fblocks = getFreeBlocksBySizeArray(allocSize);
 		if (fblocks != nullptr) {
 			fblocks->push_back(ptr);
 		} else {
+			//big_ranges.erase(ptr);
 			free(ptr);
 		}
 	}
 
 	inline bool PreContainsPointerFast(void *ptr) {
 		return (ptr > (void *)0x10000) && (((uintptr_t)ptr % __GC_ALIGNMENT_SIZE) == 0);
+		//return (ptr > (void *)0x10000) && (((uintptr_t)ptr % 8) == 0);
 	}
 
 	bool ContainsPointer(void *ptr) {
@@ -291,6 +316,10 @@ struct __GCMemoryBlocks {
 		for (auto block : blocks) {
 			if (block->ContainsPointer(ptr)) return true;
 		}
+
+		//for (auto range : big_ranges) {
+		//	if (ptr >= range && ptr < ((char *)range) + range->__GC_objsize_get()) return true;
+		//}
 		//std::cout << "Can't find " << ptr << " in blocks " << blocks.size() << ", range=" << minptr << "," << maxptr << "\n";
 		return false;
 	}
@@ -578,7 +607,7 @@ struct __GCHeap {
 		//T *newobj = ::new T(std::forward<Args>(args)...);
     	#ifdef ENABLE_GC
 		newobj->__GC_Init(this);
-    	newobj->__GC_objsize = objsize / __GC_ALIGNMENT_SIZE;
+    	newobj->__GC_objsize_set(objsize);
     	newobj->_gcallocated = GC_OBJECT_CONSTANT;
         //allocated_gen1.push_back(newobj);
 		newobj->next = (__GC*)this->head_gen1;
