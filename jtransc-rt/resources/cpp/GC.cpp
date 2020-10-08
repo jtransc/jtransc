@@ -40,7 +40,6 @@ template <typename T> T GC_roundUp(T numToRound, T multiple) {
 const unsigned char GC_OBJECT_CONSTANT = 1;
 
 struct __GC {
-    __GC *next = nullptr;
     uint32_t markVersion : 10;
     uint32_t __GC_objsize : 14;
     uint32_t _gcallocated : 1;
@@ -325,6 +324,12 @@ struct __GCMemoryBlocks {
 	}
 };
 
+template<class T>
+void remove_unordererd_at(std::vector<T> &vec, int index) {
+	vec[index] = vec.back();
+	vec.pop_back();
+}
+
 struct __GCHeap {
     int allocatedArraySize = 0;
     __GCMemoryBlocks memory;
@@ -332,9 +337,9 @@ struct __GCHeap {
     //std::list<__GC*> allocated_gen1;
     std::unordered_set<__GCRootInfo*> roots;
     std::unordered_map<std::thread::id, __GCStack*> threads_to_stacks;
-    __GC* head_gen1 = nullptr;
-    __GC* head_gen2 = nullptr;
-    __GC* head_delete = nullptr;
+    std::vector<__GC*> gen1;
+    std::vector<__GC*> gen2;
+    std::vector<__GC*> gen3;
     __GCVisitor visitor;
     //int gcCountThresold = 100000;
     //int gcCountThresold = 10000;
@@ -424,84 +429,55 @@ struct __GCHeap {
         }
     }
 
-    __GCSweepResult SweepList(__GC* &head, __GC** next_head) {
+    __GCSweepResult SweepList(std::vector<__GC*> &vector, std::vector<__GC*> *vector2) {
     	int exploreCount = 0;
 		int deleteCount = 0;
 		int version = visitor.version;
 		bool reset = version >= 1000;
-		__GC* prev = nullptr;
-		__GC* current = head;
-		while (current != nullptr) {
+		__GC *current = nullptr;
+
+		for (int n = 0; n < vector.size(); n++) {
+			current = vector[n];
 			exploreCount++;
 			if (current->markVersion != version) {
 				deleteCount++;
 				auto todelete = current;
-
-				//std::cout << "delete unreferenced object!\n";
-				if (prev != nullptr) {
-					prev->next = current->next;
-					current = prev;
-				} else {
-					//std::cout << "head=" << head << ", current=" << current << "\n";
-					assert(head == current);
-					head = current->next;
-				}
-				current = current->next;
-
 				todelete->_gcallocated = 0;
 				todelete->__GC_Dispose(this);
 				memory.Free(todelete);
-
-				//todelete->next = head_delete;
-				//head_delete = todelete;
-
-				//delete todelete;
+				remove_unordererd_at(vector, n);
+				n--;
 			} else {
 				if (reset) {
 				   current->markVersion = 0;
 				}
-				if (current->liveCount < 7) {
-					current->liveCount++;
-					if (current->liveCount >= 7) {
-						if (next_head != nullptr) {
-							auto tomove = current;
-							if (prev != nullptr) {
-								prev->next = current->next;
-								current = prev;
-							} else {
-								assert(head == current);
-								head = current->next;
-							}
-							current = current->next;
-
-							tomove->next = *next_head;
-							*next_head = tomove;
-							continue;
+				if (vector2 != nullptr) {
+					if (current->liveCount < 7) {
+						current->liveCount++;
+						if (current->liveCount >= 7) {
+							remove_unordererd_at(vector, n);
+							current->liveCount = 0;
+							vector2->push_back(current);
 						}
 					}
 				}
-
-				prev = current;
-				current = current->next;
 			}
 		}
-
 		if (reset) {
 			version = 0;
 		}
-		prev = nullptr;
 		current = nullptr;
 		return { exploreCount, deleteCount };
     }
 
     __GCSweepResult SweepPartial() {
-		auto results = SweepList(head_gen1, &head_gen2);
+		auto results = SweepList(gen1, &gen2);
         return results;
     }
 
     __GCSweepResult SweepFull() {
-		auto results1 = SweepList(head_gen1, &head_gen2);
-		auto results2 = SweepList(head_gen2, nullptr);
+		auto results1 = SweepList(gen1, &gen2);
+		auto results2 = SweepList(gen2, nullptr);
 		return { results1.explored + results2.explored, results1.deleted + results2.deleted };
 	}
 
@@ -609,8 +585,7 @@ struct __GCHeap {
 		newobj->__GC_Init(this);
     	newobj->__GC_objsize_set(objsize);
         //allocated_gen1.push_back(newobj);
-		newobj->next = (__GC*)this->head_gen1;
-		this->head_gen1 = newobj;
+        this->gen1.push_back(newobj);
 		#endif
 		return newobj;
 	};
