@@ -3,12 +3,12 @@ package com.jtransc.gradle
 import com.jtransc.BaseRuntimeArtifactsForVersion
 import com.jtransc.JTranscVersion
 import com.jtransc.gen.GenTargetDescriptor
+import com.jtransc.gradle.internal.SemVer
 import com.jtransc.gradle.tasks.JTranscGradleDistTask
 import com.jtransc.gradle.tasks.JTranscGradleReport
 import com.jtransc.gradle.tasks.JTranscGradleRunTask
 import groovy.lang.Closure
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.*
 import java.util.*
 
 val Project.jtransc get() = extensions.getByType(JTranscGradleExtension::class.java)
@@ -28,6 +28,10 @@ open class JTranscGradlePlugin : Plugin<Project> {
 	}
 
 	override fun apply(project: Project) {
+		if (SemVer(project.gradle.gradleVersion) < SemVer("6.8.0")) {
+			error("Requires gradle version 6.8.0 or greater")
+		}
+
 		project.logger.info("JTranscPlugin.apply")
 
 		project.extensions.create(JTranscGradleExtension.NAME, JTranscGradleExtension::class.java, project)
