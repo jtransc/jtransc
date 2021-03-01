@@ -26,7 +26,6 @@ apply plugin: 'idea'
 //	include "**/*Test.class" // whatever Ant pattern matches your test class files
 //}
 
-
 allprojects { project ->
 	//task hello << {task ->
 	//	println "I'm $task.project.name: ${task.project.ext.jtranscVersion}"
@@ -64,6 +63,11 @@ allprojects { project ->
 	dependencies {
 		// Junit
 		testImplementation "junit:junit:$junitVersion"
+	}
+
+	test {
+		minHeapSize = "128m"
+		maxHeapSize = "2g"
 	}
 }
 
