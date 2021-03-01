@@ -782,9 +782,9 @@ class N {
 			if (isNaN(v)) {
 				return Int64.zero;
 			} else if (v >= 0) {
-				return MAX_INT64;
+				return Int64.MAX_INT64;
 			} else {
-				return MIN_INT64;
+				return Int64.MIN_INT64;
 			}
 		}
 	}
