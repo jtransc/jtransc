@@ -41,7 +41,7 @@ dependencies {
 }
 
 pluginBundle {
-	website = 'http://jtransc.com/'
+	website = 'https://jtransc.soywiz.com/'
 	vcsUrl = 'https://github.com/jtransc/jtransc'
 	description = 'Convert your code to other languages and platforms!'
 	tags = ['jtransc']
