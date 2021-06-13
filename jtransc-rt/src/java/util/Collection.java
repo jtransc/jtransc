@@ -18,6 +18,8 @@
 package java.util;
 
 
+import java.util.function.Predicate;
+
 /**
  * {@code Collection} is the root of the collection hierarchy. It defines operations on
  * data collections and the behavior that they will have in all implementations
@@ -313,4 +315,17 @@ public interface Collection<E> extends Iterable<E> {
      *                stored in the type of the specified array.
      */
     public <T> T[] toArray(T[] array);
+
+	default boolean removeIf(Predicate<? super E> filter) {
+		Objects.requireNonNull(filter);
+		boolean removed = false;
+		final Iterator<E> each = iterator();
+		while (each.hasNext()) {
+			if (filter.test(each.next())) {
+				each.remove();
+				removed = true;
+			}
+		}
+		return removed;
+	}
 }

@@ -20,6 +20,7 @@ import com.jtransc.*
 import com.jtransc.annotation.*
 import com.jtransc.ast.dependency.AstDependencyAnalyzer
 import com.jtransc.ast.optimize.AstOptimizer
+import com.jtransc.backend.*
 import com.jtransc.ds.cast
 import com.jtransc.ds.clearFlags
 import com.jtransc.ds.combinedWith
@@ -34,6 +35,7 @@ import com.jtransc.lang.Extra
 import com.jtransc.lang.putIfAbsentJre7
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.org.objectweb.asm.Type
+import com.jtransc.org.objectweb.asm.tree.*
 import com.jtransc.text.quote
 import com.jtransc.text.substr
 import com.jtransc.util.dependencySorter
@@ -42,6 +44,8 @@ import com.jtransc.vfs.UserData
 import java.io.File
 import java.io.IOException
 import java.util.*
+import kotlin.collections.ArrayDeque
+import kotlin.collections.ArrayList
 import kotlin.reflect.KMutableProperty1
 
 data class ConfigCompile(val compile: Boolean = true)
@@ -110,17 +114,40 @@ data class AstBuildSettings(
 }
 
 interface AstClassGenerator {
+	fun getOrGenerateClass(program: AstProgram, fqname: FqName): AstClass {
+		return program.getOrNull(fqname) ?: generateClass(program, fqname)
+	}
+
 	fun generateClass(program: AstProgram, fqname: FqName): AstClass
+	fun generateAndAddMethod(program: AstProgram, ref: AstMethodRef): AstMethod {
+		val clazz = getOrGenerateClass(program, ref.classRef.name)
+		tryGenerateAndAddMethod(clazz, ref)?.let { return it }
+		TODO("Can't find $ref in any ancestor : ${clazz.thisAncestorsAndInterfaces.map { it.name }}")
+	}
+	fun tryGenerateAndAddMethod(clazz: AstClass, ref: AstMethodRef): AstMethod? {
+		val refWithoutClass = ref.withoutClass
+
+		val allClasses = clazz.thisAncestorsAndInterfaces + clazz.allInterfacesInAncestors.toSet()
+
+		for (subClass in allClasses) {
+			if (subClass.hasBasicMethod(refWithoutClass)) {
+				return generateAndAddMethod(subClass, refWithoutClass)
+			}
+		}
+		return null
+	}
+
+	fun generateAndAddMethod(clazz: AstClass, ref: AstMethodWithoutClassRef): AstMethod
 }
 
 interface AstResolver {
-	operator fun get(ref: AstMethodRef): AstMethod?
-	operator fun get(ref: AstFieldRef): AstField?
-	operator fun get(name: FqName): AstClass?
+	operator fun get(ref: AstMethodRef, reason: Any? = null): AstMethod?
+	operator fun get(ref: AstFieldRef, reason: Any? = null): AstField?
+	operator fun get(name: FqName, reason: Any? = null): AstClass?
 	operator fun contains(name: FqName): Boolean
 }
 
-operator fun AstResolver.get(ref: AstType.REF): AstClass? = this[ref.name]
+operator fun AstResolver.get(ref: AstType.REF, reason: Any? = null): AstClass? = this.get(ref.name, reason)
 
 fun AstResolver.get3(ref: AstType.REF): AstClass = this[ref.name]!!
 
@@ -192,11 +219,15 @@ class AstProgram(
 
 	val classes: List<AstClass> get() = _classes
 
-	private val classesToGenerate = LinkedList<AstType.REF>()
+	private val classesToGenerate = ArrayDeque<AstType.REF>()
 	private val referencedClasses = hashSetOf<AstType.REF>()
 	private val referencedClassBy = hashMapOf<AstType.REF, AstType.REF>()
 
+	private val methodsToGenerate = ArrayDeque<AstMethodRef>()
+	private val referencedMethods = hashSetOf<AstMethodRef>()
+
 	fun hasClassToGenerate() = classesToGenerate.isNotEmpty()
+	fun hasMethodToGenerate() = methodsToGenerate.isNotEmpty()
 
 	fun getClassBytes(clazz: FqName): ByteArray {
 		try {
@@ -206,13 +237,22 @@ class AstProgram(
 		}
 	}
 
-	fun readClassToGenerate(): AstType.REF = classesToGenerate.remove()
+	fun readClassToGenerate(): AstType.REF = classesToGenerate.removeFirst()
+	fun readMethodToGenerate(): AstMethodRef = methodsToGenerate.removeFirst()
 
 	fun addReference(clazz: AstType.REF, referencedBy: AstType.REF) {
 		if (clazz !in referencedClasses) {
 			classesToGenerate += clazz
 			referencedClasses += clazz
 			referencedClassBy[clazz] = referencedBy
+		}
+	}
+
+	fun addReference(methodRef: AstMethodRef, referencedBy: AstType.REF) {
+		if (methodRef !in referencedMethods) {
+			println("REFERENCED: $methodRef")
+			methodsToGenerate += methodRef
+			referencedMethods += methodRef
 		}
 	}
 
@@ -223,13 +263,14 @@ class AstProgram(
 		return _classesByFqname[name.fqname]
 	}
 
-	override operator fun get(name: FqName): AstClass {
+	override fun get(name: FqName, reason: Any?): AstClass {
 		val result = getOrNull(name)
 		if (result == null) {
 			val classFile = name.internalFqname + ".class"
 			println("AstProgram. Can't find class '$name'")
 			println("AstProgram. ClassFile: $classFile")
 			println("AstProgram. File exists: " + resourcesVfs[classFile].exists + " : " + resourcesVfs[classFile].realpathOS)
+			println("AstProgram. Reason: $reason")
 			println("ConfigClassPaths:")
 			for (classPath in injector.get<ConfigClassPaths>().classPaths) {
 				println(" - $classPath")
@@ -262,9 +303,9 @@ class AstProgram(
 
 	val allAnnotationsList by lazy { AstAnnotationList(AstProgramRef, allAnnotations) }
 
-	override operator fun get(ref: AstMethodRef): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
+	override operator fun get(ref: AstMethodRef, reason: Any?): AstMethod? = this[ref.containingClass].getMethodInAncestorsAndInterfaces(ref.nameDesc)
 	//override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass][ref]
-	override operator fun get(ref: AstFieldRef): AstField = this[ref.containingClass].get(ref.withoutClass)
+	override operator fun get(ref: AstFieldRef, reason: Any?): AstField = this[ref.containingClass].get(ref.withoutClass)
 
 	operator fun get(ref: FieldRef): AstField = this[ref.ref.containingClass].get(ref.ref.withoutClass)
 
@@ -344,7 +385,7 @@ val AstAnnotated?.keepName: Boolean get() = this?.annotationsList?.contains<JTra
 
 val Type.fqname get() = this.className.fqname
 
-class AstClass(
+class AstClass constructor(
 	val source: String,
 	program: AstProgram,
 	val name: FqName,
@@ -354,7 +395,21 @@ class AstClass(
 	annotations: List<AstAnnotation> = listOf(),
 	val classId: Int = program.lastClassId++
 ) : AstAnnotatedElement(program, name.ref, annotations), IUserData by UserData(), WithAstModifiersClass {
+	var classNode: ClassNode? = null
+	var classNodeMethods: Map<AstMethodWithoutClassRef, MethodNode>? = null
+	//var classNodeFields: Map<AstMethodRef, FieldNode>? = null
+
 	val types get() = program.types
+
+	fun hasBasicMethod(methodRef: AstMethodWithoutClassRef): Boolean {
+		return classNodeMethods?.contains(methodRef) == true
+	}
+
+	fun setAsmClassNode(classNode: ClassNode) {
+		this.classNode = classNode
+		classNodeMethods = classNode.methods.associateBy { it.astRef(this.ref, types).withoutClass }
+		//classNodeFields = classNode.fields.associateBy { AstFieldRef(name, it.name, AstType.) }
+	}
 
 	val implementingUnique by lazy { implementing.distinct() }
 	val THIS: AstExpr get() = AstExpr.THIS(name)
@@ -419,9 +474,28 @@ class AstClass(
 	}
 
 	//fun getDirectInterfaces(): List<AstClass> = implementing.map { program[it] }
-	val directInterfaces: List<AstClass> by lazy { implementing.map { program[it] } }
+	val directInterfaces: List<AstClass> by lazy {
+		implementing.mapNotNull { interfaceName ->
+			program.getOrNull(interfaceName).also {
+				if (it == null) {
+					println(interfaceName)
+				}
+			}
+		}
+		//implementing.map { program.get(it, this) }
+	}
 
-	val parentClass: AstClass? by lazy { if (extending != null) program[extending] else null }
+	val parentClass: AstClass? by lazy {
+		if (extending != null) {
+			program.getOrNull(extending).also {
+				if (it == null) {
+					System.err.println("AstClass.parentClass.extending can't find $extending")
+				}
+			} ?: program["java.lang.Object".fqname]
+		} else {
+			null
+		}
+	}
 
 	val parentClassList by lazy { listOf(parentClass).filterNotNull() }
 	//fun getParentClass(): AstClass? = if (extending != null) program[extending] else null
@@ -590,7 +664,12 @@ class AstClass(
 		if (extending == null) {
 			listOf(this)
 		} else {
-			listOf(this) + program[extending].thisAndAncestors
+			listOf(this) + program.getOrNull(extending)?.thisAndAncestors.let {
+				if (it == null) {
+					System.err.println("ERROR thisAndAncestors: extending=$extending")
+				}
+				it ?: listOf()
+			}
 		}
 	}
 

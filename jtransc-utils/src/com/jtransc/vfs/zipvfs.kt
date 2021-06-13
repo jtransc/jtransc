@@ -97,8 +97,12 @@ fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
 				val internalAttributes = readU16_LE()
 				val externalAttributes = readS32_LE()
 				val headerOffset = readS32_LE()
-				val name = readStringz(fileNameLength, Charsets.UTF_8)
+				val name = readString(fileNameLength, Charsets.UTF_8)
 				val extra = readBytes(extraLength)
+
+				//if (name.startsWith("javaslang")) {
+				//	println("name=$name : ${fileNameLength}")
+				//}
 
 				val isDirectory = name.endsWith("/")
 				val normalizedName = name.normalizeName()
@@ -208,6 +212,10 @@ fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
 		*/
 
 		override fun stat(path: String): SyncVfsStat {
+			if (path.startsWith("javaslang")) {
+				val keys = files.keys.filter { it.startsWith("javaslang") }
+				println(keys)
+			}
 			return files[path.normalizeName()].toStat(this@Impl[path])
 		}
 

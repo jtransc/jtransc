@@ -3,6 +3,8 @@ package com.jtransc.ast
 import com.jtransc.annotation.JTranscAddFileList
 import com.jtransc.annotation.JTranscAddMembersList
 import com.jtransc.annotation.JTranscMethodBodyList
+import com.jtransc.ast.References.getClassReferences
+import com.jtransc.ast.References.getMethodReferences
 import com.jtransc.ast.treeshaking.GetClassTemplateReferences
 import com.jtransc.ast.treeshaking.TRefConfig
 import com.jtransc.ast.treeshaking.TRefReason
@@ -46,6 +48,11 @@ object References {
 
 	fun AstField.getClassReferences(targetName: TargetName): List<AstType.REF> {
 		return this.genericType.getRefClasses() + this.annotations.getClassReferences(targetName)
+	}
+
+	fun AstMethod.getMethodReferences(targetName: TargetName): List<AstMethodRef> {
+		val methodBodyList = this.annotationsList.getBodiesForTarget(targetName)
+		return if (methodBodyList.isEmpty()) this.body?.getMethodReferences() ?: listOf() else listOf()
 	}
 
 	fun AstMethod.getClassReferences(targetName: TargetName): List<AstType.REF> {
@@ -106,6 +113,12 @@ object References {
 		val traps = this.traps.map { it.exception }
 		val stms = this.stm.getClassReferences()
 		return locals + traps + stms
+	}
+
+	fun AstBody.getMethodReferences(): List<AstMethodRef> {
+		val refs = ReferencesVisitor()
+		refs.visit(this)
+		return refs.methodReferences.toList()
 	}
 
 	fun AstStm.getClassReferences(): List<AstType.REF> {

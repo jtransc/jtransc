@@ -27,6 +27,19 @@ import java.util.*
 object JTranscMain {
 	@Suppress("CanBeVal")
 	@JvmStatic fun main(pargs: Array<String>) {
+		val pargs = arrayOf(
+			//"C:\\dev\\kotlinc\\lib\\t\\tools.jar",
+			"C:\\dev\\kotlinc\\lib\\t\\annotations-13.0.jar",
+			"C:\\dev\\kotlinc\\lib\\t\\kotlin-annotations-jvm.jar",
+			"C:\\dev\\kotlinc\\lib\\t\\kotlin-compiler-embeddable-1.5.10.jar",
+			"C:\\dev\\kotlinc\\lib\\t\\kotlin-stdlib-1.5.10.jar",
+			"C:\\dev\\kotlinc\\lib\\t\\kotlin-reflect-1.5.10.jar",
+			"C:\\dev\\kotlinc\\lib\\trove4j.jar",
+			"-main", "org.jetbrains.kotlin.cli.js.K2JSCompiler",
+			//"-main", "javaslang.λ",
+			"-out", "program.js"
+		)
+
 		// @TODO: allow a plugin system
 		val targets = AllBuildTargets
 		val jtranscVersion = JTranscVersion.getVersion()

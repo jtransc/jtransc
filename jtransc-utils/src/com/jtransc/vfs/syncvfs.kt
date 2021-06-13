@@ -166,7 +166,7 @@ class SyncVfsFile(internal val vfs: SyncVfs, val path: String) {
 	operator fun set(path: String, content: SyncVfsFile) = set(path, content.readBytes())
 	operator fun set(path: String, content: ByteArray) {
 		val file = access(path).ensureParentDir()
-		if (!file.exists || file.read() != content) {
+		if (!file.exists || !file.read().contentEquals(content)) {
 			file.write(content)
 		}
 	}
