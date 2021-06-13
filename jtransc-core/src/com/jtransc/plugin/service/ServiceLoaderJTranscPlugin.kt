@@ -20,6 +20,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 	val SERVICE_LOADER_FQ = "java.util.ServiceLoader".fqname
 
 	override fun onStartBuilding(program: AstProgram) {
+		return
 		val targetName = program.injector.get<TargetName>()
 		servicesToImpls.clear()
 		referencedServices.clear()
@@ -33,7 +34,8 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 		val servicesFolders = program.resourcesVfs["META-INF/services"].getUnmergedFiles().filter { it.exists && it.isDirectory }
 		val targetRegex = Regex("<target=([^>]*)>")
 		for (serviceListFile in servicesFolders.flatMap { it.listdir() }) {
-			val serviceName = serviceListFile.name
+			val serviceName = serviceListFile.name.trim()
+			if (serviceName.isEmpty()) continue
 			if (serviceName !in servicesToImpls) servicesToImpls[serviceName] = listOf()
 			for (line in serviceListFile.file.readString().trim().lines()) {
 				val parts = line.split('#')
@@ -66,6 +68,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 			log.info("Discovered used service: $clazz with impls $impls")
 			//println(":: Discovered used service: $clazz with impls $impls")
 			for (impl in impls) {
+				if (impl.isEmpty()) continue
 				program.addReference(AstType.REF(impl.fqname), clazz)
 			}
 		} else {
@@ -91,6 +94,7 @@ class ServiceLoaderJTranscPlugin : JTranscPlugin() {
 				IF(Objects_equals(nameArg.expr, serviceName.lit)) {
 					SET(out, ARRAY(OBJECT).newArray(impls.size))
 					for ((index, impl) in impls.withIndex()) {
+						if (impl.isEmpty()) continue
 						//val ref = AstType.REF(impl.fqname)
 						val clazz = programBase[impl.fqname]
 						val emptyConstructor = clazz[AstMethodWithoutClassRef("<init>", AstType.METHOD(AstType.VOID, listOf()))] ?: invalidOp("Can't find default constructor for service implementation $impl")

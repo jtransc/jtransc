@@ -26,6 +26,8 @@ class MetaReflectionJTranscPlugin : JTranscPlugin() {
 	fun AstField.mustReflect(): Boolean = this.visible && this.annotationsList.getRemoveFieldForTarget(targetName) == null
 
 	override fun processAfterTreeShaking(program: AstProgram) {
+		return
+
 		// Do not generate if ProgramReflection class is not referenced!
 		// Also methods are not updated in the case they do not exist!
 		if (ProgramReflection::class.java.fqname !in program) return

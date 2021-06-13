@@ -105,7 +105,7 @@ object PNGImagePropsDecoder : ImagePropsDecoder {
 object JPEGImagePropsDecoder : ImagePropsDecoder {
 	override fun tryDecodeHeader(ss: InputStream): ImageInfo? {
 		try {
-			val s = ss.readBytes(ss.available()).open()
+			val s = ss.readBytes().open()
 			val magic = s.readU16_BE()
 			if (magic != 0xFFD8) return null
 			while (!s.eof()) {

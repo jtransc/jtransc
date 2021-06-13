@@ -17,6 +17,8 @@
 package com.jtransc
 
 import com.jtransc.ast.*
+import com.jtransc.ast.References.getClassReferences
+import com.jtransc.ast.References.getMethodReferences
 import com.jtransc.ast.dependency.genStaticInitOrder
 import com.jtransc.ast.treeshaking.TreeShaking
 import com.jtransc.backend.asm1.AsmToAst1
@@ -33,6 +35,7 @@ import com.jtransc.log.log
 import com.jtransc.maven.MavenLocalRepository
 import com.jtransc.plugin.JTranscPlugin
 import com.jtransc.plugin.JTranscPluginGroup
+import com.jtransc.plugin.reflection.*
 import com.jtransc.plugin.toGroup
 import com.jtransc.time.measureProcess
 import com.jtransc.time.measureTime
@@ -190,42 +193,104 @@ class JTranscBuild(
 		val program = injector.get<AstProgram>()
 
 		// Preprocesses classes
-		classNames.forEach { program.addReference(AstType.REF(it), AstType.REF(it)) }
+		classNames.forEach {
+			val clazzRef = AstType.REF(it)
+			program.addReference(AstMethodRef(clazzRef.name, "main", AstType.METHOD(AstType.VOID, listOf(AstType.ARRAY(AstType.STRING)))), clazzRef)
+			//program.addReference(AstType.REF(it), AstType.REF(it))
+		}
+
 
 		log("Processing classes...")
 
 		val targetName = TargetName(target.name)
+		val jruntime = Runtime.getRuntime()
 
 		val (elapsed) = measureTime {
 			plugins.onStartBuilding(program)
 
-			while (true) {
-				if (!program.hasClassToGenerate()) {
-					plugins.onAfterAllClassDiscovered(program)
+			var numProcessedClasses = 0
 
-					if (!program.hasClassToGenerate()) {
+			//data class LongClassInfo(val className: AstType.REF, val timeMs: Long)
+			//val longClasses = arrayListOf<LongClassInfo>()
+
+
+			if (true) {
+				while (true) {
+					if (!program.hasMethodToGenerate()) {
 						break
 					}
-				}
-				val className = program.readClassToGenerate()
-				log("Processing class... $className")
 
-				plugins.onAfterClassDiscovered(className, program)
+					val methodRef = program.readMethodToGenerate()
+					val methodRefWithoutClass = methodRef.withoutClass
 
-				val time = measureTime {
-					try {
-						val generatedClass = generator.generateClass(program, className.name)
-						for (ref in References.get(generatedClass, targetName)) {
-							//println("$ref : $className")
-							program.addReference(ref, className)
+					program.addReference(methodRef.classRef, methodRef.classRef)
+
+					while (program.hasClassToGenerate()) {
+						val clazzRef = program.readClassToGenerate()
+						val classFqname = clazzRef.name
+						println("Exploring class... $clazzRef")
+						val clazz = program.getOrNull(classFqname) ?: generator.generateClass(program, classFqname)
+						for (impl in listOfNotNull(clazz.extending) + clazz.implementing) {
+							program.addReference(impl.ref, clazzRef)
 						}
-					} catch (e: InvalidOperationException) {
-						System.err.println("ERROR! : " + e.message)
+						val clinit = AstMethodWithoutClassRef.CLINIT
+						val clinitMethod = clazz.classNodeMethods?.get(clinit)
+						if (clinitMethod != null) {
+							program.addReference(clinit.withClass(clazzRef.name), clazzRef)
+						}
+						//println(clazz.classNodeMethods)
+					}
+
+					val classFqname = methodRef.classRef.name
+					println("Exploring method... $methodRef")
+
+					val clazz = program.getOrNull(classFqname) ?: generator.generateClass(program, classFqname)
+					if (!clazz.hasBasicMethod(methodRefWithoutClass)) {
+						println(clazz.parentClass)
+					}
+					val method = generator.generateAndAddMethod(program, methodRef)
+					for (methodRef in method.getMethodReferences(targetName)) {
+						program.addReference(methodRef, clazz.ref)
+						//println("methodRef: $methodRef")
 					}
 				}
+			} else {
+				while (true) {
+					if (!program.hasClassToGenerate()) {
+						plugins.onAfterAllClassDiscovered(program)
 
-				//println("Ok(${time.time})");
+						if (!program.hasClassToGenerate()) {
+							break
+						}
+					}
+					val className = program.readClassToGenerate()
+					log(
+						"Processing class [$numProcessedClasses]... $className : ${
+							jruntime.freeMemory().toDouble() / jruntime.maxMemory()
+						}"
+					)
+
+					numProcessedClasses++
+
+					plugins.onAfterClassDiscovered(className, program)
+
+					val time = measureTime {
+						try {
+							val generatedClass = generator.generateClass(program, className.name)
+							for (ref in References.get(generatedClass, targetName)) {
+								//println("$ref : $className")
+								program.addReference(ref, className)
+							}
+						} catch (e: InvalidOperationException) {
+							System.err.println("ERROR! : " + e.message)
+						}
+					}
+
+					//if (time.time >= 100L) longClasses += LongClassInfo(className, time.time)
+				}
 			}
+
+			//for (longClass in longClasses) println("Long Class: ${longClass.className.fqname}, timeMs=${longClass.timeMs}")
 
 			// Reference default methods
 			for (clazz in program.classes) {

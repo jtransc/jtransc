@@ -74,6 +74,10 @@ data class AstFieldWithoutClassRef(val name: String, val type: AstType)
 data class AstFieldWithoutTypeRef(val containingClass: FqName, val name: String)
 
 data class AstMethodWithoutClassRef(val name: String, val type: AstType.METHOD) {
+	companion object {
+		val CLINIT = AstMethodWithoutClassRef("<clinit>", AstType.METHOD(AstType.VOID, listOf()))
+	}
+
 	val fid2: String get() = "$name:${type.mangle()}"
 	val fid2Wildcard: String get() = "$name:*"
 	val desc = type.desc

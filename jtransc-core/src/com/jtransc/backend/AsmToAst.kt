@@ -42,13 +42,23 @@ abstract class BaseAsmToAst(val types: AstTypes, val settings: AstBuildSettings)
 			extending = if (classNode.hasSuperclass() && !classNode.isInterface()) FqName.fromInternal(classNode.superName) else null,
 			implementing = classNode.getInterfaces().map { FqName.fromInternal(it) }
 		)
+
+		astClass.setAsmClassNode(classNode)
 		program.add(astClass)
 
-		classNode.getMethods().withIndex().forEach { astClass.add(generateMethod(astClass, it.value)) }
+		//classNode.getMethods().withIndex().forEach { astClass.add(generateMethod(astClass, it.value)) }
 		classNode.getFields().withIndex().forEach { astClass.add(generateField(astClass, it.value)) }
 
 		return astClass
 	}
+
+	override fun generateAndAddMethod(clazz: AstClass, ref: AstMethodWithoutClassRef): AstMethod {
+		val methodNode = clazz.classNodeMethods?.get(ref) ?: error("Can't find ref: $ref")
+		return clazz.methodsByNameDesc[ref] ?: generateMethod(clazz, methodNode).also {
+			clazz.add(it)
+		}
+	}
+
 
 	fun generateMethod(containingClass: AstClass, method: MethodNode): AstMethod {
 		val mods = AstModifiers(method.access)

@@ -78,7 +78,7 @@ fun genStaticInitOrder(program: AstProgram, plugins: JTranscPluginGroup) {
 				}
 
 				if (ref is AstType.REF) {
-					lockClass(program[ref]!!)
+					lockClass(program.get(ref, method)!!)
 				}
 
 				// First visit static constructor

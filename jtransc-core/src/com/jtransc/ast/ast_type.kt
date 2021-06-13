@@ -58,7 +58,10 @@ open class AstType {
 	object DOUBLE : Primitive("java.lang.Double", 'D', "double", 8, priority = 0, subsets = setOf(BOOL, BYTE, CHAR, SHORT, INT))
 
 	data class REF(val name: FqName) : Reference(), AstRef {
-		constructor(name: String) : this(FqName(name))
+		//constructor(name: String) : this(FqName(name))
+		companion object {
+			operator fun invoke(name: String) = REF(FqName(name))
+		}
 
 		init {
 			if (fqname.contains(';') || fqname.contains(']')) {
@@ -345,7 +348,9 @@ fun _castLiteral(value: Int, to: AstType): Any = when (to) {
 	AstType.FLOAT -> value.toFloat()
 	AstType.DOUBLE -> value.toDouble()
 //is AstType.Reference -> null
-	else -> invalidOp("Can't cast $value to $to")
+	else -> {
+		invalidOp("Can't cast $value to $to")
+	}
 }
 
 fun <T> Class<T>.ref() = AstType.REF(this.name)
@@ -370,9 +375,9 @@ fun _castLiteral(value: Long, to: AstType): Any = when (to) {
 
 fun _castLiteral(value: Float, to: AstType): Any = when (to) {
 	AstType.BOOL -> value.toBool()
-	AstType.BYTE -> value.toByte()
+	AstType.BYTE -> value.toInt().toByte()
 	AstType.CHAR -> value.toChar()
-	AstType.SHORT -> value.toShort()
+	AstType.SHORT -> value.toInt().toShort()
 	AstType.INT -> value.toInt()
 	AstType.LONG -> value.toLong()
 	AstType.FLOAT -> value.toFloat()
@@ -382,9 +387,9 @@ fun _castLiteral(value: Float, to: AstType): Any = when (to) {
 
 fun _castLiteral(value: Double, to: AstType): Any = when (to) {
 	AstType.BOOL -> value.toBool()
-	AstType.BYTE -> value.toByte()
+	AstType.BYTE -> value.toInt().toByte()
 	AstType.CHAR -> value.toChar()
-	AstType.SHORT -> value.toShort()
+	AstType.SHORT -> value.toInt().toShort()
 	AstType.INT -> value.toInt()
 	AstType.LONG -> value.toLong()
 	AstType.FLOAT -> value.toFloat()
@@ -436,6 +441,7 @@ data class AstArgument(val index: Int, val type: AstType, override val name: Str
 }
 
 data class FqName(val fqname: String) : Serializable {
+//inline class FqName(val fqname: String) : Serializable {
 	constructor(packagePath: String, simpleName: String) : this("$packagePath.$simpleName".trim('.'))
 
 	constructor(packageParts: List<String>, simpleName: String) : this("${packageParts.joinToString(".")}.$simpleName".trim('.'))
@@ -449,7 +455,7 @@ data class FqName(val fqname: String) : Serializable {
 	}
 
 	init {
-		//if (fqname.isNullOrBlank()) invalidOp("Fqname is empty!")
+		if (fqname.isNullOrBlank()) invalidOp("Fqname is empty!")
 
 		if (!fqname.isEmpty()) {
 			val f = fqname.first()
@@ -468,6 +474,11 @@ data class FqName(val fqname: String) : Serializable {
 	val internalFqname by lazy { fqname.replace('.', '/') }
 	val pathToClass by lazy { "$internalFqname.class" }
 
+	//val packagePath get() = fqname.substringBeforeLast('.', "")
+	//val simpleName get() = fqname.substringAfterLast('.')
+	//val internalFqname get() = fqname.replace('.', '/')
+	//val pathToClass get() = "$internalFqname.class"
+
 	fun withPackagePath(packagePath: String) = FqName(packagePath, simpleName)
 	fun withPackageParts(packageParts: List<String>) = FqName(packageParts, simpleName)
 	fun withSimpleName(simpleName: String) = FqName(packagePath, simpleName)
@@ -475,7 +486,6 @@ data class FqName(val fqname: String) : Serializable {
 	override fun toString() = fqname
 
 	override fun hashCode(): Int = fqname.hashCode()
-
 	override fun equals(other: Any?): Boolean = this.fqname == (other as? FqName)?.fqname
 
 	fun append(s: String): FqName = FqName(this.fqname + s)

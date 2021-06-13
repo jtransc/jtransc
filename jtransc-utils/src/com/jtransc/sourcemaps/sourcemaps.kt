@@ -91,7 +91,7 @@ object Sourcemaps {
 
 	fun encodeFile(targetPath: String, targetContent: String, source: String, mappings: HashMap<Int, Int>): String {
 		//(0 until targetContent.count { it == '\n' }).map {}
-		val mapping = MappingFile((0 until (mappings.keys.max() ?: 1)).map {
+		val mapping = MappingFile((0 until (mappings.keys.maxOrNull() ?: 1)).map {
 			val targetLine = mappings[it]
 			MappingRow(if (targetLine == null) listOf() else listOf(MappingItem(0, targetLine, 0, 0)))
 		})
@@ -105,7 +105,7 @@ object Sourcemaps {
 	}
 
 	fun encodeFile(files: List<String>, mappings: Map<Int, MappingItem>): String {
-		val mapping = MappingFile((0 until (mappings.keys.max() ?: 1)).map {
+		val mapping = MappingFile((0 until (mappings.keys.maxOrNull() ?: 1)).map {
 			val item = mappings[it]
 			MappingRow(if (item == null) listOf() else listOf(item))
 		})
