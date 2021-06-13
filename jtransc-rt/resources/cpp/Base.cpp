@@ -456,7 +456,7 @@ struct JA_0 : public java_lang_Object {
 
     virtual void __GC_Dispose(__GCHeap *heap) {
     	int blength = bytesLength();
-    	if (allocated) __gcHeap.arrays.Free(_data, blength);
+    	if (allocated) __gcHeap->arrays.Free(_data, blength);
     	java_lang_Object::__GC_Dispose(heap);
 		heap->allocatedArraySize -= blength;
 	}
@@ -464,7 +464,7 @@ struct JA_0 : public java_lang_Object {
 	static void* alloc(JT_BOOL pointers, int32_t len, int8_t esize) {
 		void * result = nullptr;
 		int64_t bytesSize = esize * (len + 1);
-		result = (void*)__gcHeap.arrays.Alloc(bytesSize);
+		result = (void*)__gcHeap->arrays.Alloc(bytesSize);
 		::memset(result, 0, bytesSize);
 		return result;
 	}
@@ -778,25 +778,25 @@ struct JA_L : JA_Base<JAVA_OBJECT> {
 //JAVA_OBJECT JA_0::toDoubleArray() { return __GC_ALLOC<JA_D>((void *)getStartPtr(), bytesLength() / 8); };
 
 #ifdef INLINE_ARRAYS
-	JA_Z *__GC_ALLOC_JA_Z(int size) { return __gcHeap.AllocCustomSize<JA_Z>(sizeof(JA_Z) + INLINE_ARRAYS_OFFSET + (size * sizeof(int8_t)), size); }
-	JA_B *__GC_ALLOC_JA_B(int size) { return __gcHeap.AllocCustomSize<JA_B>(sizeof(JA_B) + INLINE_ARRAYS_OFFSET + (size * sizeof(int8_t)), size); }
-	JA_C *__GC_ALLOC_JA_C(int size) { return __gcHeap.AllocCustomSize<JA_C>(sizeof(JA_C) + INLINE_ARRAYS_OFFSET + (size * sizeof(int16_t)), size); }
-	JA_S *__GC_ALLOC_JA_S(int size) { return __gcHeap.AllocCustomSize<JA_S>(sizeof(JA_S) + INLINE_ARRAYS_OFFSET + (size * sizeof(int16_t)), size); }
-	JA_I *__GC_ALLOC_JA_I(int size) { return __gcHeap.AllocCustomSize<JA_I>(sizeof(JA_I) + INLINE_ARRAYS_OFFSET + (size * sizeof(int32_t)), size); }
-	JA_J *__GC_ALLOC_JA_J(int size) { return __gcHeap.AllocCustomSize<JA_J>(sizeof(JA_J) + INLINE_ARRAYS_OFFSET + (size * sizeof(int64_t)), size); }
-	JA_F *__GC_ALLOC_JA_F(int size) { return __gcHeap.AllocCustomSize<JA_F>(sizeof(JA_F) + INLINE_ARRAYS_OFFSET + (size * sizeof(float32_t)), size); }
-	JA_D *__GC_ALLOC_JA_D(int size) { return __gcHeap.AllocCustomSize<JA_D>(sizeof(JA_D) + INLINE_ARRAYS_OFFSET + (size * sizeof(float64_t)), size); }
-	JA_L *__GC_ALLOC_JA_L(int size, const wchar_t *desc) { return __gcHeap.AllocCustomSize<JA_L>(sizeof(JA_L) + INLINE_ARRAYS_OFFSET + (size * sizeof(void *)), size,  (wchar_t *)desc); }
+	JA_Z *__GC_ALLOC_JA_Z(int size) { return __gcHeap->AllocCustomSize<JA_Z>(sizeof(JA_Z) + INLINE_ARRAYS_OFFSET + (size * sizeof(int8_t)), size); }
+	JA_B *__GC_ALLOC_JA_B(int size) { return __gcHeap->AllocCustomSize<JA_B>(sizeof(JA_B) + INLINE_ARRAYS_OFFSET + (size * sizeof(int8_t)), size); }
+	JA_C *__GC_ALLOC_JA_C(int size) { return __gcHeap->AllocCustomSize<JA_C>(sizeof(JA_C) + INLINE_ARRAYS_OFFSET + (size * sizeof(int16_t)), size); }
+	JA_S *__GC_ALLOC_JA_S(int size) { return __gcHeap->AllocCustomSize<JA_S>(sizeof(JA_S) + INLINE_ARRAYS_OFFSET + (size * sizeof(int16_t)), size); }
+	JA_I *__GC_ALLOC_JA_I(int size) { return __gcHeap->AllocCustomSize<JA_I>(sizeof(JA_I) + INLINE_ARRAYS_OFFSET + (size * sizeof(int32_t)), size); }
+	JA_J *__GC_ALLOC_JA_J(int size) { return __gcHeap->AllocCustomSize<JA_J>(sizeof(JA_J) + INLINE_ARRAYS_OFFSET + (size * sizeof(int64_t)), size); }
+	JA_F *__GC_ALLOC_JA_F(int size) { return __gcHeap->AllocCustomSize<JA_F>(sizeof(JA_F) + INLINE_ARRAYS_OFFSET + (size * sizeof(float32_t)), size); }
+	JA_D *__GC_ALLOC_JA_D(int size) { return __gcHeap->AllocCustomSize<JA_D>(sizeof(JA_D) + INLINE_ARRAYS_OFFSET + (size * sizeof(float64_t)), size); }
+	JA_L *__GC_ALLOC_JA_L(int size, const wchar_t *desc) { return __gcHeap->AllocCustomSize<JA_L>(sizeof(JA_L) + INLINE_ARRAYS_OFFSET + (size * sizeof(void *)), size,  (wchar_t *)desc); }
 #else
-	JA_Z *__GC_ALLOC_JA_Z(int size) { return __gcHeap.Alloc<JA_Z>(size); }
-	JA_B *__GC_ALLOC_JA_B(int size) { return __gcHeap.Alloc<JA_B>(size); }
-	JA_C *__GC_ALLOC_JA_C(int size) { return __gcHeap.Alloc<JA_C>(size); }
-	JA_S *__GC_ALLOC_JA_S(int size) { return __gcHeap.Alloc<JA_S>(size); }
-	JA_I *__GC_ALLOC_JA_I(int size) { return __gcHeap.Alloc<JA_I>(size); }
-	JA_J *__GC_ALLOC_JA_J(int size) { return __gcHeap.Alloc<JA_J>(size); }
-	JA_F *__GC_ALLOC_JA_F(int size) { return __gcHeap.Alloc<JA_F>(size); }
-	JA_D *__GC_ALLOC_JA_D(int size) { return __gcHeap.Alloc<JA_D>(size); }
-	JA_L *__GC_ALLOC_JA_L(int size, const wchar_t *desc) { return __gcHeap.Alloc<JA_L>(size, (wchar_t *)desc); }
+	JA_Z *__GC_ALLOC_JA_Z(int size) { return __gcHeap->Alloc<JA_Z>(size); }
+	JA_B *__GC_ALLOC_JA_B(int size) { return __gcHeap->Alloc<JA_B>(size); }
+	JA_C *__GC_ALLOC_JA_C(int size) { return __gcHeap->Alloc<JA_C>(size); }
+	JA_S *__GC_ALLOC_JA_S(int size) { return __gcHeap->Alloc<JA_S>(size); }
+	JA_I *__GC_ALLOC_JA_I(int size) { return __gcHeap->Alloc<JA_I>(size); }
+	JA_J *__GC_ALLOC_JA_J(int size) { return __gcHeap->Alloc<JA_J>(size); }
+	JA_F *__GC_ALLOC_JA_F(int size) { return __gcHeap->Alloc<JA_F>(size); }
+	JA_D *__GC_ALLOC_JA_D(int size) { return __gcHeap->Alloc<JA_D>(size); }
+	JA_L *__GC_ALLOC_JA_L(int size, const wchar_t *desc) { return __gcHeap->Alloc<JA_L>(size, (wchar_t *)desc); }
 #endif
 
 

@@ -3,6 +3,7 @@
 *.iml
 *.versionsBackup
 *.java-e
+*.hprof
 .DS_Store
 /target/
 /build/

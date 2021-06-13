@@ -1,5 +1,5 @@
 plugins {
-    kotlin("multiplatform") version "1.4.31"
+    kotlin("multiplatform") version "1.5.20-RC"
 }
 group = "me.soywi"
 version = "1.0-SNAPSHOT"

@@ -239,7 +239,7 @@ struct __GCArrayMemory {
 	}
 };
 
-thread_local __GCArrayMemory __gcArrayMemory;
+//thread_local __GCArrayMemory __gcArrayMemory;
 
 struct __GCMemoryBlocks {
 	void *minptr = nullptr;
@@ -613,7 +613,7 @@ struct __GCHeap {
     };
 };
 
-thread_local __GCHeap __gcHeap;
+thread_local __GCHeap* __gcHeap = new __GCHeap();
 
 #ifdef ENABLE_STACK_OPTIMIZATION
 struct __GCVisitorStack : public __GCVisitor {
@@ -636,13 +636,13 @@ void __GC::__GC_setOnHeap() {
 
 struct __GCThread {
     __GCThread(void **ptr) {
-        __gcHeap.RegisterCurrentThread(ptr);
+        __gcHeap->RegisterCurrentThread(ptr);
         #if __TRACE_GC
         std::cout << "GcThread\n";
         #endif
     }
     ~__GCThread() {
-        __gcHeap.UnregisterCurrentThread();
+        __gcHeap->UnregisterCurrentThread();
         #if __TRACE_GC
         std::cout << "~GcThread\n";
         #endif
@@ -682,19 +682,19 @@ inline void __GC_SET_FIELD_OBJ(__GC *container, T &lvalue, T value) {
 }
 
 #define __GC_REGISTER_THREAD() void *__current_gc_thread_base = nullptr; __GCThread __current_gc_thread(&__current_gc_thread_base);
-#define __GC_GC __gcHeap.GC
-#define __GC_SHOW_STATS __gcHeap.ShowStats
-#define __GC_ALLOC __gcHeap.Alloc
-#define __GC_ADD_ROOT(v) __gcHeap.AddRoot((__GC**)v);
-//#define __GC_ADD_ROOT_NAMED(name, v) __gcHeap.AddRoot(name, (__GC**)v);
-//#define __GC_ADD_ROOT_CONSTANT(name, v) __gcHeap.AddRoot(name, (__GC**)v);
-#define __GC_ADD_ROOT_NAMED(name, v) __gcHeap.AddRoot((__GC**)v);
-#define __GC_ADD_ROOT_CONSTANT(name, v) __gcHeap.AddRoot((__GC**)v);
-#define __GC_ENABLE __gcHeap.Enable
-#define __GC_DISABLE __gcHeap.Disable
+#define __GC_GC __gcHeap->GC
+#define __GC_SHOW_STATS __gcHeap->ShowStats
+#define __GC_ALLOC __gcHeap->Alloc
+#define __GC_ADD_ROOT(v) __gcHeap->AddRoot((__GC**)v);
+//#define __GC_ADD_ROOT_NAMED(name, v) __gcHeap->AddRoot(name, (__GC**)v);
+//#define __GC_ADD_ROOT_CONSTANT(name, v) __gcHeap->AddRoot(name, (__GC**)v);
+#define __GC_ADD_ROOT_NAMED(name, v) __gcHeap->AddRoot((__GC**)v);
+#define __GC_ADD_ROOT_CONSTANT(name, v) __gcHeap->AddRoot((__GC**)v);
+#define __GC_ENABLE __gcHeap->Enable
+#define __GC_DISABLE __gcHeap->Disable
 #define GC_gcollect __GC_GC
-#define GC_get_free_bytes __gcHeap.GetFreeBytes
-#define GC_get_total_bytes __gcHeap.GetTotalBytes
+#define GC_get_free_bytes __gcHeap->GetFreeBytes
+#define GC_get_total_bytes __gcHeap->GetTotalBytes
 #define GC_init_pre_thread __GC_REGISTER_THREAD
 #define GC_init_thread() { }
 #define GC_finish_thread() { }

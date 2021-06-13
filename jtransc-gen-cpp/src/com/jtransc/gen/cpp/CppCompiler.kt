@@ -84,11 +84,14 @@ object CppCompiler {
 		}
 	}
 
+	// "c:\Users\soywi\.konan\dependencies\msys2-mingw-w64-x86_64-clang-llvm-lld-compiler_rt-8.0.1\bin\clang++.exe" -std=c++11 -Wno-parentheses-equality -static -O3 program.cpp -o program.exe -Wno-unused-value
 	object CLANG : BaseCompiler("clang++") {
 		override fun genCommand(programFile: File, config: Config): List<String> {
 			val cmdAndArgs = arrayListOf<String>()
 			cmdAndArgs += cmd!!
 			if (JTranscSystem.isWindows()) cmdAndArgs += "-fms-compatibility-version=19.00"
+			cmdAndArgs += "-Wno-writable-strings"
+			cmdAndArgs += "-Wno-unused-value"
 			cmdAndArgs += "-Wno-parentheses-equality"
 			cmdAndArgs += "-Wimplicitly-unsigned-literal"
 			cmdAndArgs += programFile.absolutePath
