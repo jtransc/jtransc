@@ -10,6 +10,6 @@ fun File.ensureExists() {
 
 fun ClassLoader.getResourceBytes(name: String): ByteArray {
 	return this.getResourceAsStream(name).use { stream ->
-		stream.readBytes(stream.available())
+		stream.readBytes()
 	}
 }

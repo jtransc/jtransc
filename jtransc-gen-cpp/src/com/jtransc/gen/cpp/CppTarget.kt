@@ -149,7 +149,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 	}
 
 	override val allowAssignItself = true
-	val lastClassId = program.classes.map { it.classId }.max() ?: 0
+	val lastClassId = program.classes.map { it.classId }.maxOrNull() ?: 0
 
 	fun generateTypeTableHeader() = Indenter {
 		line("struct TYPE_INFO", after2 = ";") {
@@ -348,7 +348,7 @@ class CppGenerator(injector: Injector) : CommonGenerator(injector) {
 
 		val STRINGS = Indenter {
 			val globalStrings = getGlobalStrings()
-			val maxGlobalStrings = globalStrings.map { it.id }.max()?.plus(1) ?: 0
+			val maxGlobalStrings = globalStrings.map { it.id }.maxOrNull()?.plus(1) ?: 0
 			line("__GC_thread_local static void* STRINGS_START = nullptr;")
 			line("__GC_thread_local static ${JAVA_LANG_STRING_FQ.targetNameRef} STRINGLIT[$maxGlobalStrings] = {0};")
 			line("__GC_thread_local static void* STRINGS_END = nullptr;")

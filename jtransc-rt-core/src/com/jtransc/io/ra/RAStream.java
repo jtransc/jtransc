@@ -133,16 +133,29 @@ abstract public class RAStream {
 	}
 
 	public String readStringz(int count, Charset charset) {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ByteArrayOutputStream out = new ByteArrayOutputStream(count * 4);
 
 		while (count > 0) {
-			int c = this.readS8_LE();
+			int c = this.readU8_LE();
 			count--;
-			if (c <= 0) break;
+			if (c == 0) break;
+			if (this.eof()) break;
 			out.write(c);
 		}
 
 		skip(count);
+
+		return new String(out.toByteArray(), charset);
+	}
+
+	public String readString(int count, Charset charset) {
+		ByteArrayOutputStream out = new ByteArrayOutputStream(count);
+
+		while (count > 0) {
+			int c = this.readU8_LE();
+			count--;
+			out.write(c);
+		}
 
 		return new String(out.toByteArray(), charset);
 	}

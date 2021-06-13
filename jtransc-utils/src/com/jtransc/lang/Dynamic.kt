@@ -208,7 +208,7 @@ object Dynamic {
 	}
 
 	fun String?.parseInt(): Int = this?.parseDouble()?.toInt() ?: 0
-	fun String?.parseShort(): Short = this?.parseDouble()?.toShort() ?: 0
+	fun String?.parseShort(): Short = this?.parseDouble()?.toInt()?.toShort() ?: 0
 	fun String?.parseLong(): Long = try {
 		this?.toLong()
 	} catch (e: Throwable) {

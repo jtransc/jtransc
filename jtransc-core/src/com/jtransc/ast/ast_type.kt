@@ -370,9 +370,9 @@ fun _castLiteral(value: Long, to: AstType): Any = when (to) {
 
 fun _castLiteral(value: Float, to: AstType): Any = when (to) {
 	AstType.BOOL -> value.toBool()
-	AstType.BYTE -> value.toByte()
-	AstType.CHAR -> value.toChar()
-	AstType.SHORT -> value.toShort()
+	AstType.BYTE -> value.toInt().toByte()
+	AstType.CHAR -> value.toInt().toChar()
+	AstType.SHORT -> value.toInt().toShort()
 	AstType.INT -> value.toInt()
 	AstType.LONG -> value.toLong()
 	AstType.FLOAT -> value.toFloat()
@@ -382,9 +382,9 @@ fun _castLiteral(value: Float, to: AstType): Any = when (to) {
 
 fun _castLiteral(value: Double, to: AstType): Any = when (to) {
 	AstType.BOOL -> value.toBool()
-	AstType.BYTE -> value.toByte()
-	AstType.CHAR -> value.toChar()
-	AstType.SHORT -> value.toShort()
+	AstType.BYTE -> value.toInt().toByte()
+	AstType.CHAR -> value.toInt().toChar()
+	AstType.SHORT -> value.toInt().toShort()
 	AstType.INT -> value.toInt()
 	AstType.LONG -> value.toLong()
 	AstType.FLOAT -> value.toFloat()

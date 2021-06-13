@@ -97,7 +97,7 @@ fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
 				val internalAttributes = readU16_LE()
 				val externalAttributes = readS32_LE()
 				val headerOffset = readS32_LE()
-				val name = readStringz(fileNameLength, Charsets.UTF_8)
+				val name = readString(fileNameLength, Charsets.UTF_8)
 				val extra = readBytes(extraLength)
 
 				val isDirectory = name.endsWith("/")
@@ -160,7 +160,7 @@ fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
 				val uncompressedSize = readS32_LE()
 				val fileNameLength = readU16_LE()
 				val extraLength = readU16_LE()
-				val name = readStringz(fileNameLength, Charsets.UTF_8)
+				val name = readString(fileNameLength, Charsets.UTF_8)
 				val extra = readBytesExact(extraLength)
 				val compressedData = readBytesExact(entry.compressedSize.toInt())
 
@@ -192,7 +192,7 @@ fun ZipVfs(s: RAStream, zipFile: SyncVfsFile? = null): SyncVfsFile {
 				val uncompressedSize = readS32_LE()
 				val fileNameLength = readU16_LE()
 				val extraLength = readU16_LE()
-				val name = readStringz(fileNameLength, Charsets.UTF_8)
+				val name = readString(fileNameLength, Charsets.UTF_8)
 				val extra = readBytes(extraLength)
 				val compressedData = readSlice(entry.compressedSize)
 
